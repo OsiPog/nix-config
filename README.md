@@ -14,7 +14,7 @@ This is the NixOS flake which defines the system on all of my devices running Ni
 
 ## Rotating ssh keys
 
-1. Temporarily decrypt the secrets file: `sudo sops --decrypt secrets/biome-fest.yaml > /tmp/decrypted; mv /tmp/decrypted secrets/biome-fest.yaml`
+1. Temporarily decrypt the secrets file: `sudo sops --decrypt --in-place secrets/biome-fest.yaml`
 
 2. Backup current SSH key: `sudo cp /etc/ssh/id_ed25519 /etc/ssh/id_ed25519_old`
 
@@ -28,4 +28,4 @@ This is the NixOS flake which defines the system on all of my devices running Ni
 
 7. Put the new age key into .sops.yaml to the correct host
 
-6. encrypt the secrets file again: `sudo sops --encrypt secrets/biome-fest.yaml > /tmp/encrypted; mv /tmp/encrypted secrets/biome-fest.yaml`
+6. encrypt the secrets file again: `sudo sops --encrypt --in-place secrets/biome-fest.yaml`

@@ -1,12 +1,7 @@
 keys:
   - &biome-fest age1ak36zs98fj3eu3ysuc7krzh44fx5t6sf0plvqmmg3z0mqpg2vp5qqkvr4y
-  - &haunt-muskie age1px2l9q9xnuh8dq06rp7dmhpzc7cww9uc70ph8g8ek9ahl3tgsq6shqujrp
 creation_rules:
   - path_regex: biome-fest/secrets.yaml$
     key_groups:
     - age:
       - *biome-fest
-  - path_regex: haunt-muskie.yaml$
-    key_groups:
-    - age:
-      - *haunt-muskie

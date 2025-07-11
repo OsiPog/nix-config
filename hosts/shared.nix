@@ -1,6 +1,7 @@
 {
   pkgs,
   lib,
+  config,
   self,
   inputs,
   ...
@@ -49,6 +50,10 @@ in {
       }
     )
   ];
+
+  # --- ROOT USER
+  sops.secrets."pass-hashes/root" = {neededForUsers = true;};
+  users.users.root.hashedPasswordFile = config.getSopsFile "pass-hashes/root";
 
   # --- HOME MANAGER
   home-manager = {

@@ -7,6 +7,8 @@
   age,
   sshpass,
   nixos-anywhere,
+  mustache-go,
+  pwgen,
   ...
 }:
 writeShellApplication {
@@ -20,6 +22,8 @@ writeShellApplication {
     sops
     sshpass
     nixos-anywhere
+    mustache-go
+    pwgen
   ];
 
   text = ''
