@@ -13,9 +13,9 @@ const HOSTNAMES = [
 ]
 
 # Creates a new host.
-export def "main create" [ ] {
+export def "main create" [ --hostname: string ] {
     # --- DECIDE NEW HOSTNAME AND VPN IP ADDRESS
-    let NEW_HOSTNAME = $HOSTNAMES 
+    let NEW_HOSTNAME = $hostname | default ($HOSTNAMES 
         | where {|hostname| 
             ^nix flake show --quiet --quiet --json
                 | from json
@@ -25,6 +25,7 @@ export def "main create" [ ] {
                 | is-empty
         }
         | first
+    )
     let NEW_IP_ADDRESS = ls hosts --short-names
       | where {$in.type == "dir"}
       | get name

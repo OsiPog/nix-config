@@ -52,6 +52,10 @@ in {
           URL = "https://accounts.spotify.com/en/login?allow_password=1&continue=https%3A%2F%2Fopen.spotify.com";
         }
         {
+          Title = "Discord";
+          URL = "https://discord.com/app";
+        }
+        {
           Title = "DuckDuckGo";
           URL = "https://duckduckgo.com/";
         }

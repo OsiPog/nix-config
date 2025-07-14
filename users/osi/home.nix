@@ -48,6 +48,7 @@
 
     # private
     uni
+    work
   ];
 
   programs.gpg.publicKeys = [

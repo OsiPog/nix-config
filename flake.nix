@@ -63,6 +63,11 @@
       url = "git+https://codeberg.org/QuincePie/matcha";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Fix for command not found
+    flake-programs-sqlite = {
+      url = "github:wamserma/flake-programs-sqlite";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # --- Hardware-Specific
     # Customized build of libfprint to make my laptops fingerprint reader work

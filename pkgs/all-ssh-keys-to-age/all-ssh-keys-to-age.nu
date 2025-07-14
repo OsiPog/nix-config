@@ -1,6 +1,8 @@
 def main [ ssh_key_dir: string = /etc/ssh age_keys_file: string = /root/.config/sops/age/keys.txt ] { 
     if (^bash -c 'echo $EUID') != "0" {error make { msg: "This command must be run as sudo." }}
 
+    mkdir (^dirname $age_keys_file)
+
     ls $ssh_key_dir
         # only filenames
         | get name

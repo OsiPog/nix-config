@@ -12,6 +12,7 @@ in {
   imports = with inputs; [
     home-manager.nixosModules.default
     nixos-facter-modules.nixosModules.facter
+    flake-programs-sqlite.nixosModules.programs-sqlite
   ];
 
   # --- NIX SETTINGS AND OPTIONS
@@ -53,7 +54,13 @@ in {
 
   # --- ROOT USER
   sops.secrets."pass-hashes/root" = {neededForUsers = true;};
-  users.users.root.hashedPasswordFile = config.getSopsFile "pass-hashes/root";
+  users.users.root.hashedPasswordFile = lib.mkDefault (config.getSopsFile "pass-hashes/root");
+
+  # --- SSH
+  # set id_ed25519 as default ssh key
+  environment.etc."ssh/sshd_config".text = ''
+    HostKey /etc/ssh/id_ed25519
+  '';
 
   # --- HOME MANAGER
   home-manager = {

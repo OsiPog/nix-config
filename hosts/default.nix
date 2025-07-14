@@ -67,18 +67,6 @@ in
               (other: hosts.${other}.ssh.public-key)
               host.meta.ssh.allow-connections-from;
 
-            # Set up ssh keys, you should be able to ssh into another host using its hostname at all times
-            programs.ssh.extraConfig = pipe hosts [
-              attrNames
-              (map (hostname: ''
-                Host ${hostname}
-                  HostName ${hostname}
-                  IdentityFile /etc/ssh/id_ed25519
-                  IdentitiesOnly Yes
-              ''))
-              concatLines
-            ];
-
             # Add an entry for each host in /etc/hosts with their respective ip address
             networking.hosts = pipe hosts [
               attrsToList

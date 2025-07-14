@@ -49,8 +49,14 @@ in {
     # SSH keys found in /etc/ssh
     system.activationScripts = lib.mkIf (config.sops.secrets != {}) {
       generateAgeKeysFromSSH.text = lib.getExe self.packages.${pkgs.system}.all-ssh-keys-to-age;
-      setupSecretsForUsers.deps = ["generateAgeKeysFromSSH"];
-      setupSecrets.deps = ["generateAgeKeysFromSSH"];
+      setupSecretsForUsers = {
+        deps =  ["generateAgeKeysFromSSH"];
+        text = lib.mkDefault "exit";
+      };
+      setupSecrets = {
+        deps = ["generateAgeKeysFromSSH"];
+        text = lib.mkDefault "exit";
+      };
     };
 
     # Simulate the a home manager module for sops nix. Actually the secrets are imported through the system
