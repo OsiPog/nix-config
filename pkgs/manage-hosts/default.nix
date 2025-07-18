@@ -9,6 +9,7 @@
   nixos-anywhere,
   mustache-go,
   pwgen,
+  nixos-facter,
   ...
 }:
 writeShellApplication {
@@ -24,6 +25,7 @@ writeShellApplication {
     nixos-anywhere
     mustache-go
     pwgen
+    nixos-facter
   ];
 
   text = ''

@@ -2,9 +2,8 @@ self: let
   inherit (self.inputs.nixpkgs) lib;
 
   inherit (builtins) readDir attrNames listToAttrs;
-  inherit (lib) pipe nixosSystem;
+  inherit (lib) pipe nixosSystem mkForce;
   inherit (lib.attrsets) attrsToList recursiveUpdate filterAttrs;
-  inherit (lib.strings) concatLines;
 
   metaDefaults = {
     ip-address = "127.0.0.1";
@@ -28,8 +27,8 @@ self: let
 
     listToAttrs
   ];
-in
-  pipe hosts [
+
+  nixosConfigurations = pipe hosts [
     attrsToList
     (map (e: {
       inherit (e) name;
@@ -85,4 +84,25 @@ in
     }))
 
     listToAttrs
-  ]
+  ];
+
+  # The same configurations as above but without secrets
+  nixosConfigurationsWithoutSecrets = pipe nixosConfigurations [
+    attrsToList
+    (map ({
+      name,
+      value,
+    }: {
+      name = name + "-without-secrets";
+      value = value.extendModules {
+        modules = [
+          {
+            sops.secrets = lib.mkForce {};
+          }
+        ];
+      };
+    }))
+    listToAttrs
+  ];
+in
+  nixosConfigurations // nixosConfigurationsWithoutSecrets

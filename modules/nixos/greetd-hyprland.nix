@@ -1,6 +1,6 @@
 {
   pkgs,
-  lib,
+  config,
   ...
 }: {
   programs.hyprland.enable = true;
@@ -10,13 +10,10 @@
     settings = {
       # user needs to authenticate on relogin
       default_session = {
-        command = ''          ${lib.getExe pkgs.greetd.tuigreet} \
-                    --greeting 'Welcome to NixOS!' \
-                    --asterisks \
-                    --remember \
-                    --remember-user-session \
-                    --time \
-                    --cmd Hyprland'';
+        # https://ryjelsum.me/homelab/greetd-session-choose/
+        command = ''${pkgs.greetd.tuigreet}/bin/tuigreet \
+        --sessions ${config.services.xserver.displayManager.sessionData.desktops}/share/xsessions:${config.services.xserver.displayManager.sessionData.desktops}/share/wayland-sessions \
+        --remember --remember-user-session'';
         user = "greeter";
       };
     };

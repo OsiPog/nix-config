@@ -65,7 +65,7 @@ export def "main create" [ --hostname: string ] {
     # --- ADD ROOT PASSWORD TO SECRETS FILE
     let ROOT_PASS = (^pwgen -s 16 1)
     print $"The root password is: ($ROOT_PASS)"
-    {"pass-hashes": {"root": $ROOT_PASS}} | to yaml
+    {"pass-hashes": {"root": ($ROOT_PASS | mkpasswd --stdin)}} | to yaml
       | ^sudo sops encrypt --filename-override $"($HOST_DIR)/secrets.yaml"
       | save $"($HOST_DIR)/secrets.yaml"
 

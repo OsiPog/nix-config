@@ -6,7 +6,7 @@
   self,
   ...
 }: let
-  inherit (builtins) listToAttrs;
+  inherit (builtins) listToAttrs warn toFile replaceStrings;
   inherit (lib) pipe attrsToList mkOption flatten;
 
   hmSecretName = userName: name: "hm-secrets/${userName}/${name}";
@@ -17,15 +17,16 @@ in {
   ];
 
   options.getSopsFile = lib.mkOption {
-    description = "A helper function to get the path to a sops secret.";
+    description = "A wrapper function to get the path to a sops secret.";
   };
   config = {
-    getSopsFile =
-      name: config.sops.secrets.${name}.path
-      /*
-      or (toFile name "")
-      */
-      ;
+    getSopsFile = name:
+      config.sops.secrets.${
+        name
+      }.path or (
+        warn "A sops-nix secret with the name ${name} is not defined"
+        (toFile ("undefined-secret-" + (replaceStrings ["/"] ["-"] name)) "")
+      );
 
     environment.systemPackages = with pkgs; [
       sops
@@ -49,8 +50,9 @@ in {
     # SSH keys found in /etc/ssh
     system.activationScripts = lib.mkIf (config.sops.secrets != {}) {
       generateAgeKeysFromSSH.text = lib.getExe self.packages.${pkgs.system}.all-ssh-keys-to-age;
+      # The actual sops scripts need to run after the generateAgeKeys script
       setupSecretsForUsers = {
-        deps =  ["generateAgeKeysFromSSH"];
+        deps = ["generateAgeKeysFromSSH"];
         text = lib.mkDefault "exit";
       };
       setupSecrets = {
@@ -72,7 +74,7 @@ in {
             description = "The content of this option passed to the NixOS sops.secrets option";
           };
           getSopsFile = lib.mkOption {
-            description = "A helper function to get the path to a sops secret.";
+            description = "A wrapper function to get the path to a sops secret.";
           };
         };
         # Create a wrapper for the getSopsFile function that looks for the correct name

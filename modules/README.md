@@ -10,5 +10,5 @@ The single modules in the respective module directories can be organized arbitra
 
 - Do not heavily rely on module options that are not present in upstream NixOS or Home Manager
 - If you do rely on such custom options import the necessary modules from the flake using the `imports` attribute.
-- Do not assume a certain option is already set by another module
-  - But there can be exceptions (though it should be obvious where the dependencies lie), for example `modules/hm/hyprland/touch.nix` obviously depends on Hyprland being enabled by `modules/hm/hyprland/default.nix`
+- Do not assume a certain option is already modified by another module, when writing a module always pretend all options use the default values from nixpkgs/Home Manager
+

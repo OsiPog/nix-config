@@ -4,6 +4,8 @@ def main [ ssh_key_dir: string = /etc/ssh age_keys_file: string = /root/.config/
     mkdir (^dirname $age_keys_file)
 
     ls $ssh_key_dir
+        # only files
+        | where {$in.type != "dir"}
         # only filenames
         | get name
         | where {(open $in) =~ "OPENSSH PRIVATE KEY"}

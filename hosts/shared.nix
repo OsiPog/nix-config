@@ -52,14 +52,19 @@ in {
     )
   ];
 
-  # --- ROOT USER
+  # --- USERS
+  # Root user has a default password
   sops.secrets."pass-hashes/root" = {neededForUsers = true;};
   users.users.root.hashedPasswordFile = lib.mkDefault (config.getSopsFile "pass-hashes/root");
 
+  # immutable users
+  users.mutableUsers = false;
+
   # --- SSH
   # set id_ed25519 as default ssh key
-  environment.etc."ssh/sshd_config".text = ''
-    HostKey /etc/ssh/id_ed25519
+  programs.ssh.extraConfig = lib.mkAfter ''
+    Host *
+      IdentityFile /etc/ssh/id_ed25519
   '';
 
   # --- HOME MANAGER
