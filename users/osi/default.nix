@@ -19,6 +19,8 @@ in {
   ];
 
   programs.hyprland.enable = true;
+  
+  services.desktopManager.plasma6.enable = true;
 
   # Enable sudo for user
   users.users.${username}.extraGroups = ["wheel"];
