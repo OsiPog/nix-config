@@ -27,10 +27,10 @@ in {
 
   services.greetd.settings = {
     # Run hyprland on boot (autologin)
-    initial_session = {
-      command = "Hyprland";
-      user = username;
-    };
+    # initial_session = {
+    #   command = "Hyprland";
+    #   user = username;
+    # };
   };
 
   # Home Manager configuration
