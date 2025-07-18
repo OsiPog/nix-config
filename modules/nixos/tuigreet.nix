@@ -3,9 +3,6 @@
   config,
   ...
 }: {
-  environment.systemPackages = [ pkgs.xorg.xauth ];
-  services.xserver.displayManager.startx.enable = true;
-
   services.greetd = {
     enable = true;
     settings = {

@@ -19,18 +19,16 @@ in {
   ];
 
   programs.hyprland.enable = true;
-  
-  services.desktopManager.plasma6.enable = true;
 
   # Enable sudo for user
   users.users.${username}.extraGroups = ["wheel"];
 
   services.greetd.settings = {
     # Run hyprland on boot (autologin)
-    # initial_session = {
-    #   command = "Hyprland";
-    #   user = username;
-    # };
+    initial_session = {
+      command = "Hyprland";
+      user = username;
+    };
   };
 
   # Home Manager configuration
