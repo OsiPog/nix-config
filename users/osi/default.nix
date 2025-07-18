@@ -11,7 +11,6 @@ in {
   imports = with self.nixosModules;
   with inputs.nix-config-private.nixosModules; [
     theme-prismarine
-    greetd-hyprland
 
     # private
     uni-vpn
@@ -19,13 +18,15 @@ in {
     (mkUserModule username)
   ];
 
+  programs.hyprland.enable = true;
+
   # Enable sudo for user
   users.users.${username}.extraGroups = ["wheel"];
 
   services.greetd.settings = {
     # Run hyprland on boot (autologin)
     initial_session = {
-      command = "${pkgs.hyprland}/bin/Hyprland";
+      command = "Hyprland";
       user = username;
     };
   };

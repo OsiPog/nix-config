@@ -14,6 +14,7 @@
     sound
     speicherfresser
     steam
+    tuigreet
 
     "${self}/users/osi"
   ];
