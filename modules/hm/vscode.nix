@@ -32,7 +32,7 @@ in {
   ] (type: "codium.desktop");
 
   programs.vscode = {
-    enable = true;
+    enable = false;
     package = pkgs.vscodium.overrideAttrs (prev:
       with builtins;
       with lib.strings; {
