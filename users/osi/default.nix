@@ -1,7 +1,7 @@
 {
   self,
   inputs,
-  lib,
+  config,
   ...
 }: let
   inherit (self.lib) mkUserModule;
@@ -18,10 +18,16 @@ in {
     (mkUserModule username)
   ];
 
+  sops.secrets."pass-hashes/osi" = {neededForUsers = true;};
+
   programs.hyprland.enable = true;
 
-  # Enable sudo for user
-  users.users.${username}.extraGroups = ["wheel"];
+  users.users.${username} = {
+    # Enable sudo for user
+    extraGroups = ["wheel"];
+    # password
+    hashedPasswordFile = config.getSopsFile "pass-hashes/osi";
+  };
   # Allow the user to use the host ssh key
   system.activationScripts."copy-host-key-to-${username}".text = ''
     cp /etc/ssh/id_ed25519 /home/${username}/.ssh/id_ed25519

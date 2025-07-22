@@ -72,6 +72,7 @@ in {
         options = {
           sops.secrets = mkOption {
             description = "The content of this option passed to the NixOS sops.secrets option";
+            default = {};
           };
           getSopsFile = lib.mkOption {
             description = "A wrapper function to get the path to a sops secret.";
