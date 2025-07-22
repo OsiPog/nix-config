@@ -27,7 +27,7 @@ export def --wrapped "main install" [hostname: string target_host: string ...res
     $env.NIX_SSHOPTS = "-o StrictHostKeyChecking=no"
     (^sudo "-E" 
         "nixos-rebuild" "switch" 
-        "--flake" ".#haunt-muskie" 
+        "--flake" $".#($hostname)" 
         "--target-host" $target_host
         "--build-host" $target_host
     )

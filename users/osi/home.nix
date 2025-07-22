@@ -57,4 +57,9 @@
       source = ./0x675D2CB5013E8731.pub;
     }
   ];
+
+  programs.ssh.extraConfig = ''
+    Host *
+      IdentityFile ~/.ssh/id_ed25519  
+  '';
 }

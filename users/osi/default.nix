@@ -1,7 +1,7 @@
 {
   self,
   inputs,
-  pkgs,
+  lib,
   ...
 }: let
   inherit (self.lib) mkUserModule;
@@ -22,6 +22,11 @@ in {
 
   # Enable sudo for user
   users.users.${username}.extraGroups = ["wheel"];
+  # Allow the user to use the host ssh key
+  system.activationScripts."copy-host-key-to-${username}".text = ''
+    cp /etc/ssh/id_ed25519 /home/${username}/.ssh/id_ed25519
+    chown ${username} /home/${username}/.ssh/id_ed25519
+  '';
 
   services.greetd.settings = {
     # Run hyprland on boot (autologin)

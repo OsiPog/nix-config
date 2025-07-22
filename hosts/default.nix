@@ -2,7 +2,7 @@ self: let
   inherit (self.inputs.nixpkgs) lib;
 
   inherit (builtins) readDir attrNames listToAttrs;
-  inherit (lib) pipe nixosSystem mkForce;
+  inherit (lib) pipe nixosSystem;
   inherit (lib.attrsets) attrsToList recursiveUpdate filterAttrs;
 
   metaDefaults = {
