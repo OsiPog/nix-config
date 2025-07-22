@@ -11,8 +11,8 @@
       src = pkgs.fetchFromGitHub {
         owner = "oh-my-fish";
         repo = "theme-cbjohnson";
-        rev = "e3b4d4eafc23516e35f162686f08a42edf844e40";
-        sha256 = "sha256-cXOYvdn74H4rkMWSC7G6bT4wa9d3/3vRnKed2ixRnuA=";
+        rev = "6b5ddf3f332bd4eaebe3d57fc1a1f41dc8423bd2";
+        sha256 = "sha256-uTqMTJIVcJ5XEEpcBZKIS059T0OSXdZl0sUPSA0iqa4=";
       };
     }
   ];
