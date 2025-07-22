@@ -1,10 +1,8 @@
 {
   pkgs,
-  lib,
-  config,
   ...
 }: {
-  programs.fish.plugins = lib.mkIf config.programs.fish.enable [
+  programs.fish.plugins = [
     # A nice theme
     {
       name = "theme";

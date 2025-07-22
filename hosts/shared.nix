@@ -78,8 +78,19 @@ in {
         programs.ssh.enable = true;
         # As home manager is installed on each system the same time as home manager the state version is the same
         home.stateVersion = nixosConfig.system.stateVersion;
+        programs.fish.enable = true;
       })
     ];
+  };
+
+  # Default shell
+  users.defaultUserShell = pkgs.fish;
+  programs.fish = {
+    enable = true;
+    interactiveShellInit = ''
+      # disable the greeting
+      set fish_greeting
+    '';
   };
 
   # --- ESSENTIAL PACKAGES
@@ -123,16 +134,6 @@ in {
     xkb.options = "grp:win_space_toggle";
   };
   console.keyMap = "colemak";
-
-  # --- DEFAULT SHELL
-  programs.fish = {
-    enable = true;
-    interactiveShellInit = ''
-      # disable the greeting
-      set fish_greeting
-    '';
-  };
-  users.defaultUserShell = pkgs.fish;
 
   # --- BOOTLOADER
   boot.loader.systemd-boot = {

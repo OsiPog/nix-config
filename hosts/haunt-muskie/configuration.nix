@@ -2,6 +2,8 @@
   imports = with self.nixosModules; [
     disko-basic
 
+    theme-prismarine
+
     ../../users/leaf
   ];
 
