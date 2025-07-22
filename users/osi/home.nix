@@ -59,8 +59,8 @@
   ];
 
   programs.ssh.extraConfig = ''
-    Host *
-      IdentityFile ~/.ssh/id_ed25519
-      IdentitiesOnly yes  
+Host *
+  IdentityFile ~/.ssh/id_ed25519
+  IdentitiesOnly yes  
   '';
 }
