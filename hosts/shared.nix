@@ -60,13 +60,6 @@ in {
   # immutable users
   users.mutableUsers = false;
 
-  # --- SSH
-  # set id_ed25519 as default ssh key
-  programs.ssh.extraConfig = lib.mkAfter ''
-    Host *
-      IdentityFile /etc/ssh/id_ed25519
-  '';
-
   # --- HOME MANAGER
   home-manager = {
     extraSpecialArgs = {
