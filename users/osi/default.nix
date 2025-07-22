@@ -26,6 +26,7 @@ in {
   system.activationScripts."copy-host-key-to-${username}".text = ''
     cp /etc/ssh/id_ed25519 /home/${username}/.ssh/id_ed25519
     chown ${username} /home/${username}/.ssh/id_ed25519
+    rm --force /home/${username}/id_ed25519.pub
   '';
 
   services.greetd.settings = {
