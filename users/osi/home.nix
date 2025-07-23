@@ -29,8 +29,9 @@
     hyprland-workspaces
 
     # code editor
-    vscode
-    nvf
+    # vscode
+    # nvf
+    helix
 
     # web browser
     firefox
