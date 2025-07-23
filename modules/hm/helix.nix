@@ -50,6 +50,10 @@
             command = lib.getExe pkgs.alejandra;
             args = ["-q"];
           };
+          indent = {
+            tab-width = 2;
+            unit = "  ";
+          };
         }
         {
           name = "vue";
