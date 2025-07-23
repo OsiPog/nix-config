@@ -70,4 +70,7 @@
       ];
     };
   };
+
+
+  home.sessionVariables."EDITOR" = "hx";
 }
