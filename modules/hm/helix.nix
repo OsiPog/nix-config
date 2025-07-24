@@ -84,7 +84,7 @@
               name = "Listen for XDebug";
               request = "launch";
               completion = "ignored";
-              args = [];
+              # args = [];
             }];
           };
         }
