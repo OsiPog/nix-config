@@ -3,6 +3,7 @@
   lib,
   self,
   nixosConfig,
+  inputs,
   ...
 }: {
   programs.helix = {
@@ -17,6 +18,7 @@
         indent-guides.render = true;
         inline-diagnostics.cursor-line = "error";
         inline-diagnostics.other-lines = "error";
+        jump-label-alphabet = "arstneiodhqwfpluyzxcvm";
       };
     };
     languages = {
@@ -71,6 +73,18 @@
           };
         }
       ];
+      "language.debugger" = {
+        name = "vscode-php-debug";
+        transport = "stdio";
+        command = lib.getExe pkgs.nodejs;
+        args = [ (inputs.nix-vscode-extensions.extensions.${pkgs.system}.vscode-marketplace.xdebug.php-debug + "/share/vscode/extensions/xdebug.php-debug/out/phpDebug.js") ];
+      };
+      "language.debugger.templates" = {
+        name = "Listen for XDebug";
+        request = "launch";
+        completion = "ignored";
+        args = { };
+      };
     };
   };
 
