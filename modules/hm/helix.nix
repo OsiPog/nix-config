@@ -83,7 +83,7 @@
             templates = [{
               name = "Listen for XDebug";
               request = "launch";
-              completion = "ignored";
+              completion = ["ignored"];
               # args = [];
             }];
           };
