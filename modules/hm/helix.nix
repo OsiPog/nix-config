@@ -44,7 +44,7 @@
 
         # PHP
         phpactor = {
-          command = "phpactor";
+          command = lib.getExe pkgs.phpactor;
           args = ["language-server"];
         };
 
