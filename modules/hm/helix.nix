@@ -10,6 +10,8 @@
     enable = true;
     extraPackages = with pkgs; [
       nixd
+      typescript-language-server
+      phpactor
     ];
     settings = {
       editor = {
@@ -24,26 +26,19 @@
     };
     languages = {
       language-servers = {
-        typescript-language-server = with pkgs.nodePackages; {
-          command = lib.getExe typescript-language-server;
-          args = [ "--stdio" "--tsserver-path=${typescript}/lib/node_modules/typescript/lib" ];
-        };
-        nixd = {
-          command = lib.getExe pkgs.nixd;
-          config = let
-            flakeExpr = "(builtins.getFlake \'\'${self}\'\')";
-            pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
-            currentSystemExpr = flakeExpr + ".nixosConfigurations.${nixosConfig.networking.hostName}";
-          in {
-            formatting = {
-              command = ["${lib.getExe pkgs.alejandra}"];
-            };
-            nixpkgs.expr = pkgsExpr;
-            options = {
-              nixos.expr = "${currentSystemExpr}.options";
-              home-manager.expr = "${currentSystemExpr}.options.home-manager.users.type.getSubOptions {}";
-              devenv.expr = "${flakeExpr}.lib.devenv.allDevenvOptions";
-            };
+        nixd.config = let
+          flakeExpr = "(builtins.getFlake \'\'${self}\'\')";
+          pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
+          currentSystemExpr = flakeExpr + ".nixosConfigurations.${nixosConfig.networking.hostName}";
+        in {
+          formatting = {
+            command = ["${lib.getExe pkgs.alejandra}"];
+          };
+          nixpkgs.expr = pkgsExpr;
+          options = {
+            nixos.expr = "${currentSystemExpr}.options";
+            home-manager.expr = "${currentSystemExpr}.options.home-manager.users.type.getSubOptions {}";
+            devenv.expr = "${flakeExpr}.lib.devenv.allDevenvOptions";
           };
         };
       };
@@ -75,6 +70,7 @@
         }
         {
           name = "php";
+          language-servers = ["phpactor"];
           debugger = {
             name = "vscode-php-debug";
             transport = "stdio";
