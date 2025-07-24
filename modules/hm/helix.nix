@@ -8,11 +8,6 @@
 }: {
   programs.helix = {
     enable = true;
-    extraPackages = with pkgs; [
-      nixd
-      typescript-language-server
-      phpactor
-    ];
     settings = {
       editor = {
         line-number = "relative";
@@ -25,30 +20,41 @@
       };
     };
     languages = {
-      language-servers = {
-        nixd.config = let
-          flakeExpr = "(builtins.getFlake \'\'${self}\'\')";
-          pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
-          currentSystemExpr = flakeExpr + ".nixosConfigurations.${nixosConfig.networking.hostName}";
-        in {
-          formatting = {
-            command = ["${lib.getExe pkgs.alejandra}"];
-          };
-          nixpkgs.expr = pkgsExpr;
-          options = {
-            nixos.expr = "${currentSystemExpr}.options";
-            home-manager.expr = "${currentSystemExpr}.options.home-manager.users.type.getSubOptions {}";
-            devenv.expr = "${flakeExpr}.lib.devenv.allDevenvOptions";
+      language-server = {
+        # Nix
+        nil.command = lib.getExe pkgs.nil;
+        nixd = {
+          command = lib.getExe pkgs.nixd;
+          config = let
+            flakeExpr = "(builtins.getFlake \'\'${self}\'\')";
+            pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
+            currentSystemExpr = flakeExpr + ".nixosConfigurations.${nixosConfig.networking.hostName}";
+          in {
+            formatting = {
+              command = ["${lib.getExe pkgs.alejandra}"];
+            };
+            nixpkgs.expr = pkgsExpr;
+            options = {
+              nixos.expr = "${currentSystemExpr}.options";
+              home-manager.expr = "${currentSystemExpr}.options.home-manager.users.type.getSubOptions {}";
+              devenv.expr = "${flakeExpr}.lib.devenv.allDevenvOptions";
+            };
           };
         };
+
+        # PHP
         phpactor = {
           command = "phpactor";
           args = ["language-server"];
         };
+
+        # Javascript/Typescript/Vue
+        typescript-language-server.command = lib.getExe pkgs.typescript-language-server;
       };
       language = [
         {
           name = "nix";
+          language-servers = ["nixd" "nil"];
           file-types = ["nix"];
           auto-format = false;
           formatter = {
@@ -74,6 +80,7 @@
         }
         {
           name = "php";
+          file-types = ["php"];
           language-servers = ["phpactor"];
           debugger = {
             name = "vscode-php-debug";
