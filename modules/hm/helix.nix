@@ -80,12 +80,12 @@
             transport = "stdio";
             command = lib.getExe pkgs.nodejs;
             args = [ (inputs.nix-vscode-extensions.extensions.${pkgs.system}.vscode-marketplace.xdebug.php-debug + "/share/vscode/extensions/xdebug.php-debug/out/phpDebug.js") ];
-            templates = {
+            templates = [{
               name = "Listen for XDebug";
               request = "launch";
               completion = "ignored";
               args = [];
-            };
+            }];
           };
         }
       ];
