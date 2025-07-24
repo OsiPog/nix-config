@@ -7,6 +7,9 @@
 }: {
   programs.helix = {
     enable = true;
+    extraPackages = with pkgs; [
+      nixd
+    ];
     settings = {
       editor = {
         line-number = "relative";
