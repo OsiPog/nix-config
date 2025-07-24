@@ -24,8 +24,8 @@
     nix-config-private.url = "git+ssh://git@github.com/osipog/nix-config-private.git?ref=main&shallow=1";
     # Stylix, theming made easy peasy
     stylix = {
-      url = "github:nix-community/stylix";
-      # url = "github:osipog/stylix";
+      # url = "github:nix-community/stylix";
+      url = "github:osipog/stylix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
