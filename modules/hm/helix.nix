@@ -74,6 +74,5 @@
     };
   };
 
-  stylix.targets.helix.enable = false;
   home.sessionVariables."EDITOR" = "hx";
 }
