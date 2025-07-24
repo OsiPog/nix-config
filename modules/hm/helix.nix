@@ -41,6 +41,10 @@
             devenv.expr = "${flakeExpr}.lib.devenv.allDevenvOptions";
           };
         };
+        phpactor = {
+          command = "phpactor";
+          args = ["language-server"];
+        };
       };
       language = [
         {
