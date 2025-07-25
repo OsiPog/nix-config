@@ -14,7 +14,7 @@
         cursor-shape.insert = "bar";
         indent-guides.render = true;
         inline-diagnostics = {
-          cursor-line = "error";
+          # cursor-line = "hint";
           max-wrap = 0;
         };
         jump-label-alphabet = "arstneiodhqwfpluyzxcvm";
