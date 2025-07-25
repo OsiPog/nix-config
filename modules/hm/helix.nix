@@ -13,8 +13,10 @@
         line-number = "relative";
         cursor-shape.insert = "bar";
         indent-guides.render = true;
-        inline-diagnostics.cursor-line = "error";
-        inline-diagnostics.other-lines = "error";
+        inline-diagnostics = {
+          cursor-line = "error";
+          max-wrap = 0;
+        };
         jump-label-alphabet = "arstneiodhqwfpluyzxcvm";
         auto-save.after-delay.enable = true;
       };
