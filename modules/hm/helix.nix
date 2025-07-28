@@ -55,7 +55,9 @@
           command = lib.getExe pkgs.typescript-language-server;
           args = ["--stdio"];
           config = {
-            logVerbosity = "verbose";
+            tsserver = {
+              command = lib.getExe pkgs.typescript-language-server;
+            };
             plugins = [{
               languages = ["vue"];
               name = "@vue/typescript-plugin";
