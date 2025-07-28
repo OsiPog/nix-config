@@ -55,6 +55,7 @@
           command = lib.getExe pkgs.typescript-language-server;
           args = ["--stdio"];
           config.plugins = [{
+            languages = ["vue"];
             name = "@vue/typescript-plugin";
             path = let
               version = "3.0.4"; 
