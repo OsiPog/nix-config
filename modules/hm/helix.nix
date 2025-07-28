@@ -55,6 +55,11 @@
           command = lib.getExe pkgs.typescript-language-server;
           args = ["--stdio"];
         };
+        vue-language-server = {
+          command = lib.getExe pkgs.vue-language-server;
+          args = ["--stdio"];
+          config.tsdk = pkgs.typescript + "/lib/node_modules/typescript/lib";
+        };
       };
       language = [
         {
@@ -74,7 +79,7 @@
         {
           name = "vue";
           file-types = ["vue"];
-          language-servers = ["typescript-language-server"];
+          language-servers = ["vue-language-server"];
           scope = "source.vue";
           roots = ["package.json"];
           auto-format = false;
