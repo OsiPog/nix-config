@@ -54,11 +54,10 @@
         typescript-language-server = {
           command = lib.getExe pkgs.typescript-language-server;
           args = ["--stdio"];
-        };
-        vue-language-server = {
-          command = lib.getExe pkgs.vue-language-server;
-          args = ["--stdio"];
-          config.tsdk = pkgs.typescript + "/lib/node_modules/typescript/lib";
+          config.plugins = [{
+            name = "@vue/typescript-plugin";
+            path = pkgs.vscode-extensions.vue.volar + "/share/vscode/extensions/Vue.volar/dist/typescript-plugin.js";
+          }];
         };
       };
       language = [
@@ -79,7 +78,7 @@
         {
           name = "vue";
           file-types = ["vue"];
-          language-servers = ["vue-language-server"];
+          language-servers = ["typescript-language-server"];
           scope = "source.vue";
           roots = ["package.json"];
           auto-format = false;
