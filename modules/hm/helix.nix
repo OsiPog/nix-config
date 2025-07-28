@@ -56,7 +56,13 @@
           args = ["--stdio"];
           config.plugins = [{
             name = "@vue/typescript-plugin";
-            path = pkgs.vscode-extensions.vue.volar + "/share/vscode/extensions/Vue.volar/dist/typescript-plugin.js";
+            path = let
+              version = "3.0.4"; 
+            in
+              builtins.fetchTarball {
+                url = "https://registry.npmjs.org/@vue/typescript-plugin/-/typescript-plugin-${version}.tgz";
+                sha256 = "05j3c77ypzxdq4qdlb46rslxvlg3lsq7vg68n13sxnykb8ybzakn";
+              };
           }];
         };
       };
