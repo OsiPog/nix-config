@@ -56,7 +56,7 @@
           args = ["--stdio"];
           config = {
             tsserver = {
-              command = lib.getExe pkgs.typescript-language-server;
+              path = pkgs.typescript + "/lib/node_modules/typescript/lib";
             };
             plugins = [{
               languages = ["vue"];
