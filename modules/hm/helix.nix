@@ -32,9 +32,7 @@
             pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
             currentSystemExpr = flakeExpr + ".nixosConfigurations.${nixosConfig.networking.hostName}";
           in {
-            formatting = {
-              command = ["${lib.getExe pkgs.alejandra}"];
-            };
+            formatting.command = ["${lib.getExe pkgs.alejandra}"];
             nixpkgs.expr = pkgsExpr;
             options = {
               nixos.expr = "${currentSystemExpr}.options";
