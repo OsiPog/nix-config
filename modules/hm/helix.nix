@@ -74,16 +74,7 @@
               name = "@vue/typescript-plugin";
               languages = ["vue"];
               configNamespace = "typescript";
-              location = let
-                source = builtins.fetchTarball {
-                  url = "https://registry.npmjs.org/@vue/typescript-plugin/-/typescript-plugin-3.0.4.tgz";
-                  sha256 = "05j3c77ypzxdq4qdlb46rslxvlg3lsq7vg68n13sxnykb8ybzakn";
-                };
-              in pkgs.runCommand "typescript-plugin" {} ''
-                DIR="$out/node_modules/@vue/typescript-plugin"
-                mkdir -p $DIR
-                cp -r ${source}/* "$DIR"
-              '';
+              location = "${self.packages.${pkgs.system}.vue-typescript-plugin}/lib/node_modules/@vue/typescript-plugin";
             }];
           };
         };
