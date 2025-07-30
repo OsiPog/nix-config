@@ -61,7 +61,13 @@
             plugins = [{
               languages = ["vue"];
               name = "@vue/typescript-plugin";
-              path = pkgs.vue-language-server + "/lib/node_modules/@vue/language-server";
+              path = let
+                version = "3.0.4"; 
+              in
+                builtins.fetchTarball {
+                  url = "https://registry.npmjs.org/@vue/typescript-plugin/-/typescript-plugin-${version}.tgz";
+                  sha256 = "05j3c77ypzxdq4qdlb46rslxvlg3lsq7vg68n13sxnykb8ybzakn";
+                };
             }];
           };
         };
