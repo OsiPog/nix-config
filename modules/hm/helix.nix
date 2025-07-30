@@ -51,21 +51,14 @@
         };
 
         # Javascript/Typescript/Vue
-        vtsls = {
-          command = lib.getExe pkgs.vtsls;
+        typescript-language-server = {
+          command = lib.getExe pkgs.typescript-language-server;
           args = ["--stdio"];
           config = {
-           vtsls.tsserver.globalPlugins = [{
+           plugins = [{
               languages = ["vue"];
               name = "@vue/typescript-plugin";
-              configNamespace = "typescript";
-              location = let
-                version = "3.0.4"; 
-              in
-                builtins.fetchTarball {
-                  url = "https://registry.npmjs.org/@vue/language-server/-/language-server-${version}.tgz";
-                  sha256 = "1vbihzsnzqhvngzdn1yqzgbdvy3briycbbv2w160ds5wpdxjqf53";
-                };
+              path = "${pkgs.vue-language-server}/lib/node_modules/@vue/language-server";
             }];
           };
         };
@@ -88,7 +81,7 @@
         {
           name = "vue";
           file-types = ["vue"];
-          language-servers = ["vtsls"];
+          language-servers = ["typescript-language-server"];
           scope = "source.vue";
           roots = ["package.json"];
           auto-format = false;
