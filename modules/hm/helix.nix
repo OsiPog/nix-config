@@ -58,12 +58,13 @@
            vtsls.tsserver.globalPlugins = [{
               languages = ["vue"];
               name = "@vue/typescript-plugin";
-              path = let
+              configNamespace = "typescript";
+              location = let
                 version = "3.0.4"; 
               in
                 builtins.fetchTarball {
-                  url = "https://registry.npmjs.org/@vue/typescript-plugin/-/typescript-plugin-${version}.tgz";
-                  sha256 = "05j3c77ypzxdq4qdlb46rslxvlg3lsq7vg68n13sxnykb8ybzakn";
+                  url = "https://registry.npmjs.org/@vue/language-server/-/language-server-${version}.tgz";
+                  sha256 = "1vbihzsnzqhvngzdn1yqzgbdvy3briycbbv2w160ds5wpdxjqf53";
                 };
             }];
           };
