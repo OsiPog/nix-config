@@ -63,7 +63,7 @@
           args = ["--stdio"];
           config = {
             typescript = {
-              tsdk = "${pkgs.typescript}/lib/node_modules/typescript/lib";
+              # tsdk = "${pkgs.typescript}/lib/node_modules/typescript/lib";
               # npm = "${pkgs.nodejs}/bin/npm";
               tsserver = {
                 nodePath = lib.getExe pkgs.nodejs;
