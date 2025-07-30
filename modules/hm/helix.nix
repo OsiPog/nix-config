@@ -102,7 +102,7 @@
         {
           name = "vue";
           file-types = ["vue"];
-          language-servers = [ "vtsls" ];
+          language-servers = [ "vtsls" "vue-language-server" ];
           scope = "source.vue";
           roots = ["package.json"];
           auto-format = false;
