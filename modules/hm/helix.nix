@@ -68,6 +68,11 @@
               tsserver = {
                 nodePath = lib.getExe pkgs.nodejs;
                 log = "normal";
+                watchOptions = {
+                  watchFile = "useFsEvents";
+                  watchDirectory = "useFsEvents";
+                  fallbackPolling = "priorityPollingInterval";
+                };
               };
             };
             vtsls.tsserver.globalPlugins = [{
