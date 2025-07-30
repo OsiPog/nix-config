@@ -67,7 +67,7 @@
               npm = "${pkgs.nodejs}/bin/npm";
               tsserver = {
                 nodePath = lib.getExe pkgs.nodejs;
-                log = "verbose";
+                log = "normal";
               };
             };
             vtsls.tsserver.globalPlugins = [{
