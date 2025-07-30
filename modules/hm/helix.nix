@@ -51,14 +51,11 @@
         };
 
         # Javascript/Typescript/Vue
-        typescript-language-server = {
-          command = lib.getExe pkgs.typescript-language-server;
+        vtsls = {
+          command = lib.getExe pkgs.vtsls;
           args = ["--stdio"];
           config = {
-            # tsserver = {
-            #   path = pkgs.typescript + "/lib/node_modules/typescript/lib";
-            # };
-            plugins = [{
+           vtsls.tsserver.globalPlugins = [{
               languages = ["vue"];
               name = "@vue/typescript-plugin";
               path = let
@@ -90,7 +87,7 @@
         {
           name = "vue";
           file-types = ["vue"];
-          language-servers = ["typescript-language-server"];
+          language-servers = ["vtsls"];
           scope = "source.vue";
           roots = ["package.json"];
           auto-format = false;
