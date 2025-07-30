@@ -4,7 +4,7 @@ lib: let
   inherit (lib.strings) removeSuffix hasSuffix;
   inherit (lib.attrsets) attrsToList;
 
-  importDirectoryRecursive = path:
+  fileTreeAsAttrs = path:
     pipe path [
       readDir
       attrsToList
@@ -21,13 +21,13 @@ lib: let
         ];
         value =
           if file.value == "directory"
-          then importDirectoryRecursive "${path}/${file.name}"
+          then fileTreeAsAttrs "${path}/${file.name}"
           else # by definition of readDir "regular" which describes a normal file, and it will be a nix file (filter above)
-            import "${path}/${file.name}";
+            "${path}/${file.name}";
       }))
 
       # convert the name value pairs to attrsets
       listToAttrs
     ];
 in
-  importDirectoryRecursive
+  fileTreeAsAttrs

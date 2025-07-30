@@ -83,9 +83,9 @@
     inherit (nixpkgs) lib;
     inherit (lib) genAttrs;
 
-    inherit (self.lib) importFilesAsAttrs flattenAttrs;
+    inherit (self.lib) fileTreeAsAttrs flattenAttrs;
 
-    modulesIn = path: flattenAttrs (importFilesAsAttrs path);
+    modulesIn = path: flattenAttrs (fileTreeAsAttrs path);
     pkgsForAllSystems = lambda: genAttrs (attrNames nixpkgs.legacyPackages) (system: lambda nixpkgs.legacyPackages.${system});
   in rec {
     nixosConfigurations = import ./hosts self;

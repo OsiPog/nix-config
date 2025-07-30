@@ -7,7 +7,7 @@ self: let
   inherit (lib.attrsets) listToAttrs mapAttrs;
 
   # Need to import that manually
-  importFilesAsAttrs = import ./lib/importFilesAsAttrs.nix lib;
+  importFilesAsAttrs = dir: mapAttrs (_: value: import value) ((import ./lib/fileTreeAsAttrs.nix lib) dir);
 
   callAttrs = attrs: arg:
     mapAttrs (
