@@ -50,16 +50,16 @@
           args = ["language-server"];
         };
 
-        # Javascript/Typescript/Vue
-        typescript-language-server = {
-          command = lib.getExe pkgs.typescript-language-server;
+        # Vue
+        vue-language-server = {
+          command = lib.getExe pkgs.vue-language-server;
           args = ["--stdio"];
           config = {
-           plugins = [{
-              languages = ["vue"];
-              name = "@vue/typescript-plugin";
-              path = "${pkgs.vue-language-server}/lib/node_modules/@vue/language-server";
-            }];
+          #  plugins = [{
+          #     languages = ["vue"];
+          #     name = "@vue/typescript-plugin";
+          #     path = "${pkgs.vue-language-server}/lib/node_modules/@vue/language-server";
+          #   }];
           };
         };
       };
@@ -81,7 +81,7 @@
         {
           name = "vue";
           file-types = ["vue"];
-          language-servers = ["typescript-language-server"];
+          language-servers = ["vue-language-server"];
           scope = "source.vue";
           roots = ["package.json"];
           auto-format = false;
