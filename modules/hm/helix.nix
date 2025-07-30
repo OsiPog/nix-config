@@ -78,7 +78,7 @@
             vtsls.tsserver.globalPlugins = [{
               name = "@vue/typescript-plugin";
               languages = ["vue"];
-              configNamespace = "typescript";
+              # configNamespace = "typescript";
               location = "${self.packages.${pkgs.system}.vue-typescript-plugin}/lib/node_modules/@vue/typescript-plugin";
             }];
           };
