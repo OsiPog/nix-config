@@ -54,13 +54,31 @@
         vue-language-server = {
           command = lib.getExe pkgs.vue-language-server;
           args = ["--stdio"];
+          config.typescript.tsdk = "${pkgs.typescript}/lib/node_modules/typescript/lib";
+        };
+
+        # Typescript
+        vtsls = {
+          command = lib.getExe pkgs.vtsls;
+          args = ["--stdio"];
           config = {
-            typescript.tsdk = "${pkgs.typescript}/lib/node_modules/typescript/lib";
-          #  plugins = [{
-          #     languages = ["vue"];
-          #     name = "@vue/typescript-plugin";
-          #     path = "${pkgs.vue-language-server}/lib/node_modules/@vue/language-server";
-          #   }];
+            typescript = {
+              tsdk = "${pkgs.typescript}/lib/node_modules/typescript/lib";
+              npm = "${pkgs.nodejs}/bin/npm";
+              tsserver = {
+                nodePath = lib.getExe pkgs.nodejs;
+                log = "verbose";
+              };
+            };
+            vtsls.tsserver.globalPlugins = [{
+              name = "@vue/typescript-plugin";
+              languages = ["vue"];
+              configNamespace = "typescript";
+              location = builtins.fetchTarball {
+                url = "https://registry.npmjs.org/@vue/typescript-plugin/-/typescript-plugin-3.0.4.tgz";
+                sha256 = "05j3c77ypzxdq4qdlb46rslxvlg3lsq7vg68n13sxnykb8ybzakn";
+              };
+            }];
           };
         };
       };
