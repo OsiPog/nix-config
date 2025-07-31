@@ -128,6 +128,14 @@
             ];
           };
         }
+        {
+          name = "javascript";
+          language-servers = ["vtsls"];
+        }
+        {
+          name = "typescript";
+          language-servers = ["vtsls"];
+        }
       ];
     };
   };
