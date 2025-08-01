@@ -161,7 +161,6 @@
         "float, title:.*wants to save$"
 
         # launch android studio in a accessable position
-        "tile, class:jetbrains-studio"
         "monitor 0, class:jetbrains-studio"
       ];
     };

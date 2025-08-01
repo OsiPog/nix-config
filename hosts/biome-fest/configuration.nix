@@ -1,4 +1,4 @@
-{self, ...}: {
+{self, config, ...}: {
   imports = with self.nixosModules; [
     ./hardware-configuration.nix
 
@@ -20,6 +20,11 @@
   ];
 
   # services.desktopManager.plasma6.enable = true;
+
+  sops.secrets."api-keys/nix-access-tokens" = {owner = "osi";};
+  nix.extraOptions = ''
+    !include ${config.getSopsFile "api-keys/nix-access-tokens"}    
+  '';
 
   # Don't change, will break things.
   system.stateVersion = "23.11"; # Did you read the comment?
