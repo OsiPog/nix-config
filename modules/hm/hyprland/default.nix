@@ -152,13 +152,17 @@
       ];
 
       # --- WINDOW RULES
-      windowrulev2 = [
+      windowrule = [
         "stayfocused, title:^Hyprland Polkit Agent$"
         # "dimaround, title:^Hyprland Polkit Agent$"
 
         # browser saving action
         "float, title:^Save File$"
         "float, title:.*wants to save$"
+
+        # launch android studio in a accessable position
+        "tile, class:jetbrains-studio"
+        "monitor 0, class:jetbrains-studio"
       ];
     };
   };
