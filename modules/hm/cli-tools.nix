@@ -6,10 +6,11 @@
 }: let
   heygptWrapper = pkgs.writeShellApplication {
     name = "heygpt";
+    runtimeInputs = [ pkgs.heygpt ];
     text = ''
       OPENAI_API_BASE="https://api.openai.com/v1" \
       OPENAI_API_KEY=$(cat ${config.getSopsFile "api-keys/open-ai"}) \
-      ${lib.getExe pkgs.heygpt} --model "''${HEYGPT_MODEL:-gpt-4o}" "$@"
+      heygpt --model "''${HEYGPT_MODEL:-gpt-4o}" "$@"
     '';
   };
 in {
@@ -19,7 +20,7 @@ in {
     ncpamixer # Pulse Audio mixer utility
     restic
     nushell # a new and fancy type of shell
-    opencommit # use AI to generate commit messages
+    spotify-player # player for spotify
     # Tools
     wl-clipboard-rs # copy to clipboard from terminal
     claude-code
