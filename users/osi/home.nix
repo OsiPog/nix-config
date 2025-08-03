@@ -43,7 +43,8 @@
     # Some common desktop apps I need
     desktop-apps
     cli-tools
-
+    spotify
+    
     # syncing files
     syncthing
 
