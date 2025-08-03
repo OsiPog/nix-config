@@ -47,11 +47,6 @@ in {
           URL = "https://noogle.dev/";
         }
         {
-          Title = "Spotify";
-          # a short link to the login page of spotify
-          URL = "https://accounts.spotify.com/en/login?allow_password=1&continue=https%3A%2F%2Fopen.spotify.com";
-        }
-        {
           Title = "Discord";
           URL = "https://discord.com/app";
         }
