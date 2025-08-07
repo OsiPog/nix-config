@@ -30,7 +30,7 @@ in {
       "defaults"
       "noatime"
       "x-systemd.automount"
-      "x-systemd.device-timeout=0"
+      "x-systemd.device-timeout=5"
       "x-systemd.idle-timeout=60"
       "noauto"
     ];

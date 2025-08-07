@@ -15,6 +15,7 @@
     speicherfresser
     steam
     tuigreet
+    podman
 
     "${self}/users/osi"
   ];

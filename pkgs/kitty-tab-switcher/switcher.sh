@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+# Get all tabs, including their ids and focused status
+tab_info=$(kitty @ ls | jq -r '[
+    .[].tabs[]
+    | (.windows | first) as $window
+    | {
+        title: (
+            if $window | .at_prompt
+                then "shell prompt at " + ($window | .cwd)
+            else ($window | .foreground_processes | first | .cmdline | first) + " at " + ($window | .cwd)  
+            end
+        ),
+        id,
+        is_focused,
+        first_window_id: (.windows | first | .id)
+    }
+]
+    | sort_by(.title)
+    | reverse
+    | sort_by(.is_focused)
+    | reverse
+')
+
+# Generate preview files that can be used by fzf
+echo $tab_info | jq -c '.[]' | while read -r item; do
+    filename=/tmp/kitty-tab-switcher-preview-tab-id-$(echo $item | jq -r '.id')
+    kitty @ launch \
+        --source-window=id:$(echo $item | jq -r '.first_window_id') \
+        --stdin-source=@screen \
+        --stdin-add-formatting \
+        --type=background \
+        tee $filename\
+        > /dev/null
+done
+
+tab_count=$(echo $tab_info | jq 'length')
+line_height=$(cat /tmp/kitty-tab-switcher-preview-tab-id-$(echo $tab_info | jq 'first | .id') | wc -l)
+# prompt (1) + divider (1) + list-border (2)
+list_line_height=$((tab_count + 1 + 1 + 2))
+preview_percent_height=$(( ( (line_height - list_line_height) * 100 ) / line_height ))
+
+# Use fzf to fuzzy search the tab titles
+selected=$(echo "$tab_info" \
+    | jq -r ' .[] | (.id | tostring) + " | " + .title' \
+    | fzf \
+        --height=100% \
+        --margin=0 \
+        --padding=0 \
+        --border=none \
+        --list-border=rounded \
+        --info=hidden \
+        --layout=reverse \
+        --cycle \
+        --preview-window=down,"$preview_percent_height"%,+"$((list_line_height + 2))",noinfo,border-none \
+        --preview='
+            cat /tmp/kitty-tab-switcher-preview-tab-id-$(echo {} | awk "{print \$1}")
+        ')
+
+# If a tab was selected, focus on that tab using its ID
+if [ -n "$selected" ]; then
+    tab_id=$(echo "$selected" | awk '{print $1}')
+    kitty @ focus-tab --match id:"$tab_id"
+else
+    echo "No tab selected or operation cancelled."
+fi
