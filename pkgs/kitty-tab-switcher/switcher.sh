@@ -13,6 +13,7 @@ tab_info=$(kitty @ ls | jq -r '[
         ),
         id,
         is_focused,
+        lines,
         first_window_id: (.windows | first | .id)
     }
 ]
@@ -35,7 +36,7 @@ echo $tab_info | jq -c '.[]' | while read -r item; do
 done
 
 tab_count=$(echo $tab_info | jq 'length')
-line_height=$(cat /tmp/kitty-tab-switcher-preview-tab-id-$(echo $tab_info | jq 'first | .id') | wc -l)
+line_height=$(echo $tab_info | jq 'first | .lines')
 # prompt (1) + divider (1) + list-border (2)
 list_line_height=$((tab_count + 1 + 1 + 2))
 preview_percent_height=$(( ( (line_height - list_line_height) * 100 ) / line_height ))
