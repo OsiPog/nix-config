@@ -13,7 +13,7 @@ tab_info=$(kitty @ ls | jq -r '[
         ),
         id,
         is_focused,
-        lines,
+        lines: $window | .lines,
         first_window_id: (.windows | first | .id)
     }
 ]
