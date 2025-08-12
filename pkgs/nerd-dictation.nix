@@ -8,10 +8,10 @@ pkgs @ {
   vosk-model ? (fetchzip {
     # Go to https://alphacephei.com/vosk/models to find the download links
     url = "https://alphacephei.com/vosk/models/vosk-model-en-us-0.22-lgraph.zip";
-    hash = "sha256-GVheflRwix9PnQjIVFl1mkNRduaYRNvZGhTZaobTibY="; # vosk-model-small-en-us-0.15
-    # hash = "sha256-AOnKWIoInKzHtF0odhnp6RXDyfjA4bDMBxL0rcZkAd0="; # vosk-model-small-de-0.15
+    # url = "https://alphacephei.com/vosk/models/vosk-model-de-0.21.zip";
+    # hash = "sha256-Pqf6Eo15aIfI3NYN1kYakUVyA6JD0hR2rW+R/2hDug4="; # vosk-model-de-0.21
     # hash = "sha256-kakOhA7hEtDM6WY3oAnb8xKZil9WTA3xePpLIxr2+yM="; # vosk-model-en-us-0.22
-    # hash = "sha256-GVheflRwix9PnQjIVFl1mkNRduaYRNvZGhTZaobTibY="; # vosk-model-en-us-0.22-lgraph
+    hash = "sha256-GVheflRwix9PnQjIVFl1mkNRduaYRNvZGhTZaobTibY="; # vosk-model-en-us-0.22-lgraph
     # hash = lib.fakeHash;
   }),
   ...

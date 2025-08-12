@@ -4,13 +4,14 @@
 tab_info=$(kitty @ ls | jq -r '[
     .[].tabs[]
     | (.windows | first) as $window
+    | ($window | .foreground_processes | first | .cmdline | first | split("/") | last) as $program
     | {
-        title: (
-            if $window | .at_prompt
-                then "shell prompt at " + ($window | .cwd)
-            else ($window | .foreground_processes | first | .cmdline | first) + " at " + ($window | .cwd)  
-            end
-        ),
+        title: ([
+            $program,
+            .title,
+            ($window | .last_reported_cmdline),
+            ($window | .cwd)
+        ] | join(" | ")),
         id,
         is_focused,
         lines: $window | .lines,
@@ -22,6 +23,9 @@ tab_info=$(kitty @ ls | jq -r '[
     | sort_by(.is_focused)
     | reverse
 ')
+
+echo $tab_info | jq
+exit
 
 # Generate preview files that can be used by fzf
 echo $tab_info | jq -c '.[]' | while read -r item; do
