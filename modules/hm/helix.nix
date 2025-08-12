@@ -49,11 +49,11 @@
         };
 
         # Vue
-        vue-language-server = {
-          command = lib.getExe pkgs.vue-language-server;
-          args = ["--stdio"];
-          config.typescript.tsdk = "${pkgs.typescript}/lib/node_modules/typescript/lib";
-        };
+        # vue-language-server = {
+        #   command = lib.getExe pkgs.vue-language-server;
+        #   args = ["--stdio"];
+        #   config.typescript.tsdk = "${pkgs.typescript}/lib/node_modules/typescript/lib";
+        # };
 
         # Typescript
         vtsls = {

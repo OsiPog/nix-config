@@ -14,7 +14,7 @@ tab_info=$(kitty @ ls | jq -r '[
         id,
         is_focused,
         lines: $window | .lines,
-        first_window_id: (.windows | first | .id)
+        first_window_id: $window | .id,
     }
 ]
     | sort_by(.title)
@@ -53,7 +53,7 @@ selected=$(echo "$tab_info" \
         --info=hidden \
         --layout=reverse \
         --cycle \
-        --preview-window=down,"$preview_percent_height"%,+"$((list_line_height + 2))",noinfo,border-none \
+        --preview-window=down,"$preview_percent_height"%,+"$((list_line_height + 2))",noinfo,border-none,nofollow,nocycle \
         --preview='
             cat /tmp/kitty-tab-switcher-preview-tab-id-$(echo {} | awk "{print \$1}")
         ')
