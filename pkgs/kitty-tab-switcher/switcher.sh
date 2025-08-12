@@ -24,9 +24,6 @@ tab_info=$(kitty @ ls | jq -r '[
     | reverse
 ')
 
-echo $tab_info | jq
-exit
-
 # Generate preview files that can be used by fzf
 echo $tab_info | jq -c '.[]' | while read -r item; do
     filename=/tmp/kitty-tab-switcher-preview-tab-id-$(echo $item | jq -r '.id')
