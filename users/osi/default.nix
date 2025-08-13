@@ -24,7 +24,7 @@ in {
 
   users.users.${username} = {
     # Enable sudo for user
-    extraGroups = ["wheel"];
+    extraGroups = ["wheel" "podman"];
     # password
     hashedPasswordFile = config.getSopsFile "pass-hashes/osi";
   };
