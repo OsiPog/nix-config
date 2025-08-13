@@ -22,9 +22,11 @@ in {
 
   programs.hyprland.enable = true;
 
+  users.extraGroups.podman.members = ["osi"];
+
   users.users.${username} = {
     # Enable sudo for user
-    extraGroups = ["wheel" "podman"];
+    extraGroups = ["wheel"];
     # password
     hashedPasswordFile = config.getSopsFile "pass-hashes/osi";
   };
