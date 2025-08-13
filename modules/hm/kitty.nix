@@ -1,4 +1,4 @@
-{pkgs, self, lib, ...}: {
+{pkgs, inputs, lib, ...}: {
   programs.kitty = {
     enable = true;
     settings = {
@@ -8,8 +8,7 @@
     extraConfig = ''
       map ctrl+shift+t new_tab_with_cwd
 
-      # Thanks a lot to https://github.com/kovidgoyal/kitty-fosshack2024/issues/1
-      map ctrl+shift+e launch --type=overlay --allow-remote-control ${lib.getExe self.packages.${pkgs.system}.kitty-tab-switcher}
+      map ctrl+shift+e launch --type=overlay --allow-remote-control ${lib.getExe inputs.kitty-tab-switcher.packages.${pkgs.system}.default}
     '';
   };
 }

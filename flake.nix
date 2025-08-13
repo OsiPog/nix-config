@@ -68,6 +68,11 @@
       url = "github:wamserma/flake-programs-sqlite";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Utility to switch tabs in kitty terminal
+    kitty-tab-switcher = {
+      url = "github:OsiPog/kitty-tab-switcher";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # --- Hardware-Specific
     # Customized build of libfprint to make my laptops fingerprint reader work
