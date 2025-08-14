@@ -372,37 +372,37 @@ in {
         op-vsx = open-vsx;
       in [
         # --- UTILITIES ---
-        davidlgoldberg.jumpy2 # jumping cursors with short letter combo
-        eamodio.gitlens # useful for git blame inline
-        saoudrizwan.claude-dev # llm coding agent
-        sleistner.vscode-fileutils # crud for files
+        # davidlgoldberg.jumpy2 # jumping cursors with short letter combo
+        # eamodio.gitlens # useful for git blame inline
+        # saoudrizwan.claude-dev # llm coding agent
+        # sleistner.vscode-fileutils # crud for files
 
-        # --- PHP ---
-        zobo.php-intellisense # intellisense
-        xdebug.php-debug # debugging php applications
-        ronvanderheijden.phpdoc-generator # generate php doc comments
-        mehedidracula.php-namespace-resolver # php everything namespace
+        # # --- PHP ---
+        # zobo.php-intellisense # intellisense
+        # xdebug.php-debug # debugging php applications
+        # ronvanderheijden.phpdoc-generator # generate php doc comments
+        # mehedidracula.php-namespace-resolver # php everything namespace
 
-        # --- NIX ---
-        jnoortheen.nix-ide # nix language features
+        # # --- NIX ---
+        # jnoortheen.nix-ide # nix language features
 
-        # --- NUSHELL ---
-        thenuprojectcontributors.vscode-nushell-lang
+        # # --- NUSHELL ---
+        # thenuprojectcontributors.vscode-nushell-lang
 
-        # --- NODE ---
-        vue.volar # vue language features
-        oouo-diogo-perdigao.docthis # jsdoc
+        # # --- NODE ---
+        # vue.volar # vue language features
+        # oouo-diogo-perdigao.docthis # jsdoc
 
-        # --- JAVA ---
-        # redhat.java # language features
-        vscjava.vscode-java-debug # debugger
-        vscjava.vscode-java-dependency # project manager
+        # # --- JAVA ---
+        # # redhat.java # language features
+        # vscjava.vscode-java-debug # debugger
+        # vscjava.vscode-java-dependency # project manager
 
-        # --- GODOT ENGINE ---
-        geequlim.godot-tools
+        # # --- GODOT ENGINE ---
+        # geequlim.godot-tools
 
-        # --- SQL ---
-        adpyke.vscode-sql-formatter
+        # # --- SQL ---
+        # adpyke.vscode-sql-formatter
       ];
     };
   };
