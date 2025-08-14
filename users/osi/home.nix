@@ -29,7 +29,7 @@
     hyprland-workspaces
 
     # code editor
-    # vscode
+    vscode
     # nvf
     helix
 
