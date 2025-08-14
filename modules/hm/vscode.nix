@@ -379,7 +379,7 @@ in {
 
         # # --- PHP ---
         # zobo.php-intellisense # intellisense
-        # xdebug.php-debug # debugging php applications
+        xdebug.php-debug # debugging php applications
         # ronvanderheijden.phpdoc-generator # generate php doc comments
         # mehedidracula.php-namespace-resolver # php everything namespace
 
