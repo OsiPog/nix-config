@@ -20,6 +20,7 @@
         jump-label-alphabet = "arstneiodhqwfpluyzxcvm";
         auto-save.after-delay.enable = true;
       };
+      keys.normal.space.v = ":sh codium $PWD --goto %{buffer_name}:%{cursor_line}:%{cursor_column}"; 
     };
     languages = {
       language-server = {
