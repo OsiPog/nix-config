@@ -15,8 +15,8 @@
   gnucashOverride = pkgs.gnucash.overrideAttrs (prev: {
     preFixup = prev.preFixup + ''
       gappsWrapperArgs+=(
-        --set LANG de_DE
-        --set LANGUAGE de_DE
+        --set LANG de_DE.utf8
+        --set LANGUAGE de_DE.utf8
       )
     '';
   });
