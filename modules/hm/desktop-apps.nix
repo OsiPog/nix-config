@@ -11,6 +11,15 @@
           --set XDG_CURRENT_DESKTOP "GNOME"
       '';
   });
+  # GnuCash should be in german
+  gnucashOverride = pkgs.gnucash.overrideAttrs (prev: {
+    preFixup = prev.preFixup + ''
+      gappsWrapperArgs+=(
+        --set LANG de_DE
+        --set LANGUAGE de_DE
+      )
+    '';
+  });
 in {
   home.packages = with pkgs; [
     gnome-disk-utility # format disks
@@ -26,7 +35,7 @@ in {
     krita # best drawing
     cheese # camera app
     audacity # audio editing
-    gnucash # money
+    gnucashOverride # money
   ];
 
   # Default apps
