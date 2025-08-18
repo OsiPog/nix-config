@@ -26,6 +26,7 @@ in {
     krita # best drawing
     cheese # camera app
     audacity # audio editing
+    gnucash # money
   ];
 
   # Default apps
