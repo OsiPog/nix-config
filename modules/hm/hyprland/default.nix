@@ -162,6 +162,10 @@
 
         # launch android studio in a accessable position
         "monitor 0, class:jetbrains-studio"
+
+        # The base gnucash window should be tiled, everything else should be floating
+        "float, class:gnucash"
+        "tile, title:.*- GnuCash$"
       ];
     };
   };
