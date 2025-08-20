@@ -11,7 +11,7 @@
     # }
     {
       # Portable monitor
-      resolution = "1920x1080";
+      resolution = "1920x1080@60";
       position = "auto";
       scale = 1;
       additional = "transform, 3";
@@ -32,7 +32,7 @@
     }
     {
       # Portrait desktop monitor
-      resolution = "2560x1440";
+      resolution = "2560x1440@60";
       position = "2560x0";
       scale = 1;
       additional = "transform, 1";
