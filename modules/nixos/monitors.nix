@@ -23,7 +23,7 @@
     {
       # Landscape desktop monitor
       resolution = "2560x1440";
-      position = "0x240";
+      position = "0x560";
       scale = 1;
       additional = "";
       names = [
@@ -32,14 +32,12 @@
     }
     {
       # Portrait desktop monitor
-      resolution = "1920x1080";
+      resolution = "2560x1440";
       position = "2560x0";
       scale = 1;
       additional = "transform, 1";
       names = [
-        "LG Electronics 27EA53 312NDNU32431"
-        "LG Electronics 27EA53 0x01010101"
-        "Invalid Vendor Codename - RTK 0x1D1A 0x01010101"
+        "LG Electronics LG HDR 4K 0x0002912D"
       ];
     }
   ];
