@@ -21,7 +21,7 @@
       #input {
         margin-bottom: 10px;
         border-radius: ${toString nixosConfig.prismarineTheme.border-radius}px;
-        font-size: 2rem;
+        font-size: 1.5rem;
         min-height: 2rem;
       }
 
@@ -33,7 +33,7 @@
         margin-bottom: 5px;
         margin-top: 5px;
         border-radius: ${toString nixosConfig.prismarineTheme.border-radius}px;
-        font-size: 1.7rem
+        font-size: 1.2rem
       }
 
       .drun-icon {
