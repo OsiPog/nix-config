@@ -58,7 +58,7 @@ in {
       ];
       windowrule = [
         "pin, class:(w|r)ofi"
-        "size 1% 1%, class:(w|r)ofi"
+        "size 100 100, class:(w|r)ofi"
         "center, class:(w|r)ofi"
         # "stayfocused, class:(w|r)ofi" # cant click outside
         # "dimaround, class:(w|r)ofi"
