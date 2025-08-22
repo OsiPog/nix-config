@@ -56,4 +56,11 @@ in {
     enable = config.programs.rofi.enable;
     package = pkgs.rofi-pass-wayland;
   };
+
+  # with wofi-pass we can use wofi to access pass
+  home.file.".config/wofi-pass/config".text = ''
+    WOFI_PASS_DELAY=0
+    PASS_FIELD_USERNAME="user"
+    WOFI_PASS_AUTO_ENTER=true    
+  '';
 }
