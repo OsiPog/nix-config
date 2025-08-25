@@ -137,6 +137,10 @@
           name = "typescript";
           language-servers = ["vtsls"];
         }
+        {
+          name = "sql";
+          formatter.command = lib.getExe pkgs.sql-formatter;
+        }
       ];
     };
   };
