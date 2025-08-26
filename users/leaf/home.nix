@@ -1,5 +1,5 @@
 {
-  self,
+  flake,
   lib,
   inputs,
   ...

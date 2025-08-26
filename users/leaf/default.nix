@@ -1,15 +1,15 @@
 {
-  self,
+  flake,
   inputs,
   lib,
   config,
   ...
 }: let
-  inherit (self.lib) mkUserModule;
+  inherit (flake.lib) mkUserModule;
 
   username = "leaf";
 in {
-  imports = with self.nixosModules; [
+  imports = with flake.nixosModules; [
     (mkUserModule username)
   ];
 

@@ -1,5 +1,5 @@
-self: let
-  inherit (self.inputs) nixpkgs;
+flake: let
+  inherit (flake.inputs) nixpkgs;
   inherit (nixpkgs) lib;
 
   inherit (builtins) attrNames typeOf;
@@ -23,7 +23,7 @@ in
   # lib argument
   (callAttrs (importFilesAsAttrs ./lib) lib)
   # flake argument
-  // (callAttrs (importFilesAsAttrs ./self) self)
+  // (callAttrs (importFilesAsAttrs ./flake) flake)
   # pkgs argument, do for each system
   // (pipe systems [
     (map (system: {

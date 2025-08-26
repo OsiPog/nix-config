@@ -1,5 +1,5 @@
 {
-  self,
+  flake,
   lib,
   inputs,
   ...
@@ -10,8 +10,8 @@
     stateVersion = lib.mkDefault "25.11";
   };
 
-  imports = with self.homeManagerModules;
-  with inputs.nix-config-private.homeManagerModules; [
+  imports = with flake.homeModules;
+  with inputs.nix-config-private.homeModules; [
     # shell
     fish
     git
@@ -21,12 +21,12 @@
 
     # Window manager
     hyprland # base config
-    hyprland-laptop # for laptops
-    hyprland-touch # for laptops
-    hyprland-waybar # utility bar
-    hyprland-lockscreen # lockscreen with auto enable on inactivity
-    hyprland-runner
-    hyprland-workspaces
+    hypr-laptop # for laptops
+    hypr-touch # for laptops
+    waybar # utility bar
+    hypr-lockscreen # lockscreen with auto enable on inactivity
+    hypr-runner
+    hypr-workspaces
 
     # code editor
     vscode

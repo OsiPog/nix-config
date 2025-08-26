@@ -4,4 +4,4 @@ Here are all utility Nix expressions stored that are used all over the flake. To
 
 - `lib/pkgs` - Nix expressions that need the entirety of nixpkgs
 - `lib/lib` - Nix expressions that only need `pkgs.lib`
-- `lib/self` - Nix expressions that need the whole flake as the function argument
+- `lib/flake` - Nix expressions that need the whole flake as the function argument

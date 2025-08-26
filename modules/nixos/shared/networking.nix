@@ -1,0 +1,6 @@
+{
+  hostName,
+  ...
+}: {
+   networking.hostName = hostName;   
+}

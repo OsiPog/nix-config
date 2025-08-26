@@ -1,5 +1,7 @@
-{self, ...}: {
-  imports = with self.nixosModules; [
+{flake, ...}: {
+  imports = with flake.nixosModules; [
+    shared
+
     disko-basic
     
     ../../users/leaf

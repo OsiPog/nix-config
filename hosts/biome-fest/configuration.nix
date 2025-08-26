@@ -1,5 +1,7 @@
-{self, config, ...}: {
-  imports = with self.nixosModules; [
+{config, flake, ...}: {
+  imports = with flake.nixosModules; [
+    shared
+
     ./hardware-configuration.nix
 
     ({pkgs, ...}: {boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;})
@@ -17,7 +19,7 @@
     tuigreet
     # podman
 
-    "${self}/users/osi"
+    "${flake}/users/osi"
   ];
 
   # services.desktopManager.plasma6.enable = true;

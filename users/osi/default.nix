@@ -1,16 +1,16 @@
 {
-  self,
+  flake,
   inputs,
   config,
   ...
 }: let
-  inherit (self.lib) mkUserModule;
+  inherit (flake.lib) mkUserModule;
 
   username = "osi";
 in {
-  imports = with self.nixosModules;
+  imports = with flake.nixosModules;
   with inputs.nix-config-private.nixosModules; [
-    theme-prismarine
+    themePrismarine
 
     # private
     uni-vpn
