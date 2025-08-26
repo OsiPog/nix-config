@@ -1,5 +1,6 @@
 {
   inputs,
+  lib,
   ...
 }:
 {
@@ -15,8 +16,8 @@
         inherit stable;
 
         # stable packages
-        auto-cpufreq = stable.auto-cpufreq;
-
+        # linuxKernel = lib.recursiveUpdate prev.linuxKernel {packages.linux_latest_libre.v4l2loopback = stable.linuxKernel.packages.linux_latest_libre.v4l2loopback;}; 
+        
         # custom flake packages
         matcha = matcha.packages.${prev.system}.default;
         self = outputsEachSystem.packages.${prev.system};

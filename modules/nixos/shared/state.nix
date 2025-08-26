@@ -28,10 +28,10 @@ in
     };
   };
   config = {
-    services.openssh.enable = (cfg.host.ssh.allow-connections-from) != [ ];
+    # services.openssh.enable = (cfg.host.ssh.allow-connections-from) != [ ];
 
-    users.users.root.openssh.authorizedKeys.keys = map (
-      other: flake.nixosConfigurations.${other}.config.state.host.ssh.public-key
-    ) cfg.host.ssh.allow-connections-from;
+    # users.users.root.openssh.authorizedKeys.keys = map (
+    #   other: flake.nixosConfigurations.${other}.config.state.host.ssh.public-key
+    # ) cfg.host.ssh.allow-connections-from;
   };
 }

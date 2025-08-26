@@ -35,7 +35,7 @@ in
     krita # best drawing
     cheese # camera app
     audacity # audio editing
-    gnucashOverride # money
+    /*gnucashOverride*/ gnucash # money
   ];
 
   # Default apps

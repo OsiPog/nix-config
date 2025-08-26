@@ -98,7 +98,7 @@
             "nil"
           ];
           file-types = [ "nix" ];
-          auto-format = false;
+          auto-format = true;
           formatter = {
             command = lib.getExe pkgs.alejandra;
             args = [ "-q" ];

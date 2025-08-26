@@ -12,12 +12,13 @@
       wireguardPort = 51820;
     in
     {
+      useNetworkd = true;
       networkmanager = {
         enable = true;
       };
 
       firewall = {
-        enable = true;
+        # enable = true;
         allowedTCPPorts = [
           8000
           9003
@@ -56,4 +57,5 @@
         # };
       };
     };
+
 }

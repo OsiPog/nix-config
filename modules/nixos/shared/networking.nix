@@ -1,7 +1,13 @@
 {
   hostName,
+  lib,
   ...
 }:
 {
-  networking.hostName = hostName;
+  networking = {
+    hostName = hostName;
+    useNetworkd = lib.mkForce false;
+    networkmanager.enable = true;
+    firewall.enable = true;
+  };
 }

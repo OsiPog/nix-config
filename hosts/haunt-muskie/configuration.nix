@@ -5,7 +5,7 @@
 
     disko-basic
 
-    # ../../users/leaf
+    ../../users/leaf
   ];
 
   # state.host.ssh = {
