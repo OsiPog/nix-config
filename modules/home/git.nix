@@ -77,20 +77,24 @@ in {
 
   # github cli
   programs.gh.enable = true;
-  
-  # GitHub SSH config
-  programs.ssh.matchBlocks = {
-    "github.com" = {
-      hostname = "github.com";
-      user = "git";
-      identityFile = config.getSopsFile "ssh-keys/gh-primary/private";
-      identitiesOnly = true;
+  programs.ssh = {
+    # GitHub SSH config
+    matchBlocks = {
+      "github.com" = {
+        hostname = "github.com";
+        user = "git";
+        identityFile = config.getSopsFile "ssh-keys/gh-primary/private";
+        identitiesOnly = true;
+      };
+      "secondary.github.com" = {
+        hostname = "github.com";
+        user = "git";
+        identityFile = config.getSopsFile "ssh-keys/gh-secondary/private";
+        identitiesOnly = true;
+      };
     };
-    "secondary.github.com" = {
-      hostname = "github.com";
-      user = "git";
-      identityFile = config.getSopsFile "ssh-keys/gh-secondary/private";
-      identitiesOnly = true;
-    };
+    extraConfig = ''
+     Include ~/.ssh/config_imperative    
+    '';
   };
 }
