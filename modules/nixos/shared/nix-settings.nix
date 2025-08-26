@@ -1,4 +1,5 @@
-{...}: {
+{ ... }:
+{
   nix = {
     # enable flakes and nix command
     settings.experimental-features = [

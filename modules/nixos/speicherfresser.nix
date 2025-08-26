@@ -3,13 +3,15 @@
   config,
   inputs,
   ...
-}: let
+}:
+let
   device = "/dev/disk/by-uuid/1c9bb556-309f-4add-a7f0-723a3b96b2f6";
-in {
-  imports = [inputs.custom-udev-rules.nixosModule];
+in
+{
+  imports = [ inputs.custom-udev-rules.nixosModule ];
 
   # Automount the bid hdd which is not always connected
-  sops.secrets."drives/speicherfresser" = {};
+  sops.secrets."drives/speicherfresser" = { };
 
   environment.etc.crypttab.text = ''
     speicherfresser UUID=9debc741-b5d9-4721-a2bc-971008511283 ${config.getSopsFile "drives/speicherfresser"} noauto

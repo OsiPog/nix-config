@@ -2,7 +2,8 @@
   pkgs,
   inputs,
   ...
-}: {
+}:
+{
   imports = with inputs; [
     flake-programs-sqlite.nixosModules.programs-sqlite
   ];

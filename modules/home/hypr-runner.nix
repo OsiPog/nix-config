@@ -1,6 +1,7 @@
 # The runner for hyprland is using a combination of wofi and rofi. Rofi is generally more lightweight while Wofi has
 # touch support which is essential to tablet mode.
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   home.packages = with pkgs; [
     wofi-emoji
   ];

@@ -1,4 +1,5 @@
-{inputs, ...}: {
+{ inputs, ... }:
+{
   # The Lenovo laptop was not set up using disko, so we are defining it here in pure nixpkgs options
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/7aefc206-56e9-4426-a19e-f215dc813886";
@@ -30,7 +31,11 @@
   fileSystems."/boot" = {
     device = "/dev/disk/by-uuid/8DFC-47EE";
     fsType = "vfat";
-    options = ["fmask=0022" "dmask=0022" "noatime"];
+    options = [
+      "fmask=0022"
+      "dmask=0022"
+      "noatime"
+    ];
   };
 
   swapDevices = [

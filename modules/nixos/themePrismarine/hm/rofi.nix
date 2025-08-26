@@ -3,9 +3,11 @@
   nixosConfig,
   lib,
   ...
-}: let
+}:
+let
   literal = config.lib.formats.rasi.mkLiteral;
-in {
+in
+{
   programs.rofi.theme = with config.lib.stylix.colors.withHashtag; {
     "*" = {
       lightbg = lib.mkForce (literal base00);
@@ -25,12 +27,19 @@ in {
       padding = literal "20px 20px";
       spacing = literal "5px";
 
-      children = map literal ["inputbar" "listview" "message"];
+      children = map literal [
+        "inputbar"
+        "listview"
+        "message"
+      ];
     };
 
     inputbar = {
       margin-bottom = literal "5px";
-      children = map literal ["textbox-prompt-colon" "entry"];
+      children = map literal [
+        "textbox-prompt-colon"
+        "entry"
+      ];
     };
     textbox-prompt-colon = {
       margin = literal "2px 7px 0px 0px";
@@ -50,7 +59,10 @@ in {
     element = {
       highlight = literal "bold underline";
       padding = literal "5px";
-      children = map literal ["element-icon" "element-text"];
+      children = map literal [
+        "element-icon"
+        "element-text"
+      ];
     };
     element-text = {
       background-color = literal "inherit";

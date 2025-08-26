@@ -1,4 +1,5 @@
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   wayland.windowManager.hyprland = {
     # Plugin for touch inputs
     plugins = with pkgs.hyprlandPlugins; [

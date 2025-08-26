@@ -1,10 +1,12 @@
 {
   lib,
   ...
-}: let
+}:
+let
   inherit (lib) mkDefault;
   inherit (lib.attrsets) mapAttrs;
-in {
+in
+{
   i18n = {
     defaultLocale = mkDefault "en_US.UTF-8";
     # Home sweet home german formats

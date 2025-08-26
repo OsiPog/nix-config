@@ -1,6 +1,7 @@
-{inputs, flake, hostName, ...}: {
+{ inputs, hostName, ... }:
+{
   imports = with inputs; [
     nixos-facter-modules.nixosModules.facter
   ];
-  facter.reportPath = "${flake}/hosts/${hostName}/facter.json";
+  facter.reportPath = ../../.. + "/hosts/${hostName}/facter.json";
 }

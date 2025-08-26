@@ -4,21 +4,23 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   inherit (flake.lib) mkUserModule;
 
   username = "leaf";
-in {
+in
+{
   imports = with flake.nixosModules; [
     (mkUserModule username)
   ];
 
   users.users.${username} = {
     # Enable sudo for user (wheel group)
-    extraGroups = ["wheel"];
+    extraGroups = [ "wheel" ];
     # Inherit authorized keys from root user
     openssh.authorizedKeys.keys = config.users.users.root.openssh.authorizedKeys.keys;
-  
+
     # Use the same password hash as root user
     hashedPasswordFile = config.users.users.root.hashedPasswordFile;
   };

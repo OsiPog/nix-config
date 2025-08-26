@@ -2,7 +2,8 @@
   inputs,
   pkgs,
   ...
-}: {
+}:
+{
   imports = [
     inputs.plasma-manager.homeManagerModules.plasma-manager
   ];
@@ -80,24 +81,27 @@
         };
       };
 
-      kwinrulesrc = let
-        rules = {
-          no-titlebar = {
-            Description = "Hide the title bar on all windows";
-            noborder = "true";
-            noborderrule = "3";
-            wmclass = ".*";
-            wmclassmatch = "3";
+      kwinrulesrc =
+        let
+          rules = {
+            no-titlebar = {
+              Description = "Hide the title bar on all windows";
+              noborder = "true";
+              noborderrule = "3";
+              wmclass = ".*";
+              wmclassmatch = "3";
+            };
           };
-        };
-      in
+        in
         {
-          General = let
-            names = builtins.attrNames rules;
-          in {
-            count = builtins.length names;
-            rules = builtins.concatStringsSep "," names;
-          };
+          General =
+            let
+              names = builtins.attrNames rules;
+            in
+            {
+              count = builtins.length names;
+              rules = builtins.concatStringsSep "," names;
+            };
         }
         // rules;
 

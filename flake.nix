@@ -24,7 +24,7 @@
     disko.url = "github:nix-community/disko";
     # Automatic hardware configuration
     nixos-facter-modules.url = "github:nix-community/nixos-facter-modules";
-    # Applies a theme to all programs 
+    # Applies a theme to all programs
     stylix = {
       url = "github:nix-community/stylix";
       # url = "github:osipog/stylix";
@@ -47,7 +47,7 @@
       url = "github:wamserma/flake-programs-sqlite";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-  
+
     # --- Packages
     # Development environments the easy nix way
     devenv.url = "github:cachix/devenv";
@@ -80,30 +80,39 @@
     libfprint-goodix-55b4.url = "github:oscar-schwarz/libfprint-goodix-55b4";
   };
 
-  outputs = inputs: let
-    inherit (inputs.nixpkgs) lib;
+  outputs =
+    inputs:
+    let
+      inherit (inputs.nixpkgs) lib;
 
-    inherit (lib) pipe;
-    inherit (lib.attrsets) attrsToList listToAttrs;
-    
-    outputs = inputs.blueprint { inherit inputs; };
-  in outputs // {
-    nixosConfigurations = outputs.nixosConfigurations // (pipe outputs.nixosConfigurations [
-      attrsToList
-      (map ({
-        name,
-        value,
-      }: {
-        name = name + "-without-secrets";
-        value = value.extendModules {
-          modules = [
+      inherit (lib) pipe;
+      inherit (lib.attrsets) attrsToList listToAttrs;
+
+      outputs = inputs.blueprint { inherit inputs; };
+    in
+    outputs
+    // {
+      nixosConfigurations =
+        outputs.nixosConfigurations
+        // (pipe outputs.nixosConfigurations [
+          attrsToList
+          (map (
             {
-              sops.secrets = lib.mkForce {};
+              name,
+              value,
+            }:
+            {
+              name = name + "-without-secrets";
+              value = value.extendModules {
+                modules = [
+                  {
+                    sops.secrets = lib.mkForce { };
+                  }
+                ];
+              };
             }
-          ];
-        };
-      }))
-      listToAttrs
-    ]);
-  };
+          ))
+          listToAttrs
+        ]);
+    };
 }

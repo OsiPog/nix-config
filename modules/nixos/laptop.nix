@@ -1,4 +1,5 @@
-{...}: {
+{ ... }:
+{
   # Power management using auto-cpufreq
   powerManagement.enable = true; # basic NixOS powermanagement
   services.auto-cpufreq.enable = true;

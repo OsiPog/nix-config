@@ -1,13 +1,16 @@
 {
   inputs,
   ...
-}: {
+}:
+{
   nixpkgs.overlays = with inputs; [
     # Add packages of the flakes in an overlay
     (
-      final: prev: let
+      final: prev:
+      let
         stable = nixpkgs-stable.legacyPackages.${prev.system};
-      in {
+      in
+      {
         # to access stable packages
         inherit stable;
 

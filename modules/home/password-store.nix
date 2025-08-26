@@ -3,11 +3,13 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   repositoryOrigin = "git@github.com:OsiPog/pass.git";
 
   inherit (builtins) match;
-in {
+in
+{
   home.packages = [
     # a script to fetch the password store easily in the correct folder
     (pkgs.writeShellApplication {
@@ -40,7 +42,7 @@ in {
       PASSWORD_STORE_DIR = "$HOME/.password-store";
     };
   };
-  
+
   programs.gpg = {
     enable = true;
   };

@@ -3,14 +3,16 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (builtins) attrNames;
   inherit (lib) pipe;
   inherit (lib.attrsets) filterAttrs;
   inherit (lib.lists) findFirst;
-  
+
   inList = e: list: (findFirst (x: x == e) null list) != null;
-in {
+in
+{
   environment.systemPackages = [
     pkgs.podman-compose
   ];

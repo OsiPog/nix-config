@@ -3,7 +3,8 @@
   lib,
   inputs,
   ...
-}: {
+}:
+{
   home = rec {
     username = "leaf";
     homeDirectory = "/home/${username}";

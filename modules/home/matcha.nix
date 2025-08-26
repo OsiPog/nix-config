@@ -3,7 +3,8 @@
   lib,
   config,
   ...
-}: {
+}:
+{
   options.matcha = with lib; {
     enable = mkEnableOption "a wayland idle inhibitor";
     waybarIntegration = {
@@ -51,25 +52,29 @@
     ];
 
     # Waybar integration
-    programs.waybar.settings.${config.matcha.waybarIntegration.barName} = lib.mkIf config.matcha.waybarIntegration.enable {
-      "custom/${config.matcha.waybarIntegration.moduleName}" = let
-        # Toggles matcha, kill if running, start if not running
-        # Checks whether match is running
-        statusCheck = pkgs.writeShellScript "" ''
-          if pidof matcha>/dev/null; then
-            echo -e '&#xf109; &#xf7b6;\nIdle Inhibitor Enabled'
-          else
-            echo -e '&#xf109; &#xf186;\nIdle Inhibitor Disabled'
-          fi
-        '';
-      in {
-        # Check status every second
-        exec = statusCheck;
-        interval = 1;
-        # Toggle on click
-        on-click = "matcha-toggle";
-      };
-    };
+    programs.waybar.settings.${config.matcha.waybarIntegration.barName} =
+      lib.mkIf config.matcha.waybarIntegration.enable
+        {
+          "custom/${config.matcha.waybarIntegration.moduleName}" =
+            let
+              # Toggles matcha, kill if running, start if not running
+              # Checks whether match is running
+              statusCheck = pkgs.writeShellScript "" ''
+                if pidof matcha>/dev/null; then
+                  echo -e '&#xf109; &#xf7b6;\nIdle Inhibitor Enabled'
+                else
+                  echo -e '&#xf109; &#xf186;\nIdle Inhibitor Disabled'
+                fi
+              '';
+            in
+            {
+              # Check status every second
+              exec = statusCheck;
+              interval = 1;
+              # Toggle on click
+              on-click = "matcha-toggle";
+            };
+        };
 
     # Hyprland integration
     wayland.windowManager.hyprland.settings.bindl = lib.mkIf config.matcha.disableOnLidSwitch.enable [

@@ -6,10 +6,12 @@
   config,
   nixosConfig,
   ...
-}: let
+}:
+let
   inherit (builtins) replaceStrings readFile;
   vscodeExts = inputs.nix-vscode-extensions.extensions.${pkgs.system};
-in {
+in
+{
   # Make codium default
   xdg.mimeApps.defaultApplications = lib.attrsets.genAttrs [
     "text/plain"
@@ -33,18 +35,19 @@ in {
 
   programs.vscode = {
     enable = true;
-    package = pkgs.vscodium.overrideAttrs (prev:
+    package = pkgs.vscodium.overrideAttrs (
+      prev:
       with builtins;
-      with lib.strings; {
+      with lib.strings;
+      {
         # As NIXOS_OZONE_WL is enabled, it is tried here too. But VSCodium shows a warning that is it an
         # unsupported parameter. This hack removes that parameter added by the environment variable.
         preFixup = concatStringsSep "\n" (
           # Filter out the line containing the parameter that causes the warning
-          filter
-          (str: (match ".*ozone-platform-hint.*" str) == null)
-          (splitString "\n" prev.preFixup)
+          filter (str: (match ".*ozone-platform-hint.*" str) == null) (splitString "\n" prev.preFixup)
         );
-      });
+      }
+    );
     profiles.default = {
       userSettings = {
         # --- VSCODE ---
@@ -94,21 +97,23 @@ in {
         "nix.enableLanguageServer" = true;
         "nix.serverPath" = "${lib.getExe pkgs.nixd}";
         "nix.serverSettings" = {
-          nixd = let
-            flakeExpr = "(builtins.getFlake \'\'${flake}\'\')";
-            pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
-            currentSystemExpr = flakeExpr + ".nixosConfigurations.${nixosConfig.networking.hostName}";
-          in {
-            formatting = {
-              command = ["${lib.getExe pkgs.alejandra}"];
+          nixd =
+            let
+              flakeExpr = "(builtins.getFlake \'\'${flake}\'\')";
+              pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
+              currentSystemExpr = flakeExpr + ".nixosConfigurations.${nixosConfig.networking.hostName}";
+            in
+            {
+              formatting = {
+                command = [ "${lib.getExe pkgs.alejandra}" ];
+              };
+              nixpkgs.expr = pkgsExpr;
+              options = {
+                nixos.expr = "${currentSystemExpr}.options";
+                home-manager.expr = "${currentSystemExpr}.options.home-manager.users.type.getSubOptions {}";
+                devenv.expr = "${flakeExpr}.lib.devenv.allDevenvOptions";
+              };
             };
-            nixpkgs.expr = pkgsExpr;
-            options = {
-              nixos.expr = "${currentSystemExpr}.options";
-              home-manager.expr = "${currentSystemExpr}.options.home-manager.users.type.getSubOptions {}";
-              devenv.expr = "${flakeExpr}.lib.devenv.allDevenvOptions";
-            };
-          };
         };
 
         # --- JAVA ---
@@ -158,14 +163,13 @@ in {
           command = "runCommands";
           when = "!multipleEditorGroups";
           args = {
-            commands =
-              [
-                "cline.openInNewTab" # opens the cline window in a tab
-                "workbench.action.moveActiveEditorGroupDown" # moves the tab below the actual code
+            commands = [
+              "cline.openInNewTab" # opens the cline window in a tab
+              "workbench.action.moveActiveEditorGroupDown" # moves the tab below the actual code
 
-                # shrink the cline tab a couple of times to a reasonable size
-              ]
-              ++ (lib.lists.replicate 7 "workbench.action.decreaseViewHeight");
+              # shrink the cline tab a couple of times to a reasonable size
+            ]
+            ++ (lib.lists.replicate 7 "workbench.action.decreaseViewHeight");
           };
         }
         {
@@ -213,29 +217,28 @@ in {
           command = "runCommands";
           when = "!multipleEditorGroups && !panelVisible && !sidebarVisible && !(editorPartMultipleEditorGroups && multipleEditorGroups)";
           args = {
-            commands =
-              [
-                # enable zen mode
-                "workbench.action.exitZenMode"
-                "workbench.action.toggleZenMode"
+            commands = [
+              # enable zen mode
+              "workbench.action.exitZenMode"
+              "workbench.action.toggleZenMode"
 
-                # enable panel
-                "workbench.action.closePanel"
-                "workbench.action.togglePanel"
+              # enable panel
+              "workbench.action.closePanel"
+              "workbench.action.togglePanel"
 
-                # disable sidebar
-                "workbench.action.closeSidebar"
+              # disable sidebar
+              "workbench.action.closeSidebar"
 
-                # enable cline
-                "cline.openInNewTab" # opens the cline window in a tab
-                "workbench.action.moveActiveEditorGroupDown" # moves the tab below the actual code
-                # shrink the cline tab a couple of times to a reasonable size
-              ]
-              ++ (lib.lists.replicate 3 "workbench.action.decreaseViewHeight")
-              ++ [
-                # focus the code
-                "workbench.action.focusLastEditorGroup"
-              ];
+              # enable cline
+              "cline.openInNewTab" # opens the cline window in a tab
+              "workbench.action.moveActiveEditorGroupDown" # moves the tab below the actual code
+              # shrink the cline tab a couple of times to a reasonable size
+            ]
+            ++ (lib.lists.replicate 3 "workbench.action.decreaseViewHeight")
+            ++ [
+              # focus the code
+              "workbench.action.focusLastEditorGroup"
+            ];
           };
         }
 
@@ -367,54 +370,59 @@ in {
           command = "editor.debug.action.toggleBreakpoint";
         }
       ];
-      extensions = with vscodeExts;
-      with vscode-marketplace; let
-        op-vsx = open-vsx;
-      in [
-        # --- UTILITIES ---
-        # davidlgoldberg.jumpy2 # jumping cursors with short letter combo
-        # eamodio.gitlens # useful for git blame inline
-        # saoudrizwan.claude-dev # llm coding agent
-        # sleistner.vscode-fileutils # crud for files
+      extensions =
+        with vscodeExts;
+        with vscode-marketplace;
+        let
+          op-vsx = open-vsx;
+        in
+        [
+          # --- UTILITIES ---
+          # davidlgoldberg.jumpy2 # jumping cursors with short letter combo
+          # eamodio.gitlens # useful for git blame inline
+          # saoudrizwan.claude-dev # llm coding agent
+          # sleistner.vscode-fileutils # crud for files
 
-        # # --- PHP ---
-        # zobo.php-intellisense # intellisense
-        xdebug.php-debug # debugging php applications
-        # ronvanderheijden.phpdoc-generator # generate php doc comments
-        # mehedidracula.php-namespace-resolver # php everything namespace
+          # # --- PHP ---
+          # zobo.php-intellisense # intellisense
+          xdebug.php-debug # debugging php applications
+          # ronvanderheijden.phpdoc-generator # generate php doc comments
+          # mehedidracula.php-namespace-resolver # php everything namespace
 
-        # # --- NIX ---
-        # jnoortheen.nix-ide # nix language features
+          # # --- NIX ---
+          # jnoortheen.nix-ide # nix language features
 
-        # # --- NUSHELL ---
-        # thenuprojectcontributors.vscode-nushell-lang
+          # # --- NUSHELL ---
+          # thenuprojectcontributors.vscode-nushell-lang
 
-        # # --- NODE ---
-        # vue.volar # vue language features
-        # oouo-diogo-perdigao.docthis # jsdoc
+          # # --- NODE ---
+          # vue.volar # vue language features
+          # oouo-diogo-perdigao.docthis # jsdoc
 
-        # # --- JAVA ---
-        # # redhat.java # language features
-        # vscjava.vscode-java-debug # debugger
-        # vscjava.vscode-java-dependency # project manager
+          # # --- JAVA ---
+          # # redhat.java # language features
+          # vscjava.vscode-java-debug # debugger
+          # vscjava.vscode-java-dependency # project manager
 
-        # # --- GODOT ENGINE ---
-        # geequlim.godot-tools
+          # # --- GODOT ENGINE ---
+          # geequlim.godot-tools
 
-        # # --- SQL ---
-        # adpyke.vscode-sql-formatter
-      ];
+          # # --- SQL ---
+          # adpyke.vscode-sql-formatter
+        ];
     };
   };
 
   # Set VSCodium to be git editor
-  programs.git.extraConfig = let
-    codium = "codium --wait --new-window";
-  in {
-    core.editor = "codium --wait";
-    diff.tool = "vscodium";
-    "difftool \"vscodium\"".cmd = codium + " --diff $LOCAL $REMOTE";
-    merge.tool = "vscodium";
-    "mergetool \"vscodium\"".cmd = codium + " \"$MERGED\"";
-  };
+  programs.git.extraConfig =
+    let
+      codium = "codium --wait --new-window";
+    in
+    {
+      core.editor = "codium --wait";
+      diff.tool = "vscodium";
+      "difftool \"vscodium\"".cmd = codium + " --diff $LOCAL $REMOTE";
+      merge.tool = "vscodium";
+      "mergetool \"vscodium\"".cmd = codium + " \"$MERGED\"";
+    };
 }

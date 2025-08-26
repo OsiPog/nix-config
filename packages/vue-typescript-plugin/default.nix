@@ -19,7 +19,7 @@ pkgs.buildNpmPackage rec {
     description = "TypeScript plugin for Vue";
     homepage = "https://github.com/vuejs/language-tools";
     license = licenses.mit;
-    maintainers = [];
+    maintainers = [ ];
     platforms = platforms.all;
   };
 }

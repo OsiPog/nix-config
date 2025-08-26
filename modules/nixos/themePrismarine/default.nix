@@ -4,9 +4,11 @@
   config,
   inputs,
   ...
-}: let
+}:
+let
   # helper
-  absoluteNixFilesInDir = dir:
+  absoluteNixFilesInDir =
+    dir:
     pipe (readDir dir) [
       (filterAttrs (_: value: value == "regular"))
       attrNames
@@ -16,7 +18,8 @@
   inherit (lib.attrsets) attrNames filterAttrs;
   inherit (builtins) readDir;
   inherit (lib) mkOption types pipe;
-in {
+in
+{
   # Some options not handled by stylix
   options.prismarineTheme = {
     border-radius = mkOption {
@@ -37,7 +40,7 @@ in {
     };
   };
 
-  imports = [inputs.stylix.nixosModules.stylix];
+  imports = [ inputs.stylix.nixosModules.stylix ];
 
   config = {
     # Implement the defined options from above
@@ -111,10 +114,10 @@ in {
     # import additional modules
     # import = (absoluteNixFilesInDir ./nixos);
 
-    home-manager.sharedModules =
-      (absoluteNixFilesInDir ./hm)
-      ++ [
-        ({pkgs, ...}: {
+    home-manager.sharedModules = (absoluteNixFilesInDir ./hm) ++ [
+      (
+        { pkgs, ... }:
+        {
           # consisent icon theme
           home.packages = with pkgs; [
             adwaita-icon-theme
@@ -124,10 +127,11 @@ in {
           gtk.iconTheme.name = "Adwaita";
 
           stylix.targets = {
-            firefox.profileNames = ["default"];
-            vscode.profileNames = ["default"];
+            firefox.profileNames = [ "default" ];
+            vscode.profileNames = [ "default" ];
           };
-        })
-      ];
+        }
+      )
+    ];
   };
 }

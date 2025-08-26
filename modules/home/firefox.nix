@@ -4,10 +4,12 @@
   config,
   inputs,
   ...
-}: let
+}:
+let
   packageName = "librewolf";
   addons = inputs.nix-firefox-addons.addons.${pkgs.system};
-in {
+in
+{
   # Make firefox default
   xdg.mimeApps.defaultApplications = lib.attrsets.genAttrs [
     # Open links in firefox
@@ -25,10 +27,7 @@ in {
   programs.firefox = {
     enable = true;
     package = pkgs.${packageName};
-    configPath =
-      if packageName == "firefox"
-      then ".mozilla/firefox"
-      else ".librewolf";
+    configPath = if packageName == "firefox" then ".mozilla/firefox" else ".librewolf";
 
     # Some installation-wide settings and extensions
     # https://mozilla.github.io/policy-templates/
@@ -177,7 +176,7 @@ in {
           youtube-no-translation # disable automatic translations
           sponsorblock # automatic skip of sponsored sections in yt videos
         ];
-        settings = {};
+        settings = { };
       };
     };
   };

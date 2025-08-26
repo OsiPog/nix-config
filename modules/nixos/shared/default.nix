@@ -1,4 +1,5 @@
-{ ... }: {
+{ ... }:
+{
   imports = [
     ./boot.nix
     ./facter.nix
@@ -8,7 +9,7 @@
     ./nixpkgs.nix
     ./packages.nix
     ./secrets.nix
-    ./state.nix
+    # ./state.nix
     ./users.nix
   ];
 }

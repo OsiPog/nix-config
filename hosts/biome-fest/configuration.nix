@@ -1,10 +1,16 @@
-{config, flake, ...}: {
+{ config, flake, ... }:
+{
   imports = with flake.nixosModules; [
     shared
 
     ./hardware-configuration.nix
 
-    ({pkgs, ...}: {boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;})
+    (
+      { pkgs, ... }:
+      {
+        boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;
+      }
+    )
 
     allow-some-unfree
     fingerprint
@@ -19,14 +25,14 @@
     tuigreet
     # podman
 
-    "${flake}/users/osi"
+    ../../users/osi
   ];
-
-  state.host.ssh.public-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDIcVpuDI9fFcNWeMEHelbaItqQJwmAkibSFR+nBhxng root@biome-fest";
 
   # services.desktopManager.plasma6.enable = true;
 
-  sops.secrets."api-keys/nix-access-tokens" = {owner = "osi";};
+  sops.secrets."api-keys/nix-access-tokens" = {
+    owner = "osi";
+  };
   nix.extraOptions = ''
     !include ${config.getSopsFile "api-keys/nix-access-tokens"}    
   '';

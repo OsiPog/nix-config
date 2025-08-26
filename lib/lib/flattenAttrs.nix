@@ -1,4 +1,5 @@
-lib: let
+lib:
+let
   inherit (builtins) typeOf;
   inherit (lib) pipe;
   inherit (lib.attrsets) attrsToList listToAttrs;
@@ -6,25 +7,29 @@ lib: let
 
   toCamelCase = import ./toCamelCase.nix lib;
 
-  flattenAttrs = namePrefix: attrs:
+  flattenAttrs =
+    namePrefix: attrs:
     pipe attrs [
       attrsToList
       (map (
         {
           name,
           value,
-        }: let
+        }:
+        let
           newPrefix = (
-            if namePrefix == ""
-            then name
-            else if name == ""
-            then namePrefix
-            else (namePrefix + "-" + name)
+            if namePrefix == "" then
+              name
+            else if name == "" then
+              namePrefix
+            else
+              (namePrefix + "-" + name)
           );
         in
-          if typeOf value == "set"
-          then attrsToList (flattenAttrs newPrefix value)
-          else {
+        if typeOf value == "set" then
+          attrsToList (flattenAttrs newPrefix value)
+        else
+          {
             inherit value;
             name = newPrefix;
           }
@@ -35,4 +40,4 @@ lib: let
       listToAttrs
     ];
 in
-  flattenAttrs ""
+flattenAttrs ""

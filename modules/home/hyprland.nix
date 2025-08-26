@@ -4,7 +4,8 @@
   lib,
   nixosConfig,
   ...
-}: {
+}:
+{
   home = {
     packages = with pkgs; [
       hyprshot
@@ -59,13 +60,15 @@
       ];
 
       # --- Keyboard settings ---
-      input = let
-        xkb = nixosConfig.services.xserver.xkb;
-      in {
-        kb_layout = xkb.layout;
-        kb_variant = xkb.variant;
-        kb_options = xkb.options;
-      };
+      input =
+        let
+          xkb = nixosConfig.services.xserver.xkb;
+        in
+        {
+          kb_layout = xkb.layout;
+          kb_variant = xkb.variant;
+          kb_options = xkb.options;
+        };
 
       device = [
         {
@@ -80,27 +83,33 @@
       # --- Keybindings ---
       "$meta" = "SUPER";
 
-      bind = let
-        directions = ["u" "d" "l" "r"];
+      bind =
+        let
+          directions = [
+            "u"
+            "d"
+            "l"
+            "r"
+          ];
 
-        arrowsByDirection = {
-          u = "Up";
-          d = "Down";
-          l = "Left";
-          r = "Right";
-        };
+          arrowsByDirection = {
+            u = "Up";
+            d = "Down";
+            l = "Left";
+            r = "Right";
+          };
 
-        lettersByDirection = {
-          u = "F";
-          d = "S";
-          l = "R";
-          r = "T";
-        };
+          lettersByDirection = {
+            u = "F";
+            d = "S";
+            l = "R";
+            r = "T";
+          };
 
-        perDirection = keyByDirection: f: builtins.map (x: f x (keyByDirection."${x}")) directions;
-        perDirectionLetter = perDirection lettersByDirection;
-        perDirectionArrow = perDirection arrowsByDirection;
-      in
+          perDirection = keyByDirection: f: builtins.map (x: f x (keyByDirection."${x}")) directions;
+          perDirectionLetter = perDirection lettersByDirection;
+          perDirectionArrow = perDirection arrowsByDirection;
+        in
         (perDirectionLetter (dir: key: "$meta, ${key}, movefocus, ${dir}"))
         ++ (perDirectionArrow (dir: key: "$meta, ${key}, movefocus, ${dir}"))
         ++ (perDirectionLetter (dir: key: "$meta_CTRL, ${key}, movewindow, ${dir}"))
@@ -132,18 +141,20 @@
         ];
 
       # Binds here will be repeated on press
-      binde = let
-        resizeFactor = "50";
-      in [
-        # resize window
-        "$meta, G, resizeactive, -${resizeFactor} -${resizeFactor}"
-        "$meta, D, resizeactive, ${resizeFactor} ${resizeFactor}"
+      binde =
+        let
+          resizeFactor = "50";
+        in
+        [
+          # resize window
+          "$meta, G, resizeactive, -${resizeFactor} -${resizeFactor}"
+          "$meta, D, resizeactive, ${resizeFactor} ${resizeFactor}"
 
-        # Volume keys
-        # (the brightness keys are handled in the laptop file)
-        ", XF86AudioRaiseVolume, exec, wpctl set-volume @DEFAULT_SINK@ 10%+"
-        ", XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_SINK@ 10%-"
-      ];
+          # Volume keys
+          # (the brightness keys are handled in the laptop file)
+          ", XF86AudioRaiseVolume, exec, wpctl set-volume @DEFAULT_SINK@ 10%+"
+          ", XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_SINK@ 10%-"
+        ];
 
       # The binds here are for the mouse
       bindm = [

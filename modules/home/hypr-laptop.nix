@@ -1,4 +1,5 @@
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   home.packages = with pkgs; [
     brightnessctl # for setting the brightness of built-in monitor
 
@@ -83,34 +84,36 @@
 
     # lockscreen binds
     # do certain actions on lid switch
-    bindl = let
-      docked = pkgs.writeShellScript "" ''
-        [ $(hyprctl monitors | grep -c '(ID ') -ge 2 ]
-      '';
+    bindl =
+      let
+        docked = pkgs.writeShellScript "" ''
+          [ $(hyprctl monitors | grep -c '(ID ') -ge 2 ]
+        '';
 
-      closeLid = pkgs.writeShellScript "" ''
-        # disable monitor if it is not the only one
-        if ${docked}; then
-          hyprctl keyword monitor "eDP-1, disable"
-        # otherwise lock the screen
-        else
-          loginctl lock-session
-        fi
-      '';
+        closeLid = pkgs.writeShellScript "" ''
+          # disable monitor if it is not the only one
+          if ${docked}; then
+            hyprctl keyword monitor "eDP-1, disable"
+          # otherwise lock the screen
+          else
+            loginctl lock-session
+          fi
+        '';
 
-      openLid = pkgs.writeShellScript "" ''
-        # enable monitor
-        hyprctl reload
+        openLid = pkgs.writeShellScript "" ''
+          # enable monitor
+          hyprctl reload
 
-        # Run hyprlock if laptop is not docked
-        if ! ${docked}; then
-          loginctl lock-session
-        fi
-      '';
-    in [
-      # switch behaviour
-      ", switch:on:Lid Switch, exec, ${closeLid}"
-      ", switch:off:Lid Switch, exec, ${openLid}"
-    ];
+          # Run hyprlock if laptop is not docked
+          if ! ${docked}; then
+            loginctl lock-session
+          fi
+        '';
+      in
+      [
+        # switch behaviour
+        ", switch:on:Lid Switch, exec, ${closeLid}"
+        ", switch:off:Lid Switch, exec, ${openLid}"
+      ];
   };
 }

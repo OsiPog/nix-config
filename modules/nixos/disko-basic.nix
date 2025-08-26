@@ -2,8 +2,9 @@
   inputs,
   lib,
   ...
-}: {
-  imports = [inputs.disko.nixosModules.default];
+}:
+{
+  imports = [ inputs.disko.nixosModules.default ];
 
   disko.devices = {
     disk.disk1 = {

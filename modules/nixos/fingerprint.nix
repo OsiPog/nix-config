@@ -1,4 +1,5 @@
-{...}: {
+{ ... }:
+{
   # enable fprintd but disable the pam sudo module
   services.fprintd.enable = true;
   security.pam.services = {

@@ -3,7 +3,8 @@
   lib,
   ...
 }:
-with config.stylix.fonts; {
+with config.stylix.fonts;
+{
   programs.vscode.profiles.default.userSettings = {
     "editor.fontSize" = lib.mkForce sizes.applications;
     "debug.console.fontSize" = lib.mkForce sizes.applications;

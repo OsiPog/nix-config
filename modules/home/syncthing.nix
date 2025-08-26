@@ -1,4 +1,5 @@
-{config, ...}: {
+{ config, ... }:
+{
   services.syncthing = {
     enable = true;
     settings = {
@@ -6,7 +7,7 @@
         "written-mind" = {
           enable = true;
           path = "/home/${config.home.username}/files/local/written-mind";
-          devices = ["phone"];
+          devices = [ "phone" ];
         };
       };
       devices = {

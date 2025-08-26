@@ -31,13 +31,13 @@ pkgs.python3Packages.buildPythonPackage rec {
   # The package doesn't have tests
   doCheck = false;
 
-  pythonImportsCheck = ["vosk"];
+  pythonImportsCheck = [ "vosk" ];
 
   meta = with pkgs.lib; {
     description = "Offline speech recognition API for Python, with PyPy support";
     homepage = "https://alphacephei.com/vosk/";
     license = licenses.asl20;
-    maintainers = [];
+    maintainers = [ ];
     platforms = platforms.all;
   };
 }

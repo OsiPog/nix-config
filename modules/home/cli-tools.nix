@@ -3,7 +3,8 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   heygptWrapper = pkgs.writeShellApplication {
     name = "heygpt";
     runtimeInputs = [ pkgs.heygpt ];
@@ -13,7 +14,8 @@
       heygpt --model "''${HEYGPT_MODEL:-gpt-4o}" "$@"
     '';
   };
-in {
+in
+{
   home.packages = with pkgs; [
     bluetuith # bluetooth tui
     devenv # dev environments made easy
@@ -31,7 +33,7 @@ in {
 
   # Secrets needed in this file
   sops.secrets = {
-    "api-keys/open-ai" = {};
+    "api-keys/open-ai" = { };
   };
 
   # Mounting usb devices easily

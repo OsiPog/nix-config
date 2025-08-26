@@ -1,4 +1,5 @@
-{nixosConfig, ...}: {
+{ nixosConfig, ... }:
+{
   stylix.targets.wofi.enable = false;
 
   programs.wofi = {
