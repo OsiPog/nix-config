@@ -93,8 +93,8 @@ in {
         identitiesOnly = true;
       };
     };
-    extraConfig = ''
-Include ~/.ssh/config_imperative    
-    '';
+    includes = [
+      "~/.ssh/config_imperative"
+    ];
   };
 }
