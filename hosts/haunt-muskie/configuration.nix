@@ -7,6 +7,11 @@
     ../../users/leaf
   ];
 
+  state.host.ssh = {
+    public-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAcSqngrHbdtiCGzPmt6peImIQfYek/WLcaXIwrhN5oS root@haunt-muskie";
+    allow-connections-from = ["biome-fest"];
+  };
+
   networking.firewall.allowedTCPPorts = [
     1001
     80
