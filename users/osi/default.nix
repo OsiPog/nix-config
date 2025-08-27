@@ -3,24 +3,20 @@
   inputs,
   config,
   ...
-}:
-let
+}: let
   inherit (flake.lib) mkUserModule;
 
   username = "osi";
-in
-{
-  imports =
-    with flake.nixosModules;
-    with inputs.nix-config-private.nixosModules;
-    [
-      themePrismarine
+in {
+  imports = with flake.nixosModules;
+  with inputs.nix-config-private.nixosModules; [
+    themePrismarine
 
-      # private
-      uni-vpn
+    # private
+    uni-vpn
 
-      (mkUserModule username)
-    ];
+    (mkUserModule username)
+  ];
 
   sops.secrets."pass-hashes/osi" = {
     neededForUsers = true;
@@ -28,11 +24,13 @@ in
 
   programs.hyprland.enable = true;
 
-  users.extraGroups.podman.members = [ "osi" ];
+  users.extraGroups.podman.members = ["osi"];
+
+  programs.adb.enable = true;
 
   users.users.${username} = {
     # Enable sudo for user
-    extraGroups = [ "wheel" ];
+    extraGroups = ["wheel" "adbusers"];
     # password
     hashedPasswordFile = config.getSopsFile "pass-hashes/osi";
   };

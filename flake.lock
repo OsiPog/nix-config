@@ -618,10 +618,10 @@
         "blueprint": "blueprint_2"
       },
       "locked": {
-        "lastModified": 1755962954,
-        "narHash": "sha256-uar3V1Ti148i+lyck3PZOLMeEy/psLtUsxRXs49a+iw=",
+        "lastModified": 1756195764,
+        "narHash": "sha256-DWuOIhFbEgDMEwks72XuSAsOS64iXrAMGCg/ByP4NMA=",
         "ref": "main",
-        "rev": "5e49bb5a5665d73c6fd63215b819d0759f3e5f92",
+        "rev": "d275d1b9db61d4719f8c0c577a0f71822bce3c63",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/osipog/nix-config-private.git"
