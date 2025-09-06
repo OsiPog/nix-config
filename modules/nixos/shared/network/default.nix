@@ -1,0 +1,127 @@
+{
+  lib,
+  config,
+  hostName,
+  ...
+}: let
+  inherit (builtins) attrNames readDir filter listToAttrs;
+  inherit (lib) pipe types mkOption mkEnableOption;
+  inherit (lib.attrsets) attrsToList;
+  inherit (lib.lists) optionals;
+  inherit (lib.filesystem) listFilesRecursive;
+
+  hostnames = attrNames (readDir ../../../../hosts);
+  # Define the available hostnames as an enum based on /hosts folder names
+  hostnameEnum = types.enum hostnames;
+
+  cfg = config.network;
+  hostCfg = cfg.hosts.${hostName};
+
+  mkServiceOptions = mkOption {
+    description = "Function that should be used to create new services. Usage in file: options.network.services.<name> = mkServiceOptions";
+    type =
+      types.submodule
+      ({config, ...}: {
+        options = {
+          enable = mkEnableOption "the service";
+          port = mkOption {
+            type = types.port;
+            description = "Port number for the service";
+          };
+          host = mkOption {
+            type = types.nullOr hostnameEnum;
+            description = "The host this service should run on.";
+          };
+          reverseProxy = {
+            enable = mkEnableOption "this service should be reverse proxied from a server.";
+            subdomain = mkOption {
+              type = types.str;
+              description = "The subdomain name this service should be reached on.";
+              default = "";
+            };
+            host = mkOption {
+              type = hostnameEnum;
+              description = "A reverse proxy enabled host.";
+              default = config.host;
+            };
+          };
+        };
+      });
+  };
+
+  toACMECert = serviceName: "${cfg.services.${serviceName}.reverseProxy.subdomain}-cert";
+  toFullDomain = serviceName: "${cfg.services.${serviceName}.reverseProxy.subdomain}.${cfg.hosts.${cfg.services.${serviceName}.reverseProxy.host}.reverseProxy.domain}";
+in {
+  options.network = {
+    hosts = mkOption {
+      type = types.attrsOf (types.submodule {
+        options = {
+          reverseProxy = {
+            enable = mkEnableOption "a reverse proxy responsible for mapping the domains of the services to their servers";
+            domain = mkOption {
+              type = types.str;
+              description = "The domain configured to connect to this host.";
+              default = "";
+            };
+          };
+          ssh = {
+            publicKey = mkOption {
+              type = types.str;
+              description = "SSH public key for the host";
+            };
+            allowConnectionsFrom = mkOption {
+              type = types.listOf hostnameEnum;
+              default = [];
+              description = "List of host names that are allowed to connect to this host via SSH";
+            };
+          };
+        };
+      });
+      default = {};
+      description = "Configuration for all hosts in the network";
+    };
+
+    services = {};
+  };
+
+  imports =
+    [
+      ./reverseProxy.nix
+    ]
+    ++ (listFilesRecursive ./services);
+
+  config = let
+    sshEnabled = (hostCfg.ssh.allowConnectionsFrom) != [];
+  in {
+    lib.network = {
+      inherit mkServiceOptions toACMECert toFullDomain;
+    };
+
+    assertions =
+      []
+      # Check the services which should be reverse proxied if the reverse proxy host is actually a reverse proxy.
+      ++ (pipe cfg.services [
+        attrsToList
+        (filter (service: service.value.reverseProxy.enable))
+        (map (service: {
+          assertion = cfg.hosts.${service.value.reverseProxy.host}.reverseProxy.enable;
+          message = "Reverse proxy host \"${service.value.reverseProxy.host}\" of service \"${service.name}\" is not a reverse proxy.";
+        }))
+      ]);
+
+    # Define the options for each host
+    network.hosts = listToAttrs (map (name: {
+        inherit name;
+        value = {};
+      })
+      hostnames);
+
+    # Enable SSH if this host allows connections from other hosts
+    services.openssh.enable = sshEnabled;
+    networking.firewall.allowedTCPPorts = optionals sshEnabled [22];
+    # Add authorized keys from hosts that are allowed to connect
+    users.users.root.openssh.authorizedKeys.keys = map (
+      other: cfg.hosts.${other}.ssh.publicKey
+    ) (hostCfg.ssh.allowConnectionsFrom);
+  };
+}

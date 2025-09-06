@@ -1,5 +1,4 @@
-{ ... }:
-{
+{...}: {
   imports = [
     ./boot.nix
     ./facter.nix
@@ -11,5 +10,8 @@
     ./secrets.nix
     # ./state.nix
     ./users.nix
+
+    ./network
+    ../../../network.nix
   ];
 }
