@@ -16,7 +16,7 @@
   # Only the services that should be reverse proxied by current host
   relevantServices = pipe cfg.services [
     attrsToList
-    (filter (service: service.value.reverseProxy.host == hostName))
+    (filter (service: service.value.reverseProxy.enable && service.value.reverseProxy.host == hostName))
   ];
 in
   mkIf hostCfg.reverseProxy.enable {

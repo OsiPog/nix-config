@@ -30,10 +30,20 @@
           subdomain = "git";
         };
       };
-      # headscale = {
-      #   runs-on = "haunt-muskie";
-      #   port = 2000;
-      # };
+      vsftpd = {
+        enable = true;
+        host = "haunt-muskie";
+        port = 21;
+      };
+      headscale = {
+        enable = true;
+        host = "haunt-muskie";
+        port = 8080;
+        reverseProxy = {
+          enable = true;
+          subdomain = "headscale";
+        };
+      };
     };
   };
 }

@@ -87,6 +87,8 @@ in {
   imports =
     [
       ./reverseProxy.nix
+
+      ./tailscale.nix
     ]
     ++ (listFilesRecursive ./services);
 
