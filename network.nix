@@ -41,7 +41,10 @@
         port = 8080;
         reverseProxy = {
           enable = true;
-          subdomain = "headscale";
+          subdomain = "vpn";
+          extraVirtualHostsConfig = {
+            locations."/".proxyWebsockets = true;
+          };
         };
       };
     };

@@ -6,7 +6,7 @@
 }: let
   inherit (builtins) filter;
   inherit (lib) mkIf pipe;
-  inherit (lib.attrsets) attrsToList;
+  inherit (lib.attrsets) attrsToList recursiveUpdate;
   inherit (builtins) listToAttrs;
 
   cfg = config.network;
@@ -42,13 +42,16 @@ in
               else service.value.host;
           in {
             name = config.lib.network.toFullDomain service.name;
-            value = {
-              useACMEHost = config.lib.network.toACMECert service.name;
-              forceSSL = true;
-              locations."/" = {
-                proxyPass = "http://${ipAddress}:${toString service.value.port}";
-              };
-            };
+            value =
+              recursiveUpdate
+              {
+                useACMEHost = config.lib.network.toACMECert service.name;
+                forceSSL = true;
+                locations."/" = {
+                  proxyPass = "http://${ipAddress}:${toString service.value.port}";
+                };
+              }
+              service.value.reverseProxy.extraVirtualHostsConfig;
           }))
         listToAttrs
       ];

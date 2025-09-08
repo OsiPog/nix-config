@@ -44,6 +44,11 @@
               description = "A reverse proxy enabled host.";
               default = config.host;
             };
+            extraVirtualHostsConfig = mkOption {
+              type = types.attrs;
+              description = "Extra options added to services.nginx.virtualHosts.<name>";
+              default = {};
+            };
           };
         };
       });

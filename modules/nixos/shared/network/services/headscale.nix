@@ -18,7 +18,7 @@ in {
         server_url = "https://" + (config.lib.network.toFullDomain "headscale");
         dns = {
           override_local_dns = false;
-          base_domain = "vpn." + (config.lib.network.toFullDomain "headscale");
+          base_domain = "dns." + (config.lib.network.toFullDomain "headscale");
           nameservers.global = [
             "1.1.1.1"
             "1.0.0.1"
