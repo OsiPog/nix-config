@@ -4,10 +4,11 @@
   hostName,
   ...
 }: let
-  inherit (builtins) filter;
+  inherit (builtins) filter listToAttrs;
   inherit (lib) mkIf pipe;
   inherit (lib.attrsets) attrsToList recursiveUpdate;
-  inherit (builtins) listToAttrs;
+
+  inherit (config.lib.network) toACMECert toFullDomain;
 
   cfg = config.network;
   hostCfg = cfg.hosts.${hostName};
@@ -35,23 +36,24 @@ in
       virtualHosts = pipe relevantServices [
         (map
           (service: let
+            proxyConf = service.value.reverseProxy;
+
             ipAddress =
               if service.value.host == hostName
               then "localhost"
               # TODO: this will only work when both are in the same Tailscale network with magic dns
               else service.value.host;
+
+            virtualHostsConfig = {
+              useACMEHost = toACMECert service.name;
+              forceSSL = true;
+              locations."/" = {
+                proxyPass = "http://${ipAddress}:${toString service.value.port}";
+              };
+            };
           in {
-            name = config.lib.network.toFullDomain service.name;
-            value =
-              recursiveUpdate
-              {
-                useACMEHost = config.lib.network.toACMECert service.name;
-                forceSSL = true;
-                locations."/" = {
-                  proxyPass = "http://${ipAddress}:${toString service.value.port}";
-                };
-              }
-              service.value.reverseProxy.extraVirtualHostsConfig;
+            name = toFullDomain service.name;
+            value = recursiveUpdate virtualHostsConfig proxyConf.extraVirtualHostsConfig;
           }))
         listToAttrs
       ];
@@ -67,9 +69,9 @@ in
       certs = pipe relevantServices [
         (map
           (service: {
-            name = config.lib.network.toACMECert service.name;
+            name = toACMECert service.name;
             value = {
-              domain = config.lib.network.toFullDomain service.name;
+              domain = toFullDomain service.name;
               dnsProvider = "porkbun";
               environmentFile = config.getSopsFile "acme/porkbun";
             };

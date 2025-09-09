@@ -2,16 +2,20 @@
   config,
   hostName,
   lib,
+  flake,
   ...
 }: let
   inherit (lib) mkIf;
+  inherit (flake.lib) mkServiceOptionsModule;
 
   cfg = config.network.services.vsftpd;
 
   certName = "base-domain-cert";
   certCfg = config.security.acme.certs.${certName};
 in {
-  options.network.services.vsftpd = config.lib.network.mkServiceOptions;
+  imports = [
+    (mkServiceOptionsModule "vsftpd")
+  ];
   config = mkIf (cfg.enable && cfg.host == hostName) {
     assertions = [
       {

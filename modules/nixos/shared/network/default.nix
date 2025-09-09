@@ -17,43 +17,6 @@
   cfg = config.network;
   hostCfg = cfg.hosts.${hostName};
 
-  mkServiceOptions = mkOption {
-    description = "Function that should be used to create new services. Usage in file: options.network.services.<name> = mkServiceOptions";
-    type =
-      types.submodule
-      ({config, ...}: {
-        options = {
-          enable = mkEnableOption "the service";
-          port = mkOption {
-            type = types.port;
-            description = "Port number for the service";
-          };
-          host = mkOption {
-            type = types.nullOr hostnameEnum;
-            description = "The host this service should run on.";
-          };
-          reverseProxy = {
-            enable = mkEnableOption "this service should be reverse proxied from a server.";
-            subdomain = mkOption {
-              type = types.str;
-              description = "The subdomain name this service should be reached on.";
-              default = "";
-            };
-            host = mkOption {
-              type = hostnameEnum;
-              description = "A reverse proxy enabled host.";
-              default = config.host;
-            };
-            extraVirtualHostsConfig = mkOption {
-              type = types.attrs;
-              description = "Extra options added to services.nginx.virtualHosts.<name>";
-              default = {};
-            };
-          };
-        };
-      });
-  };
-
   toACMECert = serviceName: "${cfg.services.${serviceName}.reverseProxy.subdomain}-cert";
   toFullDomain = serviceName: "${cfg.services.${serviceName}.reverseProxy.subdomain}.${cfg.hosts.${cfg.services.${serviceName}.reverseProxy.host}.reverseProxy.domain}";
 in {
@@ -101,7 +64,7 @@ in {
     sshEnabled = (hostCfg.ssh.allowConnectionsFrom) != [];
   in {
     lib.network = {
-      inherit mkServiceOptions toACMECert toFullDomain;
+      inherit toACMECert toFullDomain;
     };
 
     assertions =

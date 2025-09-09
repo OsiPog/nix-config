@@ -2,13 +2,17 @@
   config,
   hostName,
   lib,
+  flake,
   ...
 }: let
   inherit (lib) mkIf;
+  inherit (flake.lib) mkServiceOptionsModule;
 
   cfg = config.network.services.headscale;
 in {
-  options.network.services.headscale = config.lib.network.mkServiceOptions;
+  imports = [
+    (mkServiceOptionsModule "headscale")
+  ];
   config = mkIf (cfg.enable && cfg.host == hostName) {
     services.headscale = {
       enable = true;

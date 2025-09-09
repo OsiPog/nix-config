@@ -28,6 +28,7 @@
         reverseProxy = {
           enable = true;
           subdomain = "git";
+          onlyVPN = true;
         };
       };
       vsftpd = {
