@@ -36,12 +36,12 @@ export def "main create" [ hostname: string ] {
       - *($hostname)\n"       }
         | save .sops.yaml --force
 
-    # --- ADD ROOT PASSWORD TO SECRETS FILE
-    let ROOT_PASS = (^pwgen -s 16 1)
-    print $"The root password is: ($ROOT_PASS)"
-    {"pass-hashes": {"root": ($ROOT_PASS | mkpasswd --stdin)}} | to yaml
+    # --- ADD LEAF PASSWORD TO SECRETS FILE
+    let LEAF_PASS = (^pwgen -s 16 1)
+    print $"The leaf password is: ($LEAF_PASS)"
+    {"pass-hashes": {"leaf": ($LEAF_PASS | mkpasswd --stdin)}} | to yaml
       | ^sudo sops encrypt --filename-override $"($HOST_DIR)/secrets.yaml"
-      | save $"($HOST_DIR)/secrets.yaml"
+      | save $"($HOST_DIR)/secrets.yaml" --force
 
     # --- CREATE NIX FILES FROM TEMPLATES
     print "Add the new host to network.nix:"
@@ -50,9 +50,10 @@ export def "main create" [ hostname: string ] {
     }
     | to yaml 
     | ^mustache $"($env.FILE_PWD)/templates/configuration.nix.mustache"
-    | save $"($HOST_DIR)/configuration.nix"
+    | save $"($HOST_DIR)/configuration.nix" --force
     
     {
+      hostname: $hostname,
       sshPublicKey: (^sudo ssh-keygen -y -f $SSH_KEY_PATH),
       allowedConnectionHostname: (^hostname),
     }
