@@ -80,28 +80,5 @@
     libfprint-goodix-55b4.url = "github:oscar-schwarz/libfprint-goodix-55b4";
   };
 
-  outputs = inputs: let
-    inherit (inputs.nixpkgs) lib;
-
-    inherit (lib) mkForce;
-    inherit (lib.attrsets) mapAttrs' recursiveUpdate;
-
-    outputs = inputs.blueprint {inherit inputs;};
-  in
-    recursiveUpdate
-    outputs
-    {
-      nixosConfigurations =
-        mapAttrs' (hostName: host: {
-          name = hostName + "-without-secrets";
-          value = host.extendModules {
-            modules = [
-              {
-                sops.secrets = mkForce {};
-              }
-            ];
-          };
-        })
-        outputs.nixosConfigurations;
-    };
+  outputs = inputs: inputs.blueprint {inherit inputs;};
 }
