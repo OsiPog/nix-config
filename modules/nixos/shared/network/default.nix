@@ -90,7 +90,7 @@ in {
     services.openssh.enable = sshEnabled;
     networking.firewall.allowedTCPPorts = optionals sshEnabled [22];
     # Add authorized keys from hosts that are allowed to connect
-    users.users.root.openssh.authorizedKeys.keys = map (
+    users.users.leaf.openssh.authorizedKeys.keys = map (
       other: cfg.hosts.${other}.ssh.publicKey
     ) (hostCfg.ssh.allowConnectionsFrom);
   };
