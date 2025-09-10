@@ -5,17 +5,22 @@
   inputs,
   flake,
   ...
-}:
-{
+}: {
   imports = with inputs; [
     home-manager.nixosModules.default
+
+    # A default user called "leaf", as a conterpart to "root"
+    (flake.lib.mkUserModule "leaf")
   ];
 
   # Root user has a default password
-  sops.secrets."pass-hashes/root" = {
+  sops.secrets."pass-hashes/leaf" = {
     neededForUsers = true;
   };
-  users.users.root.hashedPasswordFile = lib.mkDefault (config.getSopsFile "pass-hashes/root");
+  users.users.leaf = {
+    extraGroups = ["wheel"];
+    hashedPasswordFile = lib.mkDefault (config.getSopsFile "pass-hashes/leaf");
+  };
 
   # immutable users
   users.mutableUsers = false;
@@ -31,8 +36,7 @@
     # Home manager settings for every user
     sharedModules = [
       (
-        { nixosConfig, ... }:
-        {
+        {nixosConfig, ...}: {
           # Let home manager manage itself
           programs.home-manager.enable = true;
           # OpenSSH
