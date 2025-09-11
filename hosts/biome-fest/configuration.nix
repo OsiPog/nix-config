@@ -1,5 +1,8 @@
-{ config, flake, ... }:
 {
+  config,
+  flake,
+  ...
+}: {
   imports = with flake.nixosModules; [
     shared
 
@@ -24,6 +27,7 @@
     tuigreet
     podman
     nix-access-tokens
+    networking
 
     ../../users/osi
   ];
