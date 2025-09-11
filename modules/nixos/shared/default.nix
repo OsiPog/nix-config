@@ -8,8 +8,8 @@
     ./nixpkgs.nix
     ./packages.nix
     ./secrets.nix
-    # ./state.nix
     ./users.nix
+    ./openssh.nix
 
     ./network
     ../../../network.nix

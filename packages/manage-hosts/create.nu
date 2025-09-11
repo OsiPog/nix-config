@@ -39,7 +39,15 @@ export def "main create" [ hostname: string ] {
     # --- ADD LEAF PASSWORD TO SECRETS FILE
     let LEAF_PASS = (^pwgen -s 16 1)
     print $"The leaf password is: ($LEAF_PASS)"
-    {"pass-hashes": {"leaf": ($LEAF_PASS | mkpasswd --stdin)}} | to yaml
+    {
+      "pass-hashes": {
+        "leaf": ($LEAF_PASS | mkpasswd --stdin)
+      }
+      # this is just in case i forget it but still have the ssh key
+      "pass-words": {
+        "leaf": $LEAF_PASS,
+      };
+    } | to yaml
       | ^sudo sops encrypt --filename-override $"($HOST_DIR)/secrets.yaml"
       | save $"($HOST_DIR)/secrets.yaml" --force
 

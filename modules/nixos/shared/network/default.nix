@@ -86,9 +86,6 @@ in {
       })
       hostnames);
 
-    # Enable SSH if this host allows connections from other hosts
-    services.openssh.enable = sshEnabled;
-    networking.firewall.allowedTCPPorts = optionals sshEnabled [22];
     # Add authorized keys from hosts that are allowed to connect
     users.users.leaf.openssh.authorizedKeys.keys = map (
       other: cfg.hosts.${other}.ssh.publicKey
