@@ -1,10 +1,29 @@
-{...}: {
+{inputs, ...}: {
+  imports = [
+    # inputs.determinate.nixosModules.default
+  ];
+
   nix = {
-    # enable flakes and nix command
-    settings.experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
+    settings = {
+      # enable flakes and nix command
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      substituters = [
+        # devenv
+        "https://devenv.cachix.org"
+        # determinate systems
+        "https://install.determinate.systems"
+      ];
+
+      trusted-public-keys = [
+        # devenv
+        "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw="
+        # determinate systems
+        "cache.flakehub.com-3:hJuILl5sVK4iKm86JzgdXW12Y2Hwd5G07qKtHTOcDCM="
+      ];
+    };
     # Automatic garbage collection
     gc = {
       automatic = true;
@@ -12,11 +31,7 @@
       options = "--delete-older-than 14d";
     };
 
-    # Allow cachix to provide caches
     extraOptions = ''
-      extra-substituters = https://devenv.cachix.org
-      extra-trusted-public-keys = devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw=
-
       download-buffer-size = 134217728
     '';
   };

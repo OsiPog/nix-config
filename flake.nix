@@ -5,6 +5,7 @@
     # --- Core Foundation
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/release-24.11";
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
 
     # --- Flake Libraries
     blueprint = {
