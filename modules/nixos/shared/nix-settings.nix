@@ -33,6 +33,7 @@
 
     extraOptions = ''
       download-buffer-size = 134217728
+      eval-cores = 0
     '';
   };
 
