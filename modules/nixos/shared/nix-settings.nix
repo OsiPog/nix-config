@@ -1,6 +1,6 @@
 {inputs, ...}: {
   imports = [
-    # inputs.determinate.nixosModules.default
+    inputs.determinate.nixosModules.default
   ];
 
   nix = {
