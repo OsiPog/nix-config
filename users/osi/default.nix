@@ -10,7 +10,7 @@
 in {
   imports = with flake.nixosModules;
   with inputs.nix-config-private.nixosModules; [
-    themePrismarine
+    theme-prismarine
 
     # private
     uni-vpn
