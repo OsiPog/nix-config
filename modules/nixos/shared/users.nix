@@ -9,7 +9,7 @@
   imports = with inputs; [
     home-manager.nixosModules.default
 
-    (mkUserModule "leaf")
+    (flake.lib.mkUserModule "leaf")
   ];
 
   # leaf user has a default password
