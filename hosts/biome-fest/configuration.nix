@@ -8,12 +8,11 @@
 
     ./hardware-configuration.nix
 
-    # (
-    #   { pkgs, ... }:
-    #   {
-    #     boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;
-    #   }
-    # )
+    (
+      {pkgs, ...}: {
+        boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;
+      }
+    )
 
     allow-some-unfree
     fingerprint
@@ -27,7 +26,6 @@
     tuigreet
     podman
     nix-access-tokens
-    networking
 
     ../../users/osi
   ];
