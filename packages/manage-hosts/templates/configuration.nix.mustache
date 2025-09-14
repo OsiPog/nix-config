@@ -1,5 +1,6 @@
 {flake, ...}: {
   imports = with flake.nixosModules; [
+    ./hardware-configuration.nix
     shared
 
     disko-basic

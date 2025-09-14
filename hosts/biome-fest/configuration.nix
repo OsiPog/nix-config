@@ -1,6 +1,7 @@
 {
   config,
   flake,
+  inputs,
   ...
 }: {
   imports = with flake.nixosModules; [
@@ -28,6 +29,7 @@
     nix-access-tokens
 
     ../../users/osi
+
   ];
 
   # services.desktopManager.plasma6.enable = true;

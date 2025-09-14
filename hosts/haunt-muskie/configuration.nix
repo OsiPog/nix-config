@@ -1,6 +1,7 @@
 {
   flake,
   config,
+  inputs,
   ...
 }: {
   imports = with flake.nixosModules; [
@@ -9,7 +10,11 @@
     disko-basic
 
     ../../users/leaf
+
+    inputs.nixos-facter-modules.nixosModules.facter
   ];
+
+  facter.reportPath = ./facter.json;
 
   # services.headscale = {
   #   enable = true;

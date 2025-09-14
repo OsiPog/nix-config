@@ -46,7 +46,7 @@ export def "main create" [ hostname: string ] {
       # this is just in case i forget it but still have the ssh key
       "pass-words": {
         "leaf": $LEAF_PASS,
-      };
+      }
     } | to yaml
       | ^sudo sops encrypt --filename-override $"($HOST_DIR)/secrets.yaml"
       | save $"($HOST_DIR)/secrets.yaml" --force
