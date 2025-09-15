@@ -11,7 +11,7 @@ export def --wrapped "main install" [hostname: string target_host: string ...res
 
     let modifiedNixFile = "modules/nixos/shared/default.nix"
     let modifiedNixFileContent = ^cat $modifiedNixFile
-    if ($modifiedNixFileContent =~ "sops.secrets") {
+    if ($modifiedNixFileContent !~ "sops.secrets") {
         $modifiedNixFileContent
             | lines
             | insert (($in | length) - 1) "sops.secrets = lib.mkForce {};"

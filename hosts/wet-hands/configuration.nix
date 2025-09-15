@@ -1,0 +1,30 @@
+{
+  flake,
+  pkgs,
+  lib,
+  ...
+}: {
+  imports = with flake.nixosModules; [
+    ./hardware-configuration.nix
+    shared
+
+    disko-basic
+
+    steamos
+
+    theme-prismarine
+  ];
+
+  disko.devices.disk.disk1.device = "/dev/nvme0n1";
+
+  jovian = {
+    devices.steamdeck.enable = true;
+    steam.autoStart = false;
+  };
+
+  # stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/macintosh.yaml";
+
+  sops.secrets = lib.mkForce {};
+
+  system.stateVersion = "25.11";
+}
