@@ -1,12 +1,6 @@
-{
-  hostName,
-  lib,
-  ...
-}:
-{
+{hostName, ...}: {
   networking = {
-    hostName = hostName;
-    useNetworkd = lib.mkForce false;
+    inherit hostName;
     networkmanager.enable = true;
     firewall.enable = true;
   };

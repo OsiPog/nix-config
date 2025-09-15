@@ -21,6 +21,10 @@
     hashedPasswordFile = lib.mkDefault (config.getSopsFile "pass-hashes/leaf");
   };
 
+  # Allow logging in as root with ssh keys, but this should not be done
+  users.users.root.openssh.authorizedKeys.keys =
+    config.users.users.leaf.openssh.authorizedKeys.keys;
+
   # immutable users
   users.mutableUsers = false;
 

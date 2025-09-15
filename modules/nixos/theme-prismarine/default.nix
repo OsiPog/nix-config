@@ -4,11 +4,9 @@
   config,
   inputs,
   ...
-}:
-let
+}: let
   # helper
-  absoluteNixFilesInDir =
-    dir:
+  absoluteNixFilesInDir = dir:
     pipe (readDir dir) [
       (filterAttrs (_: value: value == "regular"))
       attrNames
@@ -18,8 +16,7 @@ let
   inherit (lib.attrsets) attrNames filterAttrs;
   inherit (builtins) readDir;
   inherit (lib) mkOption types pipe;
-in
-{
+in {
   # Some options not handled by stylix
   options.prismarineTheme = {
     border-radius = mkOption {
@@ -40,7 +37,7 @@ in
     };
   };
 
-  imports = [ inputs.stylix.nixosModules.stylix ];
+  imports = [inputs.stylix.nixosModules.stylix];
 
   config = {
     # Implement the defined options from above
@@ -55,7 +52,7 @@ in
     stylix = {
       enable = true;
       # base16Scheme = "${pkgs.base16-schemes}/share/themes/oceanicnext.yaml";
-      base16Scheme = ./anya.yaml;
+      base16Scheme = lib.mkDefault ./anya.yaml;
       # base16Scheme = "${pkgs.base16-schemes}/share/themes/standardized-dark.yaml";
       image = ./anya.jpg;
       polarity = "dark";
@@ -114,24 +111,25 @@ in
     # import additional modules
     # import = (absoluteNixFilesInDir ./nixos);
 
-    home-manager.sharedModules = (absoluteNixFilesInDir ./hm) ++ [
-      (
-        { pkgs, ... }:
-        {
-          # consisent icon theme
-          home.packages = with pkgs; [
-            adwaita-icon-theme
-          ];
+    home-manager.sharedModules =
+      (absoluteNixFilesInDir ./hm)
+      ++ [
+        (
+          {pkgs, ...}: {
+            # consisent icon theme
+            home.packages = with pkgs; [
+              adwaita-icon-theme
+            ];
 
-          # little fix for gtk apps
-          gtk.iconTheme.name = "Adwaita";
+            # little fix for gtk apps
+            gtk.iconTheme.name = "Adwaita";
 
-          stylix.targets = {
-            firefox.profileNames = [ "default" ];
-            vscode.profileNames = [ "default" ];
-          };
-        }
-      )
-    ];
+            stylix.targets = {
+              firefox.profileNames = ["default"];
+              vscode.profileNames = ["default"];
+            };
+          }
+        )
+      ];
   };
 }
