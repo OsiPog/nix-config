@@ -1,5 +1,4 @@
-{ ... }:
-{
+{...}: {
   # Power management using auto-cpufreq
   powerManagement.enable = true; # basic NixOS powermanagement
   services.auto-cpufreq.enable = true;
@@ -9,7 +8,7 @@
     battery = {
       governor = "powersave";
       turbo = "never";
-      scaling_max_freq = 800000; # I'd rather wait a bit than have battery drain
+      scaling_max_freq = 1000000; # I'd rather wait a bit than have battery drain
     };
     charger = {
       governor = "performance";
