@@ -33,14 +33,14 @@ export def --wrapped "main install" [hostname: string target_host: string ...res
     $modifiedNixFileContent | save $modifiedNixFile --force
     
     # Remove invalid entry from known_hosts
-    ^sudo ssh-keygen -R ($target_host | split row "@" | last)
+    ^ssh-keygen -R ($target_host | split row "@" | last)
 
-    # Rebuild on remote system with secrets
-    $env.NIX_SSHOPTS = "-o StrictHostKeyChecking=no"
-    (^sudo "-E" 
-        "nixos-rebuild" "switch" 
-        "--flake" $".#($hostname)" 
-        "--target-host" $target_host
-        "--build-host" $target_host
-    )
+    # # Rebuild on remote system with secrets
+    # $env.NIX_SSHOPTS = "-o StrictHostKeyChecking=no"
+    # (^sudo "-E" 
+    #     "nixos-rebuild" "switch" 
+    #     "--flake" $".#($hostname)" 
+    #     "--target-host" $target_host
+    #     "--build-host" $target_host
+    # )
 }
