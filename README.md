@@ -23,6 +23,9 @@ This is the NixOS flake which defines the system on all of my devices running Ni
   - reverse proxy for all services onto the domain
   - Headscale server
 
+- `wet-hands` - Steam Deck OLED
+  - NixOS with the SteamOS interface
+
 *What are those host names?*
 
 They're all track names from [Minecraft - Volume Beta](https://minecraft.wiki/w/Minecraft_-_Volume_Beta).
