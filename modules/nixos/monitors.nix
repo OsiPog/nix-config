@@ -1,5 +1,4 @@
-{ ... }:
-let
+{...}: let
   monitors = [
     # { # Laptop monitor
     #   resolution = "1920x1200";
@@ -42,22 +41,21 @@ let
       ];
     }
   ];
-in
-{
+in {
   # All home manager specific options
   home-manager.sharedModules = [
     (
-      { ... }:
-      {
+      {...}: {
         # Config for hyprland
         wayland.windowManager.hyprland.settings.monitor = builtins.concatLists (
           map (
             monitor:
-            map (
-              name:
-              "desc:${name}, ${monitor.resolution}, ${monitor.position}, ${builtins.toString monitor.scale}, ${monitor.additional}"
-            ) monitor.names
-          ) monitors
+              map (
+                name: "desc:${name}, ${monitor.resolution}, ${monitor.position}, ${builtins.toString monitor.scale}, ${monitor.additional}"
+              )
+              monitor.names
+          )
+          monitors
         );
       }
     )

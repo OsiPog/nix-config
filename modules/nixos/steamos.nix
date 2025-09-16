@@ -9,16 +9,8 @@
     steam = {
       enable = true;
       user = "steam";
-    };
-  };
-  services.greetd = {
-    enable = true;
-    settings = {
-      # Run steamos on boot (autologin)
-      initial_session = {
-        command = "start-gamescope-session";
-        user = "steam";
-      };
+      autoStart = true;
+      desktopSession = "gamescope-wayland";
     };
   };
 }

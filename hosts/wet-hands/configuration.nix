@@ -19,7 +19,6 @@
 
   jovian = {
     devices.steamdeck.enable = true;
-    steam.autoStart = false;
   };
 
   # stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/macintosh.yaml";
