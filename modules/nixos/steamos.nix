@@ -1,6 +1,12 @@
-{inputs, ...}: {
+{
+  inputs,
+  flake,
+  ...
+}: {
   imports = [
     inputs.jovian-nixos.nixosModules.default
+
+    (flake.lib.mkUserModule "steam")
   ];
 
   nixpkgs.config.allowUnfree = true;
