@@ -1,4 +1,8 @@
-{...}: {
+{inputs, ...}: {
+  imports = [
+    inputs.determinate.nixosModules.default
+  ];
+  
   nix = {
     settings = {
       # enable flakes and nix command
@@ -27,6 +31,7 @@
       options = "--delete-older-than 30d";
     };
 
+    checkConfig = false; # to allow setting options below that nix can't parse
     extraOptions = ''
       download-buffer-size = 134217728
       eval-cores = 0

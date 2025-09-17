@@ -28,14 +28,8 @@
     podman
     nix-access-tokens
 
-    inputs.determinate.nixosModules.default
-
     ../../users/osi
   ];
-
-  nix.extraOptions = ''
-    eval-cores = 0
-  '';
 
   boot.initrd = {
     # About key enrolling: https://nixos.org/manual/nixos/stable/#sec-luks-file-systems-fido2
@@ -66,6 +60,8 @@
       size = 16 * 1024;
     }
   ];
+
+  first-install.enable = true;
 
   # Don't change, will break things.
   system.stateVersion = "23.11"; # Did you read the comment?
