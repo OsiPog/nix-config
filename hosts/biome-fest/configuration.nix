@@ -28,8 +28,15 @@
     podman
     nix-access-tokens
 
+    inputs.determinate.nixosModules.default
+
     ../../users/osi
   ];
+
+  nix.extraOptions = ''
+    eval-cores = 0
+  '';
+
   boot.initrd = {
     # About key enrolling: https://nixos.org/manual/nixos/stable/#sec-luks-file-systems-fido2
     # sudo systemd-cryptenroll --fido2-device=auto --fido2-with-user-presence=false --fido2-with-user-verification=true /dev/disk/by-uuid/ff0fdffe-9e8d-4956-92ef-ce2317629a32

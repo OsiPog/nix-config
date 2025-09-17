@@ -1,8 +1,4 @@
-{inputs, ...}: {
-  imports = [
-    inputs.determinate.nixosModules.default
-  ];
-
+{...}: {
   nix = {
     settings = {
       # enable flakes and nix command

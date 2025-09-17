@@ -1,38 +1,14 @@
 {
   flake,
-  config,
-  inputs,
+  lib,
   ...
 }: {
   imports = with flake.nixosModules; [
+    ./hardware-configuration.nix
     shared
 
     disko-basic
-
-    ../../users/leaf
-
-    inputs.nixos-facter-modules.nixosModules.facter
   ];
-
-  facter.reportPath = ./facter.json;
-
-  # services.headscale = {
-  #   enable = true;
-  #   port = 1001;
-  #   settings = {
-  #     server_url = "http://127.0.0.1:${config.network.services.headscale.port}";
-  #     dns = {
-  #       base_domain = "kazuka.zip";
-  #       nameservers.global = [
-  #         "1.1.1.1"
-  #         "1.0.0.1"
-  #         "2606:4700:4700::1111"
-  #         "2606:4700:4700::1001"
-  #       ];
-  #     };
-  #     log.level = "debug";
-  #   };
-  # };
 
   system.stateVersion = "25.11";
 }

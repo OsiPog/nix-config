@@ -25,7 +25,7 @@ export def --wrapped "main install" [hostname: string target_host: string ...res
         "-i" "/etc/ssh/id_ed25519"
         "--generate-hardware-config" "nixos-generate-config" $"./hosts/($hostname)/hardware-configuration.nix" 
         "--target-host" $target_host 
-        "--extra-files" $extraFilesDir 
+        "--extra-files" $extraFilesDir
         ...$rest
     )
 
