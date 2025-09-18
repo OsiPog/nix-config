@@ -7,5 +7,8 @@
       PasswordAuthentication = false;
       KbdInteractiveAuthentication = false;
     };
+    extraConfig = ''
+      SetEnv PATH=/nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    '';
   };
 }

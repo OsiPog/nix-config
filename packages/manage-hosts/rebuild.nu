@@ -11,7 +11,7 @@ export def --wrapped "main rebuild" [
     ...rest: string
 ] {
     assert ($host == null or $host in (ls hosts --short-names | where {$in.type == "dir"} | get name)) $"'($host)' is not a configured host from the hosts/ directory."
-    assert ($build_on in ["local" "remote"]) "--build-on must one of 'local', 'remote'"
+    assert ($build_on in ["local" "remote" "hetzner-x86" "hetzner-arm64"]) "--build-on must one of 'local', 'remote'"
 
     let flakePath = $flake_path | default ($env.HOME + "/nixos")
     let previousPWD = $env.PWD
@@ -39,6 +39,9 @@ export def --wrapped "main rebuild" [
         append ["--build-host" $"root@(
             if ($build_on == "remote") {
                 $host
+            }
+            if ($build_on =~ "hetzner") {
+                temp-nixos-host ($build_on | split row "-" | last)
             }
         )"]
     }
