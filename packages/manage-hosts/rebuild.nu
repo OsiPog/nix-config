@@ -1,18 +1,19 @@
-def --wrapped main [ 
-    --hostname: string 
-    --flake-path: path
+# A wrapper for nixos-rebuild with extra features which integrates into my hosts structure
+export def --wrapped "main rebuild" [ 
+    --host (-h): string
+    --flake-path (-p): path
     --disable-git-commit
-    --flake: string
+    --flake (-f): string
     command?: string
     ...rest: string
 ] {
     let flakePath = $flake_path | default ($env.HOME + "/nixos")
-    let host = $hostname | default (^hostname)
+    let host = $host | default (^hostname)
 
-    if $command == null {
-        ^nixos-rebuild --help
-        exit
-    }
+    # if $command == null {
+    #     ^nixos-rebuild --help
+    #     exit
+    # }
 
     let previousPWD = $env.PWD
     if not $disable_git_commit {
