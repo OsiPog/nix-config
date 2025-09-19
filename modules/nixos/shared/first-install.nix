@@ -14,6 +14,6 @@ in {
     sops.secrets = lib.mkForce {};
 
     # Disable determinate nix as we do not want to build it from scratch
-    determinate.enable = false;
+    # determinate.enable = false;
   };
 }

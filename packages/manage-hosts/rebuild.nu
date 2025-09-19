@@ -1,4 +1,5 @@
 use std/assert
+use temp-nixos-host.nu *
 
 # A wrapper for nixos-rebuild with extra features which integrates into my hosts structure
 export def --wrapped "main rebuild" [ 
@@ -39,25 +40,24 @@ export def --wrapped "main rebuild" [
         append ["--build-host" $"root@(
             if ($build_on == "remote") {
                 $host
-            }
-            if ($build_on =~ "hetzner") {
-                temp-nixos-host ($build_on | split row "-" | last)
+            } else if ($build_on =~ "hetzner") {
+                create-temp-nixos-host ($build_on | split row "-" | last)
             }
         )"]
     }
+    # If the host is the current host we need sudo
+    | if ($host == (^hostname)) {
+        append ["--sudo"]
+    }
     # at the end add flake location with output, command and other extra options
     | append [
+        "--use-substitutes"
         "--flake" ($flake | default $"($flake_path)#($host)")
         $command
     ]
     | append $rest
 
-    # If the target host is the current host then we need sudo, otherwise not
-    if ($host == (^hostname)) {
-        ^sudo nixos-rebuild ...$parameters
-    } else {
-        ^nixos-rebuild (...$parameters)
-    }
+    ^nixos-rebuild ...$parameters
 
     # Commit changes when nothing failed        
     if not $disable_git_commit {
