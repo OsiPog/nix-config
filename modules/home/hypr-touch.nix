@@ -41,10 +41,10 @@
         ];
       };
 
-      gestures = {
-        workspace_swipe = true;
-        workspace_swipe_cancel_ratio = 0.15;
-      };
+      # gestures = {
+      #   workspace_swipe = true;
+      #   workspace_swipe_cancel_ratio = 0.15;
+      # };
     };
   };
 }
