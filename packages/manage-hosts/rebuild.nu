@@ -45,9 +45,9 @@ export def --wrapped "main rebuild" [
             }
         )"]
     }
-    # If the host is the current host we need sudo
+    # If the host is the current host we need sudo during the process
     | if ($host == (^hostname)) {
-        append ["--sudo"]
+        append ["--sudo" "--ask-sudo-password"]
     }
     # at the end add flake location with output, command and other extra options
     | append [
