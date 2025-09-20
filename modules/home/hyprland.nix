@@ -30,7 +30,6 @@
 
   wayland.windowManager.hyprland = {
     enable = true;
-    package = pkgs.stable.hyprland;
     settings = {
       general = {
         # Allow to resize windows with dragging the border

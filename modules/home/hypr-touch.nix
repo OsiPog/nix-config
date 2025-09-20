@@ -1,7 +1,7 @@
 {pkgs, ...}: {
   wayland.windowManager.hyprland = {
     # Plugin for touch inputs
-    plugins = with pkgs.stable.hyprlandPlugins; [
+    plugins = with pkgs.hyprlandPlugins; [
       hyprgrass
     ];
 
