@@ -5,8 +5,7 @@
   nixosConfig,
   inputs,
   ...
-}:
-{
+}: {
   programs.helix = {
     enable = true;
     settings = {
@@ -29,27 +28,25 @@
         nil.command = lib.getExe pkgs.nil;
         nixd = {
           command = lib.getExe pkgs.nixd;
-          config =
-            let
-              flakeExpr = "(builtins.getFlake \'\'${flake}\'\')";
-              pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
-              currentSystemExpr = flakeExpr + ".nixosConfigurations.${nixosConfig.networking.hostName}";
-            in
-            {
-              formatting.command = [ "${lib.getExe pkgs.alejandra}" ];
-              nixpkgs.expr = pkgsExpr;
-              options = {
-                nixos.expr = "${currentSystemExpr}.options";
-                home-manager.expr = "${currentSystemExpr}.options.home-manager.users.type.getSubOptions {}";
-                devenv.expr = "${flakeExpr}.lib.devenv.allDevenvOptions";
-              };
+          config = let
+            flakeExpr = "(builtins.getFlake \'\'${flake}\'\')";
+            pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
+            currentSystemExpr = flakeExpr + ".nixosConfigurations.${nixosConfig.networking.hostName}";
+          in {
+            formatting.command = ["${lib.getExe pkgs.alejandra}"];
+            nixpkgs.expr = pkgsExpr;
+            options = {
+              nixos.expr = "${currentSystemExpr}.options";
+              home-manager.expr = "${currentSystemExpr}.options.home-manager.users.type.getSubOptions {}";
+              devenv.expr = "${flakeExpr}.lib.devenv.allDevenvOptions";
             };
+          };
         };
 
         # PHP
         phpactor = {
           command = lib.getExe pkgs.phpactor;
-          args = [ "language-server" ];
+          args = ["language-server"];
         };
 
         # Vue
@@ -62,7 +59,7 @@
         # Typescript
         vtsls = {
           command = lib.getExe pkgs.vtsls;
-          args = [ "--stdio" ];
+          args = ["--stdio"];
           config = {
             typescript = {
               # tsdk = "${pkgs.typescript}/lib/node_modules/typescript/lib";
@@ -80,7 +77,7 @@
             vtsls.tsserver.globalPlugins = [
               {
                 name = "@vue/typescript-plugin";
-                languages = [ "vue" ];
+                languages = ["vue"];
                 configNamespace = "typescript";
                 location = "${
                   flake.packages.${pkgs.system}.vue-typescript-plugin
@@ -89,6 +86,9 @@
             ];
           };
         };
+
+        # QML
+        qmlls.command = "${pkgs.kdePackages.qtdeclarative}/bin/qmlls";
       };
       language = [
         {
@@ -97,11 +97,11 @@
             "nixd"
             "nil"
           ];
-          file-types = [ "nix" ];
+          file-types = ["nix"];
           auto-format = true;
           formatter = {
             command = lib.getExe pkgs.alejandra;
-            args = [ "-q" ];
+            args = ["-q"];
           };
           indent = {
             tab-width = 2;
@@ -110,13 +110,13 @@
         }
         {
           name = "vue";
-          file-types = [ "vue" ];
+          file-types = ["vue"];
           language-servers = [
             "vtsls"
             "vue-language-server"
           ];
           scope = "source.vue";
-          roots = [ "package.json" ];
+          roots = ["package.json"];
           auto-format = false;
           indent = {
             tab-width = 4;
@@ -125,8 +125,8 @@
         }
         {
           name = "php";
-          file-types = [ "php" ];
-          language-servers = [ "phpactor" ];
+          file-types = ["php"];
+          language-servers = ["phpactor"];
           debugger = {
             name = "vscode-php-debug";
             transport = "stdio";
@@ -141,19 +141,19 @@
               {
                 name = "Listen for XDebug";
                 request = "launch";
-                completion = [ "ignored" ];
-                args = { };
+                completion = ["ignored"];
+                args = {};
               }
             ];
           };
         }
         {
           name = "javascript";
-          language-servers = [ "vtsls" ];
+          language-servers = ["vtsls"];
         }
         {
           name = "typescript";
-          language-servers = [ "vtsls" ];
+          language-servers = ["vtsls"];
         }
         {
           name = "sql";
