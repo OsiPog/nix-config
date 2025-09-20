@@ -14,7 +14,7 @@
       input.tablet.output = "eDP-1";
 
       # settings for above plugin
-      "plugin:touch-gestures" = {
+      plugin.touch-gestures = {
         sensitivity = 4.0;
         workspace_swipe_fingers = 3;
         workspace_swipe_edge = false;
@@ -41,10 +41,9 @@
         ];
       };
 
-      # gestures = {
-      #   workspace_swipe = true;
-      #   workspace_swipe_cancel_ratio = 0.15;
-      # };
+      gestures = {
+        workspace_swipe_cancel_ratio = 0.15;
+      };
     };
   };
 }
