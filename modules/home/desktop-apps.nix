@@ -37,10 +37,10 @@ in {
     krita # best drawing
     cheese # camera app
     audacity # audio editing
-    /*
-    gnucashOverride
-    */
+    # gnucashOverride
     gnucash # money
+    discord
+    betterdiscord-installer
   ];
 
   # Default apps

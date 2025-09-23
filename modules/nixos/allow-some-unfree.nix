@@ -12,6 +12,6 @@ in {
       "steam-unwrapped"
       "steam"
       "claude-code"
-      "intelephense"
+      "discord"
     ];
 }
