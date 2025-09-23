@@ -127,6 +127,7 @@
           name = "php";
           file-types = ["php"];
           language-servers = ["phpactor"];
+          formatter.command = lib.getExe pkgs.pretty-php;
           debugger = {
             name = "vscode-php-debug";
             transport = "stdio";
