@@ -40,7 +40,7 @@ in {
     # gnucashOverride
     gnucash # money
     discord
-    betterdiscord-installer
+    betterdiscordctl
   ];
 
   # Default apps
