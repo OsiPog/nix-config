@@ -14,7 +14,7 @@ export def --wrapped "main rebuild" [
     assert ($host == null or $host in (ls hosts --short-names | where {$in.type == "dir"} | get name)) $"'($host)' is not a configured host from the hosts/ directory."
     assert ($build_on in ["local" "remote" "hetzner-x86" "hetzner-arm64"]) "--build-on must one of 'local', 'remote'"
 
-    let flakePath = $flake_path | default ($env.HOME + "/nixos")
+    let flakePath = $flake_path | default ($env.HOME + "/nix-config")
     let previousPWD = $env.PWD
     let host = $host | default (^hostname)    
 

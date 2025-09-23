@@ -13,5 +13,7 @@ in {
       "steam"
       "claude-code"
       "discord"
+      "nvidia-x11"
+      "nvidia-settings"
     ];
 }

@@ -44,6 +44,7 @@
     # Some common desktop apps I need
     desktop-apps
     cli-tools
+    lutris
 
     # syncing files
     syncthing

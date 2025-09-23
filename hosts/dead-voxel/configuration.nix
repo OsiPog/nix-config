@@ -25,6 +25,10 @@
 
   boot.initrd.systemd.enable = true;
 
+  hardware.graphics.enable = true;
+  services.xserver.videoDrivers = [ "nvidia" ];
+  hardware.nvidia.open = true;  # see the note above
+
   # Don't change, will break things!
   system.stateVersion = "25.11";
 }
