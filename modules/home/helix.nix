@@ -8,6 +8,21 @@
 }: {
   programs.helix = {
     enable = true;
+    extraPackages = with pkgs; [
+      # Nix
+      alejandra
+      nil
+      nixd
+
+      # PHP
+      intelephense
+
+      # Nodejs and friends
+      vtsls
+
+      # QML
+      kdePackages.qtdeclarative # contains `qmlls`
+    ];
     settings = {
       editor = {
         line-number = "relative";
@@ -25,9 +40,7 @@
     languages = {
       language-server = {
         # Nix
-        nil.command = lib.getExe pkgs.nil;
         nixd = {
-          command = lib.getExe pkgs.nixd;
           config = let
             flakeExpr = "(builtins.getFlake \'\'${flake}\'\')";
             pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
@@ -43,12 +56,6 @@
           };
         };
 
-        # PHP
-        phpactor = {
-          command = lib.getExe pkgs.phpactor;
-          args = ["language-server"];
-        };
-
         # Vue
         # vue-language-server = {
         #   command = lib.getExe pkgs.vue-language-server;
@@ -58,7 +65,7 @@
 
         # Typescript
         vtsls = {
-          command = lib.getExe pkgs.vtsls;
+          command = "vtsls";
           args = ["--stdio"];
           config = {
             typescript = {
@@ -86,9 +93,6 @@
             ];
           };
         };
-
-        # QML
-        qmlls.command = "${pkgs.kdePackages.qtdeclarative}/bin/qmlls";
       };
       language = [
         {
@@ -99,10 +103,9 @@
           ];
           file-types = ["nix"];
           auto-format = true;
-          formatter = {
-            command = lib.getExe pkgs.alejandra;
-            args = ["-q"];
-          };
+          # formatter = {
+          #   args = ["-q"];
+          # };
           indent = {
             tab-width = 2;
             unit = "  ";
@@ -126,8 +129,7 @@
         {
           name = "php";
           file-types = ["php"];
-          language-servers = ["phpactor"];
-          formatter.command = lib.getExe pkgs.pretty-php;
+          language-servers = ["intelephense"];
           debugger = {
             name = "vscode-php-debug";
             transport = "stdio";

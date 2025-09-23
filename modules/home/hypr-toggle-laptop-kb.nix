@@ -3,8 +3,7 @@
   lib,
   config,
   ...
-}:
-let
+}: let
   cfg = config.hypr-toggle-laptop-kb;
 
   statusFilePath = ''"$XDG_RUNTIME_DIR/keyboard.status"'';
@@ -45,8 +44,7 @@ let
       fi
     '';
   };
-in
-{
+in {
   options.hypr-toggle-laptop-kb = with lib; {
     enable = mkEnableOption ''
       hypr-toggle-laptop-kb is a script that toggles the laptop keyboard.

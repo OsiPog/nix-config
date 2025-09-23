@@ -26,10 +26,9 @@ pkgs.python3Packages.buildPythonApplication {
 
   format = "other"; # This is a script, not a standard Python package
 
-  nativeBuildInputs = [ pkgs.makeWrapper ];
+  nativeBuildInputs = [pkgs.makeWrapper];
 
-  propagatedBuildInputs =
-    with pkgs.python3Packages;
+  propagatedBuildInputs = with pkgs.python3Packages;
     [
       numpy
     ]
@@ -56,14 +55,14 @@ pkgs.python3Packages.buildPythonApplication {
     chmod +x $out/bin/nerd-dictation
 
     wrapProgram $out/bin/.nerd-dictation-unwrapped \
-      --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.pulseaudio ]}
+      --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.pulseaudio]}
   '';
   meta = with pkgs.lib; {
     description = "Simple hackable offline speech to text using VOSK-API";
     homepage = "https://github.com/ideasman42/nerd-dictation";
     license = licenses.gpl3;
     platforms = platforms.linux;
-    maintainers = with maintainers; [ ];
+    maintainers = with maintainers; [];
     mainProgram = "nerd-dictation";
   };
 }

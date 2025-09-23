@@ -3,12 +3,10 @@
   lib,
   config,
   ...
-}:
-let
+}: let
   themeCfg = nixosConfig.prismarineTheme;
   colors = config.lib.stylix.colors;
-in
-{
+in {
   programs.hyprlock.settings = lib.mkIf config.programs.hyprlock.enable {
     general = {
       hide_cursor = true;

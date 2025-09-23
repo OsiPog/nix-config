@@ -1,9 +1,8 @@
-{ pkgs, ... }:
-{
+{pkgs, ...}: {
   home.packages = with pkgs; [
     (writeShellApplication {
       name = "topydo";
-      runtimeInputs = [ topydo ];
+      runtimeInputs = [topydo];
       text = ''
         topydo -t "$HOME"/files/local/written-mind/todo/todo.txt -d "$HOME"/files/local/written-mind/todo/done.txt "$@"
       '';

@@ -1,5 +1,4 @@
-{ ... }:
-{
+{...}: {
   programs.brave = {
     enable = true;
     extensions = [

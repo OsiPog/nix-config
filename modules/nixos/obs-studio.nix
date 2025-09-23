@@ -2,8 +2,7 @@
   config,
   pkgs,
   ...
-}:
-{
+}: {
   # Temporarily disabled due to build issues
   # boot.extraModulePackages = with config.boot.kernelPackages; [
   #   v4l2loopback

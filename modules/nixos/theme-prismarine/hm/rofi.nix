@@ -3,11 +3,9 @@
   nixosConfig,
   lib,
   ...
-}:
-let
+}: let
   literal = config.lib.formats.rasi.mkLiteral;
-in
-{
+in {
   programs.rofi.theme = with config.lib.stylix.colors.withHashtag; {
     "*" = {
       lightbg = lib.mkForce (literal base00);

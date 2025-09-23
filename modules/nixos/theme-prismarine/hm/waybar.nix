@@ -3,8 +3,7 @@
   lib,
   nixosConfig,
   ...
-}:
-let
+}: let
   # Defined by stylix somewhere else
   fonts = config.stylix.fonts;
   colors = config.lib.stylix.colors;
@@ -13,8 +12,7 @@ let
   # Some functions
   str = builtins.toString; # need that a lot
   # Function that takes a base16 color id (like 0A) and outputs a string with rgb values (like "129,89,199)
-  rgbString =
-    colorID:
+  rgbString = colorID:
     builtins.concatStringsSep "," (
       map (x: config.lib.stylix.colors."${colorID}-${x}") [
         "rgb-r"
@@ -23,8 +21,7 @@ let
       ]
     );
 
-  filterStr =
-    str: cs:
+  filterStr = str: cs:
     builtins.concatStringsSep "" (lib.filter (c: !builtins.elem c cs) (lib.splitString "" str));
 
   # theme options
@@ -35,8 +32,7 @@ let
   };
   margin = themeCfg.margin;
   terminal-padding = themeCfg.padding;
-in
-{
+in {
   stylix.targets.waybar.enable = false; # turn off stylix ricing that style.css can be changed
   programs.waybar = lib.mkIf config.programs.waybar.enable {
     style = with colors.withHashtag; ''
@@ -105,53 +101,51 @@ in
       currently disabled
       ${builtins.concatStringsSep "\n" (
         map
-          (
-            selector:
-            let
-              animationName =
-                "notifyChange"
-                + (filterStr selector [
-                  "#"
-                  "."
-                ]);
+        (
+          selector: let
+            animationName =
+              "notifyChange"
+              + (filterStr selector [
+                "#"
+                "."
+              ]);
 
-              defaultStyle = ''
-                border-color: @base03;
-                min-width: 2rem;
-              '';
+            defaultStyle = ''
+              border-color: @base03;
+              min-width: 2rem;
+            '';
 
-              emphasizedStyle = ''
-                background-color: rgba(${rgbString "base00"}, ${str opacity.terminal});
-                border-color: @base0D;
-                min-width: 10rem;
-              '';
-            in
-            ''
-              @keyframes ${animationName} {
-                0% {
-                  ${defaultStyle}
-                }
-                20% {
-                  ${emphasizedStyle}
-                }
-                80% {
-                  ${emphasizedStyle}
-                }
-                100% {
-                  ${defaultStyle}
-                }
+            emphasizedStyle = ''
+              background-color: rgba(${rgbString "base00"}, ${str opacity.terminal});
+              border-color: @base0D;
+              min-width: 10rem;
+            '';
+          in ''
+            @keyframes ${animationName} {
+              0% {
+                ${defaultStyle}
               }
-              ${selector} {
-                animation: ${animationName} 2s ease;
-                animation-play-state: running;
+              20% {
+                ${emphasizedStyle}
               }
-            ''
-          )
-          [
-            "#battery.charging"
-            "#battery.not_charging"
-            "#battery.discharging"
-          ]
+              80% {
+                ${emphasizedStyle}
+              }
+              100% {
+                ${defaultStyle}
+              }
+            }
+            ${selector} {
+              animation: ${animationName} 2s ease;
+              animation-play-state: running;
+            }
+          ''
+        )
+        [
+          "#battery.charging"
+          "#battery.not_charging"
+          "#battery.discharging"
+        ]
       )}
       */
 

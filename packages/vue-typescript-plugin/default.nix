@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{pkgs, ...}:
 pkgs.buildNpmPackage rec {
   pname = "vue-typescript-plugin";
   version = "3.0.4";
@@ -19,7 +19,7 @@ pkgs.buildNpmPackage rec {
     description = "TypeScript plugin for Vue";
     homepage = "https://github.com/vuejs/language-tools";
     license = licenses.mit;
-    maintainers = [ ];
+    maintainers = [];
     platforms = platforms.all;
   };
 }

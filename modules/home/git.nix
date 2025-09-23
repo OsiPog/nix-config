@@ -3,8 +3,7 @@
   lib,
   config,
   ...
-}:
-let
+}: let
   inherit (builtins) listToAttrs concatStringsSep;
   inherit (lib) pipe flatten concatLines;
 
@@ -12,8 +11,7 @@ let
     "primary"
     "secondary"
   ];
-in
-{
+in {
   home.packages = with pkgs; [
     lazygit
     (writeShellApplication {
@@ -48,24 +46,25 @@ in
     })
   ];
 
-  sops.secrets = {
-    "ssh-keys/gh-primary/private" = { };
-    "ssh-keys/gh-secondary/private" = { };
-  }
-  // (pipe authorKeys [
-    (map (author: [
-      {
-        name = "git-authors/${author}/name";
-        value = { };
-      }
-      {
-        name = "git-authors/${author}/email";
-        value = { };
-      }
-    ]))
-    flatten
-    listToAttrs
-  ]);
+  sops.secrets =
+    {
+      "ssh-keys/gh-primary/private" = {};
+      "ssh-keys/gh-secondary/private" = {};
+    }
+    // (pipe authorKeys [
+      (map (author: [
+        {
+          name = "git-authors/${author}/name";
+          value = {};
+        }
+        {
+          name = "git-authors/${author}/email";
+          value = {};
+        }
+      ]))
+      flatten
+      listToAttrs
+    ]);
 
   programs.git = {
     enable = true;

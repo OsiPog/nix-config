@@ -1,5 +1,4 @@
-flake:
-let
+flake: let
   inherit (flake.inputs) nixpkgs;
   inherit (nixpkgs) lib;
 
@@ -8,24 +7,26 @@ let
   inherit (lib.attrsets) listToAttrs mapAttrs;
 
   # Need to import that manually
-  importFilesAsAttrs =
-    dir: mapAttrs (_: value: import value) ((import ./lib/fileTreeAsAttrs.nix lib) dir);
+  importFilesAsAttrs = dir: mapAttrs (_: value: import value) ((import ./lib/fileTreeAsAttrs.nix lib) dir);
 
-  callAttrs =
-    attrs: arg:
-    mapAttrs (_: value: if typeOf value == "set" then callAttrs value arg else value arg) attrs;
+  callAttrs = attrs: arg:
+    mapAttrs (_: value:
+      if typeOf value == "set"
+      then callAttrs value arg
+      else value arg)
+    attrs;
 
   systems = attrNames nixpkgs.legacyPackages;
 in
-# lib argument
-(callAttrs (importFilesAsAttrs ./lib) lib)
-# flake argument
-// (callAttrs (importFilesAsAttrs ./flake) flake)
-# pkgs argument, do for each system
-// (pipe systems [
-  (map (system: {
-    name = system;
-    value = callAttrs (importFilesAsAttrs ./pkgs) nixpkgs.legacyPackages.${system};
-  }))
-  listToAttrs
-])
+  # lib argument
+  (callAttrs (importFilesAsAttrs ./lib) lib)
+  # flake argument
+  // (callAttrs (importFilesAsAttrs ./flake) flake)
+  # pkgs argument, do for each system
+  // (pipe systems [
+    (map (system: {
+      name = system;
+      value = callAttrs (importFilesAsAttrs ./pkgs) nixpkgs.legacyPackages.${system};
+    }))
+    listToAttrs
+  ])

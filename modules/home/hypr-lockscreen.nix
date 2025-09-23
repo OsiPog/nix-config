@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-{
+{pkgs, ...}: {
   # The hyprland lockscreen
   programs.hyprlock = {
     enable = true;
@@ -23,26 +22,24 @@
         ignore_systemd_inhibit = true;
         ignore_dbus_inhibit = true;
       };
-      listener =
-        let
-          seconds = s: s;
-          minutes = mins: builtins.floor (mins * 60);
-          hours = h: builtins.floor (h * 3600);
-        in
-        [
-          {
-            timeout = minutes 3;
-            on-timeout = "hyprlock"; # not using loginctl lock-session, because it adds it is without grace and animation
-          }
-          {
-            timeout = minutes 4;
-            on-timeout = "systemctl suspend";
-          }
-          {
-            timeout = hours 4;
-            on-timeout = "shutdown now";
-          }
-        ];
+      listener = let
+        seconds = s: s;
+        minutes = mins: builtins.floor (mins * 60);
+        hours = h: builtins.floor (h * 3600);
+      in [
+        {
+          timeout = minutes 3;
+          on-timeout = "hyprlock"; # not using loginctl lock-session, because it adds it is without grace and animation
+        }
+        {
+          timeout = minutes 4;
+          on-timeout = "systemctl suspend";
+        }
+        {
+          timeout = hours 4;
+          on-timeout = "shutdown now";
+        }
+      ];
     };
   };
 

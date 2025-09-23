@@ -3,8 +3,7 @@
   nixosConfig,
   lib,
   ...
-}:
-{
+}: {
   # terminal that makes me wet
   programs.fish = {
     enable = true;

@@ -2,8 +2,7 @@
   pkgs,
   lib,
   ...
-}:
-let
+}: let
   # Set of font awesome name and unicode code
   fa-icons = {
     battery-empty = "f244";
@@ -33,8 +32,7 @@ let
   };
   # get html unicode escape sequence for font awesome icon name
   fa = name: "&#x" + fa-icons.${name} + ";";
-in
-{
+in {
   imports = [
     ./hypr-toggle-laptop-kb.nix
     ./hypr-rotate-current-screen.nix

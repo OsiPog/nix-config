@@ -1,6 +1,6 @@
-lib:
-let
-  inherit (builtins)
+lib: let
+  inherit
+    (builtins)
     readDir
     filter
     listToAttrs
@@ -10,8 +10,7 @@ let
   inherit (lib.strings) removeSuffix hasSuffix;
   inherit (lib.attrsets) attrsToList;
 
-  fileTreeAsAttrs =
-    path:
+  fileTreeAsAttrs = path:
     pipe path [
       readDir
       attrsToList
@@ -21,24 +20,22 @@ let
         name = pipe file.name [
           (
             str:
-            if str == "default.nix" && pathExists "${path}.nix" then
-              throw "Ambiguous Nix files: both ${path}.nix and ${path}/default.nix exist"
-            else
-              str
+              if str == "default.nix" && pathExists "${path}.nix"
+              then throw "Ambiguous Nix files: both ${path}.nix and ${path}/default.nix exist"
+              else str
           )
           (removeSuffix "default.nix")
           (removeSuffix ".nix")
         ];
         value =
-          if file.value == "directory" then
-            fileTreeAsAttrs "${path}/${file.name}"
+          if file.value == "directory"
+          then fileTreeAsAttrs "${path}/${file.name}"
           # by definition of readDir "regular" which describes a normal file, and it will be a nix file (filter above)
-          else
-            "${path}/${file.name}";
+          else "${path}/${file.name}";
       }))
 
       # convert the name value pairs to attrsets
       listToAttrs
     ];
 in
-fileTreeAsAttrs
+  fileTreeAsAttrs

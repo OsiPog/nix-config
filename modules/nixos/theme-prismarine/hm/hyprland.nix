@@ -4,11 +4,9 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   themeCfg = nixosConfig.prismarineTheme;
-in
-{
+in {
   # Hyprland itself
   wayland.windowManager.hyprland = {
     plugins = with pkgs.hyprlandPlugins; [
