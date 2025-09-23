@@ -15,7 +15,7 @@
       nixd
 
       # PHP
-      intelephense
+      phpactor
 
       # Nodejs and friends
       vtsls
@@ -54,6 +54,11 @@
               devenv.expr = "${flakeExpr}.lib.devenv.allDevenvOptions";
             };
           };
+        };
+
+        phpactor = {
+          command = "phpactor";
+          args = ["language-server"];
         };
 
         # Vue
@@ -103,9 +108,6 @@
           ];
           file-types = ["nix"];
           auto-format = true;
-          # formatter = {
-          #   args = ["-q"];
-          # };
           indent = {
             tab-width = 2;
             unit = "  ";
@@ -129,7 +131,7 @@
         {
           name = "php";
           file-types = ["php"];
-          language-servers = ["intelephense"];
+          language-servers = ["phpactor"];
           debugger = {
             name = "vscode-php-debug";
             transport = "stdio";
