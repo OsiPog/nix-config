@@ -23,7 +23,6 @@
     printing
     sound
     speicherfresser
-    steam
     tuigreet
     podman
     nix-access-tokens

@@ -46,7 +46,6 @@
             pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
             currentSystemExpr = flakeExpr + ".nixosConfigurations.${nixosConfig.networking.hostName}";
           in {
-            formatting.command = ["${lib.getExe pkgs.alejandra}"];
             nixpkgs.expr = pkgsExpr;
             options = {
               nixos.expr = "${currentSystemExpr}.options";
@@ -107,6 +106,10 @@
             "nil"
           ];
           file-types = ["nix"];
+          formatter = {
+            command = "alejandra";
+            args = ["-q"];
+          };
           auto-format = true;
           indent = {
             tab-width = 2;

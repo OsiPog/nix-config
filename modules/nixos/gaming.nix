@@ -5,10 +5,7 @@
 }: {
   imports = [
     inputs.jovian-nixos.nixosModules.default
-
-    (flake.lib.mkUserModule "steam")
-
-    ./gaming.nix
+    inputs.home-manager.nixosModules.default
   ];
 
   nixpkgs.config.allowUnfree = true;
@@ -17,8 +14,12 @@
     steam = {
       enable = true;
       user = "steam";
-      autoStart = true;
-      desktopSession = "gamescope-wayland";
     };
   };
+
+  home-manager.sharedModules = [
+    ({...}: {
+      programs.lutris.enable = true;
+    })
+  ];
 }
