@@ -1,4 +1,4 @@
-{...}: {
+{pkgs, ...}: {
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
@@ -13,9 +13,9 @@
   programs.noisetorch.enable = true;
 
   # Start noisetoach after login
-  systemd.user.services.autostart-noisetorch = {
-    description = "Run noisetorch on the default sink at boot";
-    wantedBy = ["default.target"];
-    serviceConfig.ExecStart = "noisetorch -i";
+  systemd.user.services.start-noisetorch = {
+    enable = true;
+    wantedBy = ["graphical-session.target"];
+    serviceConfig.ExecStart = "${pkgs.noisetorch}/bin/noisetorch -i";
   };
 }
