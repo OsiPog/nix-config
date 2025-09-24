@@ -15,7 +15,11 @@
   # Start noisetoach after login
   systemd.user.services.start-noisetorch = {
     enable = true;
+    after = ["pipewire-pulse.service"];
     wantedBy = ["default.target"];
-    serviceConfig.ExecStart = "${pkgs.noisetorch}/bin/noisetorch -i";
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${pkgs.noisetorch}/bin/noisetorch -i";
+    };
   };
 }
