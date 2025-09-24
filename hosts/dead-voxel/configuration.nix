@@ -22,7 +22,22 @@
     ../../users/osi
   ];
 
-  boot.initrd.systemd.enable = true;
+  boot.initrd = {
+    # About key enrolling: https://nixos.org/manual/nixos/stable/#sec-luks-file-systems-fido2
+    # sudo systemd-cryptenroll --fido2-device=auto --fido2-with-user-presence=false --fido2-with-user-verification=true /dev/disk/by-uuid/ff0fdffe-9e8d-4956-92ef-ce2317629a32
+    luks.devices."luks-eded9eca-c0eb-4474-a0b5-1103acf72ed4".crypttabExtraOpts = [
+      "fido2-device=auto"
+      "token-timeout=5"
+      # you can always just restart the machine and the counter will be reset, so I can also just give infinite tries
+      "tries=0"
+    ];
+    systemd = {
+      enable = true;
+      fido2.enable = true;
+      tpm2.enable = false;
+    };
+    luks.fido2Support = false;
+  };
 
   hardware.graphics.enable = true;
   services.xserver.videoDrivers = ["nvidia"];
@@ -33,6 +48,13 @@
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
+    settings = {
+      Users = {
+        HideUsers = "leaf";
+        RememberLastUser = true;
+        RememberLastSession = true;
+      };
+    };
   };
 
   services.desktopManager.plasma6.enable = true;
