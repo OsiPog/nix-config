@@ -15,7 +15,7 @@
   # Start noisetoach after login
   systemd.user.services.start-noisetorch = {
     enable = true;
-    wantedBy = ["graphical-session.target"];
+    wantedBy = ["default.target"];
     serviceConfig.ExecStart = "${pkgs.noisetorch}/bin/noisetorch -i";
   };
 }
