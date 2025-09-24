@@ -58,8 +58,9 @@ in {
 
   # with wofi-pass we can use wofi to access pass
   home.file.".config/wofi-pass/config".text = ''
-    WOFI_PASS_DELAY=0
+    WOFI_PASS_DELAY="0.5"
     PASS_FIELD_USERNAME="user"
+    WOFI_PASS_AUTOTYPE=":username :tab :delay :password"
     WOFI_PASS_AUTO_ENTER=true
     CMD_TYPE="xargs ydotool type --key-delay=1 --key-hold=1"
   '';
