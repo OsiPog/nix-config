@@ -15,7 +15,7 @@
   # Start noisetoach after login
   systemd.user.services.autostart-noisetorch = {
     description = "Run noisetorch on the default sink at boot";
-    wantedBy = ["multi-user.target"];
+    wantedBy = ["default.target"];
     serviceConfig.ExecStart = "noisetorch -i";
   };
 }
