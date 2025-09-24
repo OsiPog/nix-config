@@ -61,6 +61,6 @@ in {
     WOFI_PASS_DELAY=0
     PASS_FIELD_USERNAME="user"
     WOFI_PASS_AUTO_ENTER=true
-    CMD_TYPE="xargs ydotool type"
+    CMD_TYPE="xargs ydotool type --key-delay=1 --key-hold=1"
   '';
 }
