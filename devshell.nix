@@ -6,4 +6,9 @@
 pkgs.mkShell {
   name = (import ./flake.nix).description;
   packages = builtins.attrValues flake.packages.${pkgs.system};
+
+  shellHook = ''
+    git fetch
+    git status    
+  '';
 }
