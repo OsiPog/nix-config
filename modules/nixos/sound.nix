@@ -11,4 +11,14 @@
 
   # Noise cancellation software
   programs.noisetorch.enable = true;
+
+  # Start noisetoach after login
+  systemd.user.services.autostart-noisetorch = {
+    description = "Run noisetorch on the default sink at boot";
+    wantedBy = ["default.target"];
+    serviceConfig = {
+      ExecStart = "noisetorch -i";
+      After = "graphical-session.target";
+    };
+  };
 }
