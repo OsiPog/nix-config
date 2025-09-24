@@ -54,7 +54,7 @@ in {
       # base16Scheme = "${pkgs.base16-schemes}/share/themes/oceanicnext.yaml";
       base16Scheme = lib.mkDefault ./anya.yaml;
       # base16Scheme = "${pkgs.base16-schemes}/share/themes/standardized-dark.yaml";
-      image = ./anya.jpg;
+      image = lib.mkDefault ./anya.jpg;
       polarity = "dark";
       autoEnable = true;
 

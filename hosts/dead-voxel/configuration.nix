@@ -1,4 +1,8 @@
-{flake, ...}: {
+{
+  flake,
+  pkgs,
+  ...
+}: {
   imports = with flake.nixosModules; [
     ./hardware-configuration.nix
     shared
@@ -24,7 +28,7 @@
 
   boot.initrd = {
     # About key enrolling: https://nixos.org/manual/nixos/stable/#sec-luks-file-systems-fido2
-    # sudo systemd-cryptenroll --fido2-device=auto --fido2-with-user-presence=false --fido2-with-user-verification=true /dev/disk/by-uuid/ff0fdffe-9e8d-4956-92ef-ce2317629a32
+    # sudo systemd-cryptenroll --fido2-device=auto --fido2-with-user-presence=false --fido2-with-user-verification=true /dev/disk/by-uuid/eded9eca-c0eb-4474-a0b5-1103acf72ed4
     luks.devices."luks-eded9eca-c0eb-4474-a0b5-1103acf72ed4".crypttabExtraOpts = [
       "fido2-device=auto"
       "token-timeout=5"
@@ -55,6 +59,11 @@
         RememberLastSession = true;
       };
     };
+  };
+
+  stylix = {
+    base16Scheme = "${pkgs.base16-schemes}/share/themes/oceanicnext.yaml";
+    image = ../../modules/nixos/theme-prismarine/nms.jpg;
   };
 
   services.desktopManager.plasma6.enable = true;
