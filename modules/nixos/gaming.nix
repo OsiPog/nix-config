@@ -10,18 +10,12 @@
   ];
 
   environment.systemPackages = with pkgs; [
-    gamescope-session # comes from jovian-nixos 
+    lutris
   ];
+
+  hardware.graphics.enable32Bit = true;
 
   nixpkgs.config.allowUnfree = true;
 
-  jovian = {
-    steam = {
-      enable = true;
-    };
-  };
-
-  home-manager.sharedModules = [({...}: {
-    programs.lutris.enable = true;
-  })];
+  jovian.steam.enable = true;
 }
