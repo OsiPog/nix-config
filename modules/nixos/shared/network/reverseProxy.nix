@@ -19,6 +19,7 @@
     attrsToList
     (filter (service: service.value.reverseProxy.enable && service.value.reverseProxy.host == hostName))
   ];
+  acmeCertName = "${domain}-cert";
 in
   mkIf hostCfg.reverseProxy.enable {
     networking = {
@@ -45,7 +46,7 @@ in
               else service.value.host;
 
             virtualHostsConfig = {
-              useACMEHost = toACMECert service.name;
+              useACMEHost = acmeCertName;
               forceSSL = true;
               locations."/" = {
                 proxyPass = "http://${ipAddress}:${toString service.value.port}";
@@ -66,17 +67,11 @@ in
     security.acme = {
       acceptTerms = true;
       defaults.email = "osibluber@pm.me";
-      certs = pipe relevantServices [
-        (map
-          (service: {
-            name = toACMECert service.name;
-            value = {
-              domain = toFullDomain service.name;
-              dnsProvider = "porkbun";
-              environmentFile = config.getSopsFile "acme/porkbun";
-            };
-          }))
-        listToAttrs
-      ];
+      certs."${acmeCertName}" = {
+        inherit domain;
+        extraDomainNames = map (service: toFullDomain service.name) relevantServices;
+        dnsProvider = "porkbun";
+        environmentFile = config.getSopsFile "acme/porkbun";
+      };
     };
   }

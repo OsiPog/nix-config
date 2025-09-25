@@ -1,6 +1,11 @@
 use std/assert
 use temp-nixos-host.nu *
 
+# Apply the given `func` if `ok` is true and just pass the input if not
+def maybe_apply [ ok: bool func: closure ] {
+    if $ok { do $func $in } else { $in }
+}
+
 # A wrapper for nixos-rebuild with extra features which integrates into my hosts structure
 export def --wrapped "main rebuild" [ 
     --host (-h): string
@@ -32,27 +37,21 @@ export def --wrapped "main rebuild" [
 
     let parameters = [ ]
     # Add target host when target is not current host (must be on the tailnet)
-    | if ($host != (^hostname)) {
+    | maybe_apply ($host != (^hostname)) {
         append ["--target-host" $"root@($host)"]
     }
     # Add build-host if not local
-    | if ($build_on != 'local') {
-        append ["--build-host" $"root@(
-            if ($build_on == "remote") {
-                $host
-            } else if ($build_on =~ "hetzner") {
-                create-temp-nixos-host ($build_on | split row "-" | last)
-            }
-        )"]
+    | maybe_apply ($build_on != 'local') {
+        append ["--build-host" $"root@($host)"]
     }
-    # If the host is the current host we need sudo during the process
-    | if ($host == (^hostname)) {
+    # if the host is the current host we need sudo during the process
+    | maybe_apply ($host == (^hostname)) {
         append ["--sudo" "--ask-sudo-password"]
     }
     # at the end add flake location with output, command and other extra options
     | append [
         "--use-substitutes"
-        "--flake" ($flake | default $"($flake_path)#($host)")
+        "--flake" ($flake | default $"($flakePath)#($host)")
         $command
     ]
     | append $rest
