@@ -55,7 +55,6 @@
       exec-once = [
         # Auth agent for gui apps
         "systemctl --user start hyprpolkitagent"
-        "ydotoold" # for virtual keyboard control
       ];
 
       # --- Keyboard settings ---

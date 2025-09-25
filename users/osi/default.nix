@@ -30,7 +30,7 @@ in {
 
   users.users.${username} = {
     # Enable sudo for user
-    extraGroups = ["wheel" "adbusers"];
+    extraGroups = ["wheel" "adbusers" "ydotool"];
     # password
     hashedPasswordFile = config.getSopsFile "pass-hashes/osi";
   };
@@ -40,6 +40,10 @@ in {
     chown ${username} /home/${username}/.ssh/id_ed25519
     rm --force /home/${username}/id_ed25519.pub
   '';
+
+  programs.ydotool = {
+    enable = true;
+  };
 
   services.greetd.settings = {
     # Run hyprland on boot (autologin)
