@@ -41,10 +41,6 @@ in {
     rm --force /home/${username}/id_ed25519.pub
   '';
 
-  programs.ydotool = {
-    enable = true;
-  };
-
   services.greetd.settings = {
     # Run hyprland on boot (autologin)
     initial_session = {

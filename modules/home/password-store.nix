@@ -62,6 +62,6 @@ in {
     PASS_FIELD_USERNAME="user"
     WOFI_PASS_AUTOTYPE=":username :tab :password"
     WOFI_PASS_AUTO_ENTER=true
-    CMD_TYPE="xargs --null ydotool type --key-delay=1 --key-hold=1"
+    # CMD_TYPE="xargs --null ydotool type --key-delay=1 --key-hold=1"
   '';
 }
