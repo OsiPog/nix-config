@@ -19,7 +19,6 @@ in {
       address = "0.0.0.0";
       port = cfg.port;
       settings = {
-        prefixes.v4 = "10.0.0.0/24";
         server_url = "https://" + (config.lib.network.toFullDomain "headscale");
         dns = {
           override_local_dns = true;
