@@ -4,6 +4,6 @@
     openFirewall = true;
     interfaceName = "sculk";
     useRoutingFeatures = "both";
-    extraSetFlags = ["--accept-dns=false"];
+    # extraSetFlags = ["--accept-dns=false"];
   };
 }
