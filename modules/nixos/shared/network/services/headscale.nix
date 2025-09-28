@@ -21,7 +21,7 @@ in {
       settings = {
         server_url = "https://" + (config.lib.network.toFullDomain "headscale");
         dns = {
-          override_local_dns = false;
+          override_local_dns = true;
           base_domain = "dns." + (config.lib.network.toFullDomain "headscale");
           nameservers.global = [
             "1.1.1.1"
