@@ -22,13 +22,15 @@ in {
         server_url = "https://" + (config.lib.network.toFullDomain "headscale");
         dns = {
           override_local_dns = true;
-          base_domain = "dns." + (config.lib.network.toFullDomain "headscale");
           nameservers.global = [
             "1.1.1.1"
             "1.0.0.1"
             "2606:4700:4700::1111"
             "2606:4700:4700::1001"
           ];
+          # Magic DNS
+          magic_dns = false;
+          base_domain = "dns." + (config.lib.network.toFullDomain "headscale");
         };
       };
     };
