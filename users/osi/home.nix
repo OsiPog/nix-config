@@ -44,6 +44,7 @@
     # Some common desktop apps I need
     desktop-apps
     cli-tools
+    godot
 
     # syncing files
     syncthing
