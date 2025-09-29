@@ -6,12 +6,12 @@
   ...
 }: {
   home.packages = with pkgs; [
-    godot_4
+    godot
   ];
 
   # Add extension to vscode
   programs.vscode.profiles.default = lib.mkIf config.programs.vscode.enable {
-    userSettings."godotTools.editorPath.godot4" = lib.getExe pkgs.godot_4;
+    userSettings."godotTools.editorPath.godot4" = lib.getExe pkgs.godot;
     extensions = with inputs.nix-vscode-extensions.extensions.${pkgs.system};
     with vscode-marketplace; [
       geequlim.godot-tools
