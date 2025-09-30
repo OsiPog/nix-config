@@ -27,5 +27,7 @@
     };
   };
 
+  security.acme.certs."${config.networking.domain}-cert".extraDomainNames = ["laravel-application.${config.networking.domain}"];
+
   system.stateVersion = "25.11";
 }
