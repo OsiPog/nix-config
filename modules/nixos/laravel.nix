@@ -46,7 +46,7 @@ in {
 
       system.activationScripts = {
         ensure-mounted-permissions.text = ''
-          cp -r /srv/laravel ${directoryInContainer}
+          cp -r /srv/laravel /var
           chown php ${directoryInContainer} -R
           chmod 0750 ${directoryInContainer} -R
         '';
