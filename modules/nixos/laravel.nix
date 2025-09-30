@@ -96,6 +96,7 @@ in {
             "~ ^/index\.php(/|$)".extraConfig = ''
               fastcgi_split_path_info ^(.+\.php)(/.+)$;
               fastcgi_pass unix:${config.services.phpfpm.pools.default.socket};
+              fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
               include ${pkgs.nginx}/conf/fastcgi_params;
               include ${pkgs.nginx}/conf/fastcgi.conf;
               fastcgi_hide_header X-Powered-By;
