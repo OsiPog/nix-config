@@ -40,8 +40,9 @@ in {
         users.php = {
           isNormalUser = true;
           createHome = true;
-          extraGroups = ["php"];
+          group = "php";
         };
+        groups.php = {};
       };
 
       services.phpfpm.pools.default = {
