@@ -34,6 +34,7 @@ in {
         users.php = {
           isNormalUser = true;
           createHome = true;
+          home = "/srv/laravel";
           group = "php";
         };
         groups.php = {};
