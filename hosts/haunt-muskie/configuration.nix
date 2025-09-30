@@ -17,8 +17,6 @@
     helix
   ];
 
-  networking.firewall.allowedTCPPorts = [5173];
-
   services.nginx.virtualHosts."laravel-application.${config.networking.domain}" = {
     useACMEHost = "${config.networking.domain}-cert";
     forceSSL = true;
