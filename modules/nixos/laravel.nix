@@ -7,6 +7,7 @@
 in {
   containers.laravel = {
     autoStart = true;
+    privateNetwork = true;
     bindMounts = {
       "/srv/laravel" = {
         hostPath = "/srv/laravel";
