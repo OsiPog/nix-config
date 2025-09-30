@@ -59,6 +59,10 @@ in {
       services.nginx = {
         enable = true;
         user = "root";
+        group = "root";
+        appendConfig = ''
+          user root root;
+        '';
         virtualHosts."localhost" = {
           root = "/srv/laravel";
           locations = let
