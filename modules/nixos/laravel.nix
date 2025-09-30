@@ -31,12 +31,18 @@ in {
       };
     in {
       users = {
-        users.php = {
-          isNormalUser = true;
-          createHome = true;
-          home = "/srv/laravel";
-          group = "php";
+        users = {
+          nginx = {
+            isSystemUser = true;
+            home = "/srv/laravel";
+          };
+          php = {
+            isNormalUser = true;
+            createHome = true;
+            group = "php";
+          };
         };
+
         groups.php = {};
       };
 
