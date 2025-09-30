@@ -50,7 +50,7 @@
       headscale = {
         enable = true;
         host = "haunt-muskie";
-        port = 8080;
+        port = 8081;
         reverseProxy = {
           enable = true;
           subdomain = "vpn";
