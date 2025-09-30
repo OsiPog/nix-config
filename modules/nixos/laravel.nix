@@ -5,6 +5,8 @@
 }: let
   hostConfig = config;
   port = 8000;
+
+  directoryInContainer = "/var/laravel";
 in {
   containers.laravel = {
     autoStart = true;
@@ -32,13 +34,9 @@ in {
     in {
       users = {
         users = {
-          nginx = {
-            isSystemUser = true;
-            createHome = true;
-          };
           php = {
             isNormalUser = true;
-            createHome = true;
+            home = directoryInContainer;
             group = "php";
           };
         };
@@ -48,7 +46,8 @@ in {
 
       system.activationScripts = {
         ensure-mounted-permissions.text = ''
-          chown php /srv/laravel -R
+          cp /srv/laravel ${directoryInContainer}
+          chown php ${directoryInContainer} -R
         '';
       };
 
