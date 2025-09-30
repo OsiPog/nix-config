@@ -61,11 +61,6 @@ in {
       # Copied and adapted from https://laravel.com/docs/12.x/deployment#nginx
       services.nginx = {
         enable = true;
-        user = "root";
-        group = "root";
-        appendConfig = ''
-          user root root;
-        '';
         virtualHosts."localhost" = {
           root = "/srv/laravel";
           listen = [
