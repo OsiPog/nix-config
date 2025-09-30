@@ -44,8 +44,8 @@ in {
         group = "php";
         phpPackage = phpPackage;
         settings = {
-          "listen.owner" = "php";
-          "listen.group" = "php";
+          "listen.owner" = config.services.nginx.user;
+          "listen.group" = config.services.nginx.group;
 
           # you should probably take some time to understand these values, see https://www.php.net/manual/en/install.fpm.configuration.php
           "pm" = "dynamic";
