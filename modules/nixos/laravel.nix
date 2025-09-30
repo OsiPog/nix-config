@@ -62,7 +62,7 @@ in {
       services.nginx = {
         enable = true;
         virtualHosts."localhost" = {
-          root = "/srv/laravel";
+          root = "/srv/laravel/public";
           listen = [
             {
               inherit port;
