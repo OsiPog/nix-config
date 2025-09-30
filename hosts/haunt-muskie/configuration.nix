@@ -15,36 +15,17 @@
   environment.systemPackages = with pkgs; [
     devenv
     helix
-    (php83.buildEnv {
-      extensions = {
-        enabled,
-        all,
-      }:
-        enabled
-        ++ (with all; [
-          ctype
-          curl
-          dom
-          fileinfo
-          filter
-          mbstring
-          openssl
-          pdo
-          session
-          tokenizer
-          xml
-          xdebug
-        ]);
-    })
   ];
 
   services.nginx.virtualHosts."laravel-application.${config.networking.domain}" = {
     useACMEHost = "${config.networking.domain}-cert";
     forceSSL = true;
-    root = "/home/leaf/laravel/public";
     locations = {
       "/" = {
-        tryFiles = "$uri $uri/ /index.php?$query_string";
+        proxyPass = "http://localhost:8000";
+      };
+      "/@vite" = {
+        proxyPass = "http://localhost:5173";
       };
     };
   };
