@@ -19,12 +19,10 @@
   };
 
   # Add window rules to hyprland
-  wayland.windowManager.hyprland.settings.windowrulev2 =
-    lib.mkIf config.wayland.windowManager.hyprland.enable
-    [
-      "float, title:.*\\(DEBUG\\)$"
-      "size 1280 720, title:.*\\(DEBUG\\)$"
+  wayland.windowManager.hyprland.settings.windowrulev2 = [
+    "float, title:.*\\(DEBUG\\)$"
+    "size 1280 720, title:.*\\(DEBUG\\)$"
 
-      "tile, title:.*Godot Engine$"
-    ];
+    "tile, title:.*Godot Engine$"
+  ];
 }

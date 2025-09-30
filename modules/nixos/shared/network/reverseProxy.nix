@@ -8,7 +8,7 @@
   inherit (lib) mkIf pipe;
   inherit (lib.attrsets) attrsToList recursiveUpdate;
 
-  inherit (config.lib.network) toACMECert toFullDomain;
+  inherit (config.lib.network) toFullDomain;
 
   cfg = config.network;
   hostCfg = cfg.hosts.${hostName};

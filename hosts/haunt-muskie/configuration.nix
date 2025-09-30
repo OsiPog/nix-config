@@ -1,6 +1,8 @@
 {
   flake,
   lib,
+  config,
+  pkgs,
   ...
 }: {
   imports = with flake.nixosModules; [
@@ -9,6 +11,21 @@
 
     disko-basic
   ];
+
+  environment.systemPackages = [pkgs.devenv];
+
+  services.nginx.virtualHosts."laravel-application.${config.networking.domain}" = {
+    useACMEHost = "${config.networking.domain}-cert";
+    forceSSL = true;
+    locations = {
+      "/" = {
+        proxyPass = "http://localhost:8000";
+      };
+      "/_vite" = {
+        proxyPass = "http://localhost:5173";
+      };
+    };
+  };
 
   system.stateVersion = "25.11";
 }
