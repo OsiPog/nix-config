@@ -34,7 +34,7 @@ in {
         users = {
           nginx = {
             isSystemUser = true;
-            home = "/srv/laravel";
+            createHome = true;
           };
           php = {
             isNormalUser = true;
@@ -44,6 +44,12 @@ in {
         };
 
         groups.php = {};
+      };
+
+      system.activationScripts = {
+        ensure-mounted-permissions.text = ''
+          chown nginx /srv/laravel -R
+        '';
       };
 
       services.phpfpm.pools.default = {
