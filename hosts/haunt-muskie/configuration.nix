@@ -55,6 +55,10 @@
       '';
     };
   };
+  services.mysql = {
+    package = pkgs.mariadb;
+    enable = true;
+  };
 
   services.nginx.virtualHosts."laravel-application.${config.networking.domain}" = {
     useACMEHost = "${config.networking.domain}-cert";
