@@ -48,7 +48,7 @@ in {
 
       system.activationScripts = {
         ensure-mounted-permissions.text = ''
-          chown nginx /srv/laravel -R
+          chown php /srv/laravel -R
         '';
       };
 
