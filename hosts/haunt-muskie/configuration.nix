@@ -76,7 +76,6 @@
         fastcgi_hide_header X-Powered-By;
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
       '';
-      "~ /\.(?!well-known).*".extraConfig = "deny all;";
     };
     extraConfig = ''
       add_header X-Frame-Options "SAMEORIGIN";
