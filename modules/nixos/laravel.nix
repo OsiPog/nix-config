@@ -71,7 +71,7 @@ in {
           listen = [
             {
               inherit port;
-              addr = "localhost";
+              addr = "*";
             }
           ];
           locations = let
