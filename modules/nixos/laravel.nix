@@ -4,23 +4,16 @@
   ...
 }: let
   hostConfig = config;
+  port = 8000;
 in {
   containers.laravel = {
     autoStart = true;
-    privateNetwork = true;
     bindMounts = {
       "/srv/laravel" = {
         hostPath = "/srv/laravel";
         isReadOnly = false;
       };
     };
-    forwardPorts = [
-      {
-        containerPort = 80;
-        hostPort = 8000;
-        protocol = "tcp";
-      }
-    ];
     config = {
       pkgs,
       config,
@@ -75,6 +68,12 @@ in {
         '';
         virtualHosts."localhost" = {
           root = "/srv/laravel";
+          listen = [
+            {
+              inherit port;
+              addr = "localhost";
+            }
+          ];
           locations = let
             suppressLog = {
               extraConfig = ''
@@ -108,17 +107,6 @@ in {
       };
 
       system.stateVersion = hostConfig.system.stateVersion;
-
-      networking = {
-        firewall = {
-          enable = true;
-          allowedTCPPorts = [80];
-        };
-        # Use systemd-resolved inside the container
-        # Workaround for bug https://github.com/NixOS/nixpkgs/issues/162686
-        useHostResolvConf = lib.mkForce false;
-      };
-      services.resolved.enable = true;
     };
   };
 }
