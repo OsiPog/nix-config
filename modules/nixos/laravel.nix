@@ -36,13 +36,21 @@ in {
         '';
       };
     in {
+      users = {
+        users.php = {
+          isNormalUser = true;
+          createHome = true;
+          extraGroups = ["php"];
+        };
+      };
+
       services.phpfpm.pools.default = {
-        user = "root";
-        group = "root";
+        user = "php";
+        group = "php";
         phpPackage = phpPackage;
         settings = {
-          "listen.owner" = "root";
-          "listen.group" = "root";
+          "listen.owner" = "php";
+          "listen.group" = "php";
 
           # you should probably take some time to understand these values, see https://www.php.net/manual/en/install.fpm.configuration.php
           "pm" = "dynamic";
