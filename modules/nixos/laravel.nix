@@ -91,7 +91,7 @@ in {
               '';
             };
           in {
-            "/".tryFiles = "try_files $uri $uri/ /index.php?$query_string";
+            "/".tryFiles = "$uri $uri/ /index.php?$query_string";
             "= /favicon.ico" = suppressLog;
             "= /robots.txt" = suppressLog;
             "~ ^/index\.php(/|$)".extraConfig = ''
