@@ -74,7 +74,7 @@ in {
       services.nginx = {
         enable = true;
         virtualHosts."localhost" = {
-          root = "/srv/laravel/public";
+          root = "${directoryInContainer}/public";
           listen = [
             {
               inherit port;
