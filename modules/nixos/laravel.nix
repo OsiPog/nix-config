@@ -67,6 +67,7 @@ in {
           "pm.max_spare_servers" = 4;
           "pm.max_requests" = 500;
           "request_terminate_timeout" = 300;
+          "access.log" = "/var/log/$pool.access.log";
         };
       };
 
