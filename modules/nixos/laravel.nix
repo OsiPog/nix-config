@@ -1,4 +1,8 @@
-{config, ...}: let
+{
+  config,
+  lib,
+  ...
+}: let
   hostConfig = config;
 in {
   containers.laravel = {
@@ -16,7 +20,11 @@ in {
         protocol = "tcp";
       }
     ];
-    config = {pkgs, config, ...}: let
+    config = {
+      pkgs,
+      config,
+      ...
+    }: let
       phpPackage = pkgs.php.buildEnv {
         extensions = {
           enabled,
@@ -46,7 +54,7 @@ in {
           "request_terminate_timeout" = 300;
         };
       };
-      
+
       # Copied and adapted from https://laravel.com/docs/12.x/deployment#nginx
       services.nginx = {
         enable = true;
@@ -54,14 +62,16 @@ in {
         virtualHosts."localhost" = {
           root = "/srv/laravel";
           locations = let
-            suppressLog = {extraConfig = ''
-              access_log off;
-              log_not_found off;
-            ''};
+            suppressLog = {
+              extraConfig = ''
+                access_log off;
+                log_not_found off;
+              '';
+            };
           in {
             "/".tryFiles = "try_files $uri $uri/ /index.php?$query_string";
             "= /favicon.ico" = suppressLog;
-            "= /robots.txt" = supressLog;
+            "= /robots.txt" = suppressLog;
             "~ ^/index\.php(/|$)".extraConfig = ''
               fastcgi_split_path_info ^(.+\.php)(/.+)$;
               fastcgi_pass unix:${config.services.phpfpm.pools.default.socket};

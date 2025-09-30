@@ -10,6 +10,7 @@
     shared
 
     disko-basic
+    laravel
   ];
 
   environment.systemPackages = with pkgs; [
