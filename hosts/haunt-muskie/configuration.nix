@@ -15,7 +15,23 @@
   environment.systemPackages = with pkgs; [
     devenv
     helix
-    (pkgs.php.buildEnv {
+  ];
+
+  services.phpfpm.pools.laravel = {
+    user = "laravel";
+    settings = {
+      "listen.owner" = config.services.nginx.user;
+      "pm" = "dynamic";
+      "pm.max_children" = 32;
+      "pm.max_requests" = 500;
+      "pm.start_servers" = 2;
+      "pm.min_spare_servers" = 2;
+      "pm.max_spare_servers" = 5;
+      "php_admin_value[error_log]" = "stderr";
+      "php_admin_flag[log_errors]" = true;
+      "catch_workers_output" = true;
+    };
+    phpPackage = pkgs.php.buildEnv {
       extensions = {
         enabled,
         all,
@@ -37,8 +53,8 @@
       extraConfig = ''
         xdebug.mode=debug
       '';
-    })
-  ];
+    };
+  };
 
   services.nginx.virtualHosts."laravel-application.${config.networking.domain}" = {
     useACMEHost = "${config.networking.domain}-cert";
@@ -55,10 +71,10 @@
         log_not_found off;
       '';
       "~ ^/index\.php(/|$)".extraConfig = ''
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-        include fastcgi_params;
+        fastcgi_pass unix:${config.services.phpfpm.pools.laravel.socket};
+        include ${pkgs.nginx}/conf/fastcgi.conf;
         fastcgi_hide_header X-Powered-By;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
       '';
       "~ /\.(?!well-known).*".extraConfig = "deny all;";
     };
@@ -73,6 +89,12 @@
       error_page 404 /index.php;
     '';
   };
+
+  users.users.laravel = {
+    isSystemUser = true;
+    group = "laravel";
+  };
+  users.groups.laravel = {};
 
   security.acme.certs."${config.networking.domain}-cert".extraDomainNames = ["laravel-application.${config.networking.domain}"];
 
