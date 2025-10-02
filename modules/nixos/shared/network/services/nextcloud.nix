@@ -25,7 +25,7 @@ in {
       }
     ];
 
-    networking.firewall.allowedTCPPorts = [cfg.port];
+    networking.firewall.allowedTCPPorts = [cfg.port 80];
 
     services.nextcloud = {
       enable = true;
