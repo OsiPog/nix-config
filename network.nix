@@ -41,10 +41,11 @@
     services = {
       forgejo = {
         enable = true;
-        host = "haunt-muskie";
+        host = "blind-spots";
         port = 2000;
         reverseProxy = {
           enable = true;
+          host = "haunt-muskie";
           subdomain = "git";
         };
       };
