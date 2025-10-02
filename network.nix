@@ -31,6 +31,12 @@
           allowConnectionsFrom = ["biome-fest"];
         };
       };
+      blind-spots = {
+        ssh = {
+          publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKShjod8+H+fuNp9e6gjifRfu8/vdEwKO837MmFgViil root@blind-spots";
+          allowConnectionsFrom = ["biome-fest"];
+        };
+      };
     };
     services = {
       forgejo = {

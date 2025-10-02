@@ -3,6 +3,7 @@ keys:
   - &haunt-muskie age18ay0p4gm2jqam6zgz9pxk27jtft3fnz3560m6naz47j2yaf0hadq0za492
   - &wet-hands age1yusne4xuc6du0qgfumrr6pxj5htq38ug806tda4tkg7du48dlcjqymr086
   - &dead-voxel age1he8wrq7e7ae52rf7r2pjanyexcy9ku02hxwqctuz8fzujlx5tswqxln7cm
+  - &blind-spots age1r3yll2yy4mpf7s6wew8ywsw4lxkfvmk73acsmpjnrqgunnnunsfqgtddxh
 creation_rules:
   - path_regex: biome-fest/secrets.(yaml|json)$
     key_groups:
@@ -20,3 +21,7 @@ creation_rules:
     key_groups:
     - age:
       - *dead-voxel
+  - path_regex: ^hosts/blind-spots/secrets.yaml$
+    key_groups:
+    - age:
+      - *blind-spots
