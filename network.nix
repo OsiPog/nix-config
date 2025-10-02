@@ -69,7 +69,7 @@
       nextcloud = {
         enable = true;
         host = "blind-spots";
-        port = 4000;
+        port = 80;
         reverseProxy = {
           enable = true;
           host = "haunt-muskie";

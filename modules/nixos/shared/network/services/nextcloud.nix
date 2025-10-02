@@ -15,35 +15,36 @@ in {
     (mkServiceOptionsModule "nextcloud")
   ];
 
-  config = mkIf (cfg.enable && cfg.host == hostName) {
-    sops.secrets."nextcloud/adminpass" = {};
+  config = mkMerge [
+    {
+      assertions = [
+        {
+          assertion = cfg.port == 80;
+          message = "The nextcloud port needs to be 80 as that cannot be configured.";
+        }
+      ];
+    }
+    (mkIf (cfg.enable && cfg.host == hostName) {
+      sops.secrets."nextcloud/adminpass" = {};
 
-    services.nginx.virtualHosts.${config.services.nextcloud.hostName}.listen = [
-      {
-        inherit (cfg) port;
-        addr = "127.0.0.1";
-      }
-    ];
-
-    networking.firewall.allowedTCPPorts = [cfg.port 80];
-
-    services.nextcloud = {
-      enable = true;
-      package = pkgs.nextcloud31;
-      hostName = config.lib.network.toFullDomain "nextcloud";
-      https = true;
-      config = {
-        adminuser = "admin";
-        adminpassFile = config.getSopsFile "nextcloud/adminpass";
-        dbtype = "sqlite";
+      services.nextcloud = {
+        enable = true;
+        package = pkgs.nextcloud31;
+        hostName = config.lib.network.toFullDomain "nextcloud";
+        https = true;
+        config = {
+          adminuser = "admin";
+          adminpassFile = config.getSopsFile "nextcloud/adminpass";
+          dbtype = "sqlite";
+        };
+        extraApps = {
+          inherit
+            (pkgs.nextcloud31Packages.apps)
+            calendar
+            ;
+        };
+        extraAppsEnable = true;
       };
-      extraApps = {
-        inherit
-          (pkgs.nextcloud31Packages.apps)
-          calendar
-          ;
-      };
-      extraAppsEnable = true;
-    };
-  };
+    })
+  ];
 }
