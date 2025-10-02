@@ -29,7 +29,7 @@ in {
         dbtype = "sqlite";
       };
       settings = {
-        ports.http = cfg.port;
+        ports.https = cfg.port;
       };
       extraApps = {
         inherit
