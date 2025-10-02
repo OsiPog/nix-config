@@ -25,6 +25,8 @@ in {
       }
     ];
 
+    networking.firewall.allowedTCPPorts = [cfg.port];
+
     services.nextcloud = {
       enable = true;
       package = pkgs.nextcloud31;
