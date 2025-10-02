@@ -66,6 +66,16 @@
           };
         };
       };
+      nextcloud = {
+        enable = true;
+        host = "blind-spots";
+        port = 4000;
+        reverseProxy = {
+          enable = true;
+          host = "haunt-muskie";
+          subdomain = "cloud";
+        };
+      };
     };
   };
 }
