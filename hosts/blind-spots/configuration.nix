@@ -6,8 +6,7 @@
     disko-basic
   ];
 
-  # Do not suspend when the lid is closed (this is a laptop)
-  services.logind.settings.Login.HandleLidSwitch = "ignore";
+  services.logind.settings.Login.HandleLidSwitchExternalPower = "ignore";
 
   # systemd.services.turn-off-display
 
