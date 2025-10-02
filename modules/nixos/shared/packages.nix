@@ -1,6 +1,7 @@
 {
   pkgs,
   inputs,
+  lib,
   ...
 }: {
   imports = with inputs; [
@@ -9,12 +10,16 @@
   environment.systemPackages = with pkgs; [
     fastfetch # System info
     bat # Better cat
-    atool # Extract any archive
     jq # tool to parse json
     usbutils # for lsusb and such
+    busybox
     ripgrep
     gitMinimal
+    helix
   ];
+
+  environment.variables.EDITOR = lib.mkOverride 900 "hx";
+
   programs.direnv = {
     enable = true;
     enableFishIntegration = true;

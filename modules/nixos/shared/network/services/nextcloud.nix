@@ -37,7 +37,5 @@ in {
       };
       extraAppsEnable = true;
     };
-
-    networking.firewall.allowedTCPPorts = [cfg.port];
   };
 }
