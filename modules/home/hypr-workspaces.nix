@@ -3,9 +3,11 @@
     plugins = with pkgs.hyprlandPlugins; [
       # hyprexpo
       # hyprspace
+      hyprscrolling
     ];
 
     settings = {
+      general.layout = "scrolling";
       # "plugin:hyprexpo" = {
       #   inherit columns;
       #   enable_gesture = false;
