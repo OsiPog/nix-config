@@ -10,7 +10,7 @@
       general.layout = "scrolling";
       plugin.hyprscrolling = {
         fullscreen_on_one_column = true;
-        column_width = 0.75;
+        # column_width = 0.75;
       };
 
       # "plugin:hyprexpo" = {
