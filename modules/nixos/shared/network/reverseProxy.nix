@@ -12,7 +12,7 @@
 
   cfg = config.network;
   hostCfg = cfg.hosts.${hostName};
-  inherit (hostCfg) domain;
+  inherit (hostCfg.reverseProxy) domain;
 
   # Only the services that should be reverse proxied by current host
   relevantServices = pipe cfg.services [
@@ -42,7 +42,7 @@ in
             ipAddress =
               if service.value.host == hostName
               then "localhost"
-              # TODO: this will only work when both are in the same Tailscale network with magic dns
+              # this will only work when both are in the same Tailscale network with magic dns
               else service.value.host;
 
             virtualHostsConfig = {

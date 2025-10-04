@@ -7,7 +7,6 @@
   inherit (builtins) attrNames readDir filter listToAttrs;
   inherit (lib) pipe types mkOption mkEnableOption;
   inherit (lib.attrsets) attrsToList;
-  inherit (lib.lists) optionals;
   inherit (lib.filesystem) listFilesRecursive;
 
   hostnames = attrNames (readDir ../../../../hosts);
@@ -18,19 +17,19 @@
   hostCfg = cfg.hosts.${hostName};
 
   toACMECert = serviceName: "${cfg.services.${serviceName}.reverseProxy.subdomain}-cert";
-  toFullDomain = serviceName: "${cfg.services.${serviceName}.reverseProxy.subdomain}.${cfg.hosts.${cfg.services.${serviceName}.reverseProxy.host}.domain}";
+  toFullDomain = serviceName: "${cfg.services.${serviceName}.reverseProxy.subdomain}.${cfg.hosts.${cfg.services.${serviceName}.reverseProxy.host}.reverseProxy.domain}";
 in {
   options.network = {
     hosts = mkOption {
       type = types.attrsOf (types.submodule {
         options = {
-          domain = mkOption {
-            type = types.str;
-            description = "The domain configured to connect to this host.";
-            default = "";
-          };
           reverseProxy = {
             enable = mkEnableOption "a reverse proxy responsible for mapping the domains of the services to their servers";
+            domain = mkOption {
+              type = types.str;
+              description = "The domain configured to connect to this host.";
+              default = "";
+            };
           };
           ssh = {
             publicKey = mkOption {

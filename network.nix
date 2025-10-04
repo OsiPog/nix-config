@@ -1,6 +1,10 @@
 # This file defines how all hosts are connected and which services are running where. You can find the option definitions
-# in modules/nixos/shared/network-options.nix.
-{...}: {
+# in modules/nixos/shared/network/default.nix.
+{inputs, ...}: {
+  imports = with inputs.nix-config-private.nixosModules; [
+    taswell-domain
+  ];
+
   network = {
     hosts = {
       biome-fest = {
@@ -10,12 +14,14 @@
         };
       };
       haunt-muskie = {
-        domain = "kazuka.zip";
         ssh = {
           publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAcSqngrHbdtiCGzPmt6peImIQfYek/WLcaXIwrhN5oS root@haunt-muskie";
           allowConnectionsFrom = ["biome-fest"];
         };
-        reverseProxy.enable = true;
+        reverseProxy = {
+          enable = true;
+          domain = "kazuka.zip";
+        };
       };
       wet-hands = {
         ssh = {
@@ -36,6 +42,10 @@
         };
       };
       taswell = {
+        reverseProxy = {
+          enable = true;
+          # domain = "..."; # set by private taswell-domain module
+        };
         ssh = {
           publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO58gd6nHEMAdi8pth1PHytxa32DBJSD4s/EuN20zu/o root@taswell";
           allowConnectionsFrom = ["biome-fest"];
