@@ -76,6 +76,16 @@
           subdomain = "cloud";
         };
       };
+      authelia = {
+        enable = true;
+        host = "blind-spots";
+        port = 6000;
+        reverseProxy = {
+          enable = true;
+          host = "haunt-muskie";
+          subdomain = "auth";
+        };
+      };
     };
   };
 }
