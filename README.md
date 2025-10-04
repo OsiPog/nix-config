@@ -26,6 +26,14 @@ This is the NixOS flake which defines the system on all of my devices running Ni
 - `wet-hands` - Steam Deck OLED
   - NixOS with the SteamOS interface
 
+- `dead-voxel` - Gaming PC
+  - Hyprland
+  - Geforce RTX 3060 12GB with AMD Ryzen 3600
+
+- `blind-spots` - Home Server (just an old laptop)
+  - Nextcloud
+  - Forgejo
+
 *What are those host names?*
 
 They're all track names from [Minecraft - Volume Beta](https://minecraft.wiki/w/Minecraft_-_Volume_Beta).
