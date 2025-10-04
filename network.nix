@@ -10,14 +10,12 @@
         };
       };
       haunt-muskie = {
+        domain = "kazuka.zip";
         ssh = {
           publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAcSqngrHbdtiCGzPmt6peImIQfYek/WLcaXIwrhN5oS root@haunt-muskie";
           allowConnectionsFrom = ["biome-fest"];
         };
-        reverseProxy = {
-          enable = true;
-          domain = "kazuka.zip";
-        };
+        reverseProxy.enable = true;
       };
       wet-hands = {
         ssh = {
@@ -34,6 +32,12 @@
       blind-spots = {
         ssh = {
           publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKShjod8+H+fuNp9e6gjifRfu8/vdEwKO837MmFgViil root@blind-spots";
+          allowConnectionsFrom = ["biome-fest"];
+        };
+      };
+      taswell = {
+        ssh = {
+          publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO58gd6nHEMAdi8pth1PHytxa32DBJSD4s/EuN20zu/o root@taswell";
           allowConnectionsFrom = ["biome-fest"];
         };
       };

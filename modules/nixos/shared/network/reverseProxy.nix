@@ -12,7 +12,7 @@
 
   cfg = config.network;
   hostCfg = cfg.hosts.${hostName};
-  inherit (hostCfg.reverseProxy) domain;
+  inherit (hostCfg) domain;
 
   # Only the services that should be reverse proxied by current host
   relevantServices = pipe cfg.services [

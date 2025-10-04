@@ -1,0 +1,14 @@
+{flake, ...}: {
+  imports = with flake.nixosModules; [
+    ./hardware-configuration.nix
+    shared
+
+    disko-basic
+  ];
+
+  # TODO: After installation, remove that
+  first-install.enable = true;
+
+  # Don't change, will break things!
+  system.stateVersion = "25.11";
+}

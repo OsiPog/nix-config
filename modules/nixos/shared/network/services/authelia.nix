@@ -27,6 +27,7 @@ in {
       };
       settings = {
         address = "http://0.0.0.0:${toString cfg.port}";
+
         log = {
           level = "info";
         };

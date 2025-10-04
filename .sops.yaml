@@ -4,6 +4,7 @@ keys:
   - &wet-hands age1yusne4xuc6du0qgfumrr6pxj5htq38ug806tda4tkg7du48dlcjqymr086
   - &dead-voxel age1he8wrq7e7ae52rf7r2pjanyexcy9ku02hxwqctuz8fzujlx5tswqxln7cm
   - &blind-spots age1r3yll2yy4mpf7s6wew8ywsw4lxkfvmk73acsmpjnrqgunnnunsfqgtddxh
+  - &taswell age14udf92g7tuu6px9ykkt5s3vty0e0uwwv5ac4vh8dk5q8hc3ytvesc04xc8
 creation_rules:
   - path_regex: biome-fest/secrets.(yaml|json)$
     key_groups:
@@ -25,3 +26,7 @@ creation_rules:
     key_groups:
     - age:
       - *blind-spots
+  - path_regex: ^hosts/taswell/secrets.yaml$
+    key_groups:
+    - age:
+      - *taswell
