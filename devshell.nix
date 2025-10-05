@@ -8,7 +8,6 @@ pkgs.mkShell {
   packages = builtins.attrValues flake.packages.${pkgs.system};
 
   shellHook = ''
-    git fetch
-    git status    
+    git status
   '';
 }
