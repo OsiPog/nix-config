@@ -19,6 +19,12 @@
   # Enable bluetooth
   hardware.bluetooth.enable = true;
 
-  # The laptop has a thunderbolt port
+  # The laptop might have a thunderbolt port
   services.hardware.bolt.enable = true;
+
+  services.logind.settings.Login = {
+    HandleLidSwitch = "suspend";
+    HandleLidSwitchExternalPower = "suspend";
+    HandleLidSwitchDocked = "ignore";
+  };
 }
