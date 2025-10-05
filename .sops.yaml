@@ -10,47 +10,47 @@ creation_rules:
     key_groups:
     - age:
       - *biome-fest
-  - path_regex: ^hosts/haunt-muskie/secrets.(yaml|json)$
+  - path_regex: hosts/haunt-muskie/secrets.(yaml|json)$
     key_groups:
     - age:
       - *haunt-muskie
-  - path_regex: ^hosts/wet-hands/secrets.yaml$
+  - path_regex: hosts/wet-hands/secrets.yaml$
     key_groups:
     - age:
       - *wet-hands
-  - path_regex: ^hosts/dead-voxel/secrets.yaml$
+  - path_regex: hosts/dead-voxel/secrets.yaml$
     key_groups:
     - age:
       - *dead-voxel
-  - path_regex: ^hosts/blind-spots/secrets.yaml$
+  - path_regex: hosts/blind-spots/secrets.yaml$
     key_groups:
     - age:
       - *blind-spots
-  - path_regex: ^hosts/taswell/secrets.yaml$
+  - path_regex: hosts/taswell/secrets.yaml$
     key_groups:
     - age:
       - *taswell
-  - path_regex: ^users/osi/secrets.yaml$
+  - path_regex: users/osi/secrets.yaml$
     key_groups:
     - age:
       - *dead-voxel
       - *biome-fest
-  - path_regex: ^modules/nixos/speicherfresser/secrets.yaml$
+  - path_regex: modules/nixos/speicherfresser/secrets.yaml$
     key_groups:
       - age:
         - *biome-fest
         - *dead-voxel
-  - path_regex: ^modules/home/cli-tools/secrets.yaml$
+  - path_regex: modules/home/cli-tools/secrets.yaml$
     key_groups:
       - age:
         - *biome-fest
         - *dead-voxel
-  - path_regex: ^modules/nixos/nix-access-tokens/secrets.yaml$
+  - path_regex: modules/nixos/nix-access-tokens/secrets.yaml$
     key_groups:
       - age:
         - *biome-fest
         - *dead-voxel
-  - path_regex: ^modules/nixos/shared/network/reverseProxy/secrets.yaml$
+  - path_regex: modules/nixos/shared/network/reverseProxy/secrets.yaml$
     key_groups:
       - age:
         - *haunt-muskie
