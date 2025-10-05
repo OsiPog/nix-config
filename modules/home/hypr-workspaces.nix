@@ -3,15 +3,15 @@
     plugins = with pkgs.hyprlandPlugins; [
       # hyprexpo
       # hyprspace
-      hyprscrolling
+      # hyprscrolling
     ];
 
     settings = {
-      general.layout = "scrolling";
-      plugin.hyprscrolling = {
-        fullscreen_on_one_column = true;
-        # column_width = 0.75;
-      };
+      # general.layout = "scrolling";
+      # plugin.hyprscrolling = {
+      #   fullscreen_on_one_column = true;
+      #   # column_width = 0.75;
+      # };
 
       # "plugin:hyprexpo" = {
       #   inherit columns;
