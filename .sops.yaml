@@ -35,3 +35,22 @@ creation_rules:
     - age:
       - *dead-voxel
       - *biome-fest
+  - path_regex: ^modules/nixos/speicherfresser/secrets.yaml$
+    key_groups:
+      - age:
+        - *biome-fest
+        - *dead-voxel
+  - path_regex: ^modules/home/cli-tools/secrets.yaml$
+    key_groups:
+      - age:
+        - *biome-fest
+        - *dead-voxel
+  - path_regex: ^modules/nixos/nix-access-tokens/secrets.yaml$
+    key_groups:
+      - age:
+        - *biome-fest
+        - *dead-voxel
+  - path_regex: ^modules/nixos/shared/network/reverseProxy/secrets.yaml$
+    key_groups:
+      - age:
+        - *haunt-muskie

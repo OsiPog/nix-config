@@ -7,7 +7,6 @@
   inherit (builtins) attrNames readDir filter listToAttrs;
   inherit (lib) pipe types mkOption mkEnableOption;
   inherit (lib.attrsets) attrsToList;
-  inherit (lib.filesystem) listFilesRecursive;
 
   hostnames = attrNames (readDir ../../../../hosts);
   # Define the available hostnames as an enum based on /hosts folder names
@@ -53,15 +52,13 @@ in {
 
   imports =
     [
-      ./reverseProxy.nix
+      ./reverseProxy
 
       ./tailscale.nix
     ]
-    ++ (listFilesRecursive ./services);
+    ++ (map (e: ./services + "/${e}") (attrNames (readDir ./services)));
 
-  config = let
-    sshEnabled = (hostCfg.ssh.allowConnectionsFrom) != [];
-  in {
+  config = {
     lib.network = {
       inherit toACMECert toFullDomain;
     };

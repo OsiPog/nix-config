@@ -24,11 +24,6 @@
 
   boot.initrd.luks.devices."luks-ff0fdffe-9e8d-4956-92ef-ce2317629a32".device = "/dev/disk/by-uuid/ff0fdffe-9e8d-4956-92ef-ce2317629a32";
 
-  fileSystems."/home/osi/files/remote" = {
-    device = "systemd-1";
-    fsType = "autofs";
-  };
-
   fileSystems."/boot" = {
     device = "/dev/disk/by-uuid/8DFC-47EE";
     fsType = "vfat";

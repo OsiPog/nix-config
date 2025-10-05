@@ -30,9 +30,7 @@ in {
   ];
 
   # Secrets needed in this file
-  sops.secrets = {
-    "api-keys/open-ai" = {};
-  };
+  sops.secrets."api-keys/open-ai" = {sopsFile = ./secrets.yaml;};
 
   # Mounting usb devices easily
   programs.bashmount.enable = true;

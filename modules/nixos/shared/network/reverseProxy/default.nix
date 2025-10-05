@@ -62,7 +62,7 @@ in
 
     users.users.nginx.extraGroups = ["acme"];
 
-    sops.secrets."acme/porkbun" = {};
+    sops.secrets."acme/porkbun" = {sopsFile = ./secrets.yaml;};
 
     security.acme = {
       acceptTerms = true;

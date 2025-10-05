@@ -9,8 +9,8 @@
 in {
   imports = [inputs.custom-udev-rules.nixosModule];
 
-  # Automount the bid hdd which is not always connected
-  sops.secrets."drives/speicherfresser" = {};
+  # Automount the big hdd which is not always connected
+  sops.secrets."drives/speicherfresser" = {sopsFile = ./secrets.yaml;};
 
   environment.etc.crypttab.text = ''
     speicherfresser UUID=9debc741-b5d9-4721-a2bc-971008511283 ${config.getSopsFile "drives/speicherfresser"} noauto
@@ -25,8 +25,8 @@ in {
     }
   ];
   fileSystems."/home/osi/files/remote" = {
-    device = lib.mkForce device;
-    fsType = lib.mkForce "ext4";
+    device = device;
+    fsType = "ext4";
     options = [
       "defaults"
       "noatime"
