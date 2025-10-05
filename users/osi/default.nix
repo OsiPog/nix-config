@@ -20,6 +20,7 @@ in {
 
   sops.secrets."pass-hashes/osi" = {
     neededForUsers = true;
+    sopsFile = ./secrets.yaml;
   };
 
   programs.hyprland.enable = true;

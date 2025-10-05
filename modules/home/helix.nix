@@ -42,7 +42,7 @@
         # Nix
         nixd = {
           config = let
-            flakeExpr = "(builtins.getFlake \'\'${flake}\'\')";
+            flakeExpr = "(builtins.getFlake \"/home/osi/nix-config\")";
             pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
             currentSystemExpr = flakeExpr + ".nixosConfigurations.${nixosConfig.networking.hostName}";
           in {

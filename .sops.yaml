@@ -30,3 +30,8 @@ creation_rules:
     key_groups:
     - age:
       - *taswell
+  - path_regex: ^users/osi/secrets.yaml$
+    key_groups:
+    - age:
+      - *dead-voxel
+      - *biome-fest
