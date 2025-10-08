@@ -5,6 +5,7 @@ export def "main refresh-sops-files" [
 ] {
 
   # Parse the nix flake to get the necessary data hosts secrets and their relations
+  ^git add . # also new files should be evaluated
   let data = (^nix eval
     --impure
     --json
