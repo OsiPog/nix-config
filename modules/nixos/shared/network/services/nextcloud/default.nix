@@ -25,7 +25,7 @@ in {
       ];
     }
     (mkIf (cfg.enable && cfg.host == hostName) {
-      sops.secrets."nextcloud/adminpass" = {};
+      sops.secrets."nextcloud/adminpass" = {sopsFile = ./secrets.yaml;};
 
       services.nextcloud = {
         enable = true;

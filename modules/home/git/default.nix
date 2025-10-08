@@ -48,8 +48,8 @@ in {
 
   sops.secrets =
     {
-      "ssh-keys/gh-primary/private" = {};
-      "ssh-keys/gh-secondary/private" = {};
+      "ssh-keys/gh-primary/private" = {sopsFile = ./secrets.yaml;};
+      "ssh-keys/gh-secondary/private" = {sopsFile = ./secrets.yaml;};
     }
     // (pipe authorKeys [
       (map (author: [

@@ -15,8 +15,14 @@ in {
   ];
   config = mkIf (cfg.enable && cfg.host == hostName) {
     sops.secrets = {
-      "authelia/jwtSecret" = {owner = config.services.authelia.instances.default.user;};
-      "authelia/storageEncryptionKey" = {owner = config.services.authelia.instances.default.user;};
+      "authelia/jwtSecret" = {
+        owner = config.services.authelia.instances.default.user;
+        sopsFile = ./secrets.yaml;
+      };
+      "authelia/storageEncryptionKey" = {
+        owner = config.services.authelia.instances.default.user;
+        sopsFile = ./secrets.yaml;
+      };
     };
 
     services.authelia.instances.default = {
