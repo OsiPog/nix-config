@@ -47,6 +47,10 @@
         movefocus_cycles_fullscreen = false;
       };
 
+      dwindle = {
+        force_split = 2;
+      };
+
       # --- Autostart ---
       # run on every reload
       exec = [
@@ -59,11 +63,13 @@
 
       # --- Keyboard settings ---
       input = let
-        xkb = nixosConfig.services.xserver.xkb;
+        inherit (nixosConfig.services.xserver) xkb;
       in {
         kb_layout = xkb.layout;
         kb_variant = xkb.variant;
         kb_options = xkb.options;
+
+        sensitivity = -0.5;
       };
 
       device = [
