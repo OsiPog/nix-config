@@ -60,9 +60,6 @@ export def --wrapped "main rebuild" [
 
     # Commit changes when nothing failed        
     if not $disable_git_commit {
-        cd $flakePath
-        ^git commit -m "Successful Rebuild"
-        ^git push
-        cd $previousPWD
+        lazygit
     }
 }

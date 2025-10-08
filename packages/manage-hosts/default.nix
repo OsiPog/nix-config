@@ -13,6 +13,7 @@ pkgs.writeShellApplication {
     mustache-go
     pwgen
     nixos-facter
+    lazygit
   ];
 
   text = ''
