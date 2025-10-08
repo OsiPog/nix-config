@@ -8,11 +8,9 @@
 
   username = "osi";
 in {
-  imports = with flake.nixosModules;
-  with inputs.nix-config-private.nixosModules; [
+  imports = with flake.nixosModules; [
     theme-prismarine
 
-    # private
     uni-vpn
 
     (mkUserModule username)
