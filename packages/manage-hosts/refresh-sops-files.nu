@@ -60,6 +60,7 @@ export def "main refresh-sops-files" [
         new: ($prev_version == null) 
       }
     }
+    | sort-by file
 
 
   # Decrypt each secret temporarily in place as we are editing the creation rules

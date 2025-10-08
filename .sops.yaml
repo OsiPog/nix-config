@@ -6,25 +6,45 @@ keys:
 - &taswell age14udf92g7tuu6px9ykkt5s3vty0e0uwwv5ac4vh8dk5q8hc3ytvesc04xc8
 - &wet-hands age1yusne4xuc6du0qgfumrr6pxj5htq38ug806tda4tkg7du48dlcjqymr086
 creation_rules:
-- path_regex: modules/nixos/nix-access-tokens/secrets.yaml$
+- path_regex: hosts/biome-fest/secrets.yaml$
   key_groups:
   - age:
     - *biome-fest
-    - *dead-voxel
-- path_regex: modules/nixos/speicherfresser/secrets.yaml$
+- path_regex: hosts/blind-spots/secrets.yaml$
   key_groups:
   - age:
-    - *biome-fest
+    - *blind-spots
+- path_regex: hosts/dead-voxel/secrets.yaml$
+  key_groups:
+  - age:
     - *dead-voxel
+- path_regex: hosts/haunt-muskie/secrets.yaml$
+  key_groups:
+  - age:
+    - *haunt-muskie
+- path_regex: hosts/wet-hands/secrets.yaml$
+  key_groups:
+  - age:
+    - *wet-hands
 - path_regex: modules/home/cli-tools/secrets.yaml$
   key_groups:
   - age:
     - *biome-fest
     - *dead-voxel
-- path_regex: hosts/biome-fest/secrets.yaml$
+- path_regex: modules/nixos/nix-access-tokens/secrets.yaml$
   key_groups:
   - age:
     - *biome-fest
+    - *dead-voxel
+- path_regex: modules/nixos/shared/network/reverseProxy/secrets.yaml$
+  key_groups:
+  - age:
+    - *haunt-muskie
+- path_regex: modules/nixos/speicherfresser/secrets.yaml$
+  key_groups:
+  - age:
+    - *biome-fest
+    - *dead-voxel
 - path_regex: modules/nixos/uni-vpn/secrets.yaml$
   key_groups:
   - age:
@@ -35,23 +55,3 @@ creation_rules:
   - age:
     - *biome-fest
     - *dead-voxel
-- path_regex: hosts/blind-spots/secrets.yaml$
-  key_groups:
-  - age:
-    - *blind-spots
-- path_regex: hosts/dead-voxel/secrets.yaml$
-  key_groups:
-  - age:
-    - *dead-voxel
-- path_regex: modules/nixos/shared/network/reverseProxy/secrets.yaml$
-  key_groups:
-  - age:
-    - *haunt-muskie
-- path_regex: hosts/haunt-muskie/secrets.yaml$
-  key_groups:
-  - age:
-    - *haunt-muskie
-- path_regex: hosts/wet-hands/secrets.yaml$
-  key_groups:
-  - age:
-    - *wet-hands
