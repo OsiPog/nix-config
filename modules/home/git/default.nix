@@ -55,11 +55,11 @@ in {
       (map (author: [
         {
           name = "git-authors/${author}/name";
-          value = {};
+          value = {sopsFile = ./secrets.yaml;};
         }
         {
           name = "git-authors/${author}/email";
-          value = {};
+          value = {sopsFile = ./secrets.yaml;};
         }
       ]))
       flatten
