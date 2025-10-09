@@ -16,7 +16,7 @@
       haunt-muskie = {
         ssh = {
           publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAcSqngrHbdtiCGzPmt6peImIQfYek/WLcaXIwrhN5oS root@haunt-muskie";
-          allowConnectionsFrom = ["biome-fest"];
+          allowConnectionsFrom = ["biome-fest" "dead-voxel"];
         };
         reverseProxy = {
           enable = true;
@@ -26,7 +26,7 @@
       wet-hands = {
         ssh = {
           publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL7bzk6u4CLkDp9b5u0btUCaEw2SKb33/5o6LBZkbRHJ root@wet-hands";
-          allowConnectionsFrom = ["biome-fest"];
+          allowConnectionsFrom = ["biome-fest" "dead-voxel"];
         };
       };
       dead-voxel = {
@@ -38,7 +38,7 @@
       blind-spots = {
         ssh = {
           publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKShjod8+H+fuNp9e6gjifRfu8/vdEwKO837MmFgViil root@blind-spots";
-          allowConnectionsFrom = ["biome-fest"];
+          allowConnectionsFrom = ["biome-fest" "dead-voxel"];
         };
       };
       taswell = {
