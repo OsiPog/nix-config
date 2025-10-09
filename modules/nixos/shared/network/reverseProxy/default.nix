@@ -49,7 +49,10 @@ in
               useACMEHost = acmeCertName;
               forceSSL = true;
               locations."/" = {
-                proxyPass = "http://${ipAddress}:${toString service.value.port}";
+                proxyPass = "$upstream";
+                extraConfig = ''
+                  set $upstream http://${ipAddress}:${toString service.value.port};
+                '';
               };
             };
           in {
