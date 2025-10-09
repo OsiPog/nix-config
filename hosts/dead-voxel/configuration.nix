@@ -1,17 +1,18 @@
 {
   flake,
   pkgs,
+  config,
   ...
 }: {
   imports = with flake.nixosModules; [
     ./hardware-configuration.nix
     shared
 
-    (
-      {pkgs, ...}: {
-        boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;
-      }
-    )
+    # (
+    #   {pkgs, ...}: {
+    #     boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;
+    #   }
+    # )
 
     allow-some-unfree
     monitors
@@ -22,6 +23,7 @@
     gaming
     podman
     nix-access-tokens
+    nvidia-ampere
 
     ../../users/osi
   ];
@@ -42,10 +44,6 @@
     };
     luks.fido2Support = false;
   };
-
-  hardware.graphics.enable = true;
-  services.xserver.videoDrivers = ["nvidia"];
-  hardware.nvidia.open = true; # see the note above
 
   jovian.steam.user = "osi";
 
