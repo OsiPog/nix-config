@@ -41,7 +41,7 @@ in
 
             ipAddress =
               if service.value.host == hostName
-              then "localhost"
+              then "127.0.0.1"
               # this will only work when both are in the same Tailscale network with magic dns
               else service.value.host;
 
