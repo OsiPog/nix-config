@@ -4,7 +4,7 @@
   hardware.nvidia = {
     open = true;
     powerManagement = {
-      enable = true;
+      enable = false; # TODO: currently the gpu does not wake up from sleep so we do not allow sleep
     };
     modesetting.enable = true;
     nvidiaSettings = true;
