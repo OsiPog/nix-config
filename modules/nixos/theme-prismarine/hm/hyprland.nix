@@ -10,14 +10,14 @@ in {
   # Hyprland itself
   wayland.windowManager.hyprland = {
     plugins = with pkgs.hyprlandPlugins; [
-      # hyprfocus # currently broken in nixpkgs
+      hyprfocus # currently broken in nixpkgs
     ];
 
     settings = {
       # --- General ---
       general = {
         border_size = themeCfg.border-width;
-        gaps_out = themeCfg.margin;
+        gaps_out = themeCfg.margin * 4;
         gaps_in = themeCfg.margin;
       };
 
@@ -67,13 +67,13 @@ in {
       # --- Plugins ---
       plugin = {
         # --- Hyprfocus, flash aniomation on focus change
-        # hyprfocus = {
-        #   enabled = "yes";
-        #   focus_animation = "flash";
-        #   flash = {
-        #     flash_opacity = 0.8;
-        #   };
-        # };
+        hyprfocus = {
+          enabled = "yes";
+          focus_animation = "flash";
+          flash = {
+            flash_opacity = 0.8;
+          };
+        };
       };
     };
   };
