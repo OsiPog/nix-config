@@ -23,14 +23,18 @@ in {
     spotify-player # player for spotify
     # Tools
     wl-clipboard-rs # copy to clipboard from terminal
-    claude-code
-
     # Scripts
     heygptWrapper # terminal gpt integration
   ];
 
-  # Secrets needed in this file
-  sops.secrets."api-keys/open-ai" = {sopsFile = ./secrets.yaml;};
+  sops.secrets = {
+    "api-keys/open-ai" = {
+      sopsFile = ./secrets.yaml;
+    };
+    "api-keys/anthropic" = {
+      sopsFile = ./secrets.yaml;
+    };
+  };
 
   # Mounting usb devices easily
   programs.bashmount.enable = true;
@@ -100,6 +104,13 @@ in {
         "break"
         "colors"
       ];
+    };
+  };
+
+  programs.claude-code = {
+    enable = true;
+    settings = {
+      apiKeyHelper = "cat " + (config.getSopsFile "api-keys/anthropic");
     };
   };
 }
