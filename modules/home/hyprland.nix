@@ -69,7 +69,7 @@
         kb_variant = xkb.variant;
         kb_options = xkb.options;
 
-        sensitivity = -0.5;
+        # sensitivity = -0.5;
       };
 
       device = [
