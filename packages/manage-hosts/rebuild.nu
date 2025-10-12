@@ -60,11 +60,11 @@ export def --wrapped "main rebuild" [
         ]
         | append $rest
 
-        try {
+        # try {
             ^nixos-rebuild ...$parameters
-        } catch {
-            ^nixos-rebuild ...$parameters --build-host $"root@($host)"
-        }
+        # } catch {
+        #     ^nixos-rebuild ...$parameters --build-host $"root@($host)"
+        # }
     } else {
         for $host in ($nixosHosts | input list --multi "Select host(s) to rebuild") {
             try {
