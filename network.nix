@@ -100,6 +100,11 @@
           subdomain = "auth";
         };
       };
+      minecraft-server = {
+        enable = true;
+        host = "blind-spots";
+        port = 25565;
+      };
     };
   };
 }

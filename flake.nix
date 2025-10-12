@@ -57,6 +57,11 @@
       url = "git+https://gitlab.com/simple-nixos-mailserver/nixos-mailserver.git";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Better Minecraft Server support
+    nix-minecraft = {
+      url = "github:Infinidoge/nix-minecraft";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # --- Packages
     # Development environments the easy nix way
