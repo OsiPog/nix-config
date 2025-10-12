@@ -66,6 +66,9 @@
 
   services.desktopManager.plasma6.enable = true;
 
+  # slower mouse
+  home-manager.users.osi.wayland.windowManager.hyprland.settings.input.sensitivity = -0.5;
+
   # Don't change, will break things!
   system.stateVersion = "25.11";
 }
