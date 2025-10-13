@@ -4,9 +4,16 @@
   hardware.nvidia = {
     open = true;
     powerManagement = {
-      enable = false; # TODO: currently the gpu does not wake up from sleep so we do not allow sleep
+      enable = true;
     };
     modesetting.enable = true;
     nvidiaSettings = true;
   };
+
+  # disable sleeping because that does not work
+  systemd.sleep.extraConfig = ''
+    AllowSuspend=no
+    AllowHybridSleep=no
+    AllowSuspendThenHibernate=no
+  '';
 }
