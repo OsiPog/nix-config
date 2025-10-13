@@ -53,8 +53,6 @@ in {
   imports =
     [
       ./reverseProxy
-
-      ./tailscale.nix
     ]
     ++ (map (e: ./services + "/${e}") (attrNames (readDir ./services)));
 
