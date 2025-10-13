@@ -9,7 +9,7 @@
   stable = inputs.nixpkgs-stable.legacyPackages.${pkgs.system};
 in {
   nixpkgs = {
-    hostPlatform = lib.mkDefault "x86_64-linux";
+    hostPlatform = lib.mkOptionDefault "x86_64-linux";
     overlays = with inputs; [
       # Add packages of the flakes in an overlay
       (
