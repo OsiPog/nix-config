@@ -7,6 +7,7 @@
   inherit (builtins) filter listToAttrs;
   inherit (lib) mkIf pipe;
   inherit (lib.attrsets) attrsToList recursiveUpdate;
+  inherit (lib.strings) concatLines;
 
   inherit (config.lib.network) toFullDomain;
 
@@ -19,12 +20,22 @@
     attrsToList
     (filter (service: service.value.reverseProxy.enable && service.value.reverseProxy.host == hostName))
   ];
+
+  relevantVirtualHostServices = filter (e: e.value.reverseProxy.method == "virtual-host") relevantServices;
+  relevantStreamServices = filter (e: e.value.reverseProxy.method == "stream") relevantServices;
+
   acmeCertName = "${domain}-cert";
+
+  ipAddrOf = service:
+    if service.value.host == hostName
+    then "127.0.0.1"
+    # this will only work when both are in the same Tailscale network with magic dns
+    else service.value.host;
 in
   mkIf hostCfg.reverseProxy.enable {
     networking = {
       inherit domain;
-      firewall.allowedTCPPorts = [443];
+      firewall.allowedTCPPorts = [443] ++ (map (e: e.value.port) relevantStreamServices);
     };
 
     # If the current host is the service exposer expose the services to the domain
@@ -34,24 +45,17 @@ in
       recommendedOptimisation = true;
       recommendedProxySettings = true;
       recommendedTlsSettings = true;
-      virtualHosts = pipe relevantServices [
+      virtualHosts = pipe relevantVirtualHostServices [
         (map
           (service: let
             proxyConf = service.value.reverseProxy;
-
-            ipAddress =
-              if service.value.host == hostName
-              then "127.0.0.1"
-              # this will only work when both are in the same Tailscale network with magic dns
-              else service.value.host;
-
             virtualHostsConfig = {
               useACMEHost = acmeCertName;
               forceSSL = true;
               locations."/" = {
                 proxyPass = "$upstream";
                 extraConfig = ''
-                  set $upstream http://${ipAddress}:${toString service.value.port};
+                  set $upstream http://${ipAddrOf service}:${toString service.value.port};
                 '';
               };
             };
@@ -60,6 +64,16 @@ in
             value = recursiveUpdate virtualHostsConfig proxyConf.extraVirtualHostsConfig;
           }))
         listToAttrs
+      ];
+      streamConfig = pipe relevantStreamServices [
+        (map (service: ''
+          server {
+            listen ${toString service.value.port};
+            proxy_pass ${ipAddrOf service}:${toString service.value.port};
+            proxy_timeout 20s;
+          }
+        ''))
+        concatLines
       ];
     };
 
@@ -72,7 +86,7 @@ in
       defaults.email = "osibluber@pm.me";
       certs."${acmeCertName}" = {
         inherit domain;
-        extraDomainNames = map (service: toFullDomain service.name) relevantServices;
+        extraDomainNames = map (service: toFullDomain service.name) relevantVirtualHostServices;
         dnsProvider = "porkbun";
         environmentFile = config.getSopsFile "acme/porkbun";
       };

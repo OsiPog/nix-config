@@ -104,6 +104,11 @@
         enable = true;
         host = "blind-spots";
         port = 25565;
+        reverseProxy = {
+          enable = true;
+          host = "haunt-muskie";
+          method = "stream";
+        };
       };
     };
   };

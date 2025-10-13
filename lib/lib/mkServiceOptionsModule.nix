@@ -19,6 +19,11 @@ in
             };
             reverseProxy = {
               enable = mkEnableOption "this service should be reverse proxied from a server.";
+              method = mkOption {
+                description = "The method used to proxy this service.";
+                type = with types; enum ["virtual-host" "stream"];
+                default = "virtual-host";
+              };
               subdomain = mkOption {
                 type = types.str;
                 description = "The subdomain name this service should be reached on.";
