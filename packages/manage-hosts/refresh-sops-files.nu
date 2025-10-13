@@ -14,6 +14,7 @@ export def "main refresh-sops-files" [
       __getFlake \"($flake)\"
       |> __getAttr \"nixosConfigurations\"
       |> __attrValues
+      |> __filter \(host: host.config.networking.hostName != "installer"\)
       |> map \(host: {
         inherit \(host.config.networking\) hostName;
         inherit \(host.config.network.hosts.${host.config.networking.hostName}.ssh\) publicKey;

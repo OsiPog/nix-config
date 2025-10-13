@@ -25,17 +25,6 @@ export def "main create" [ hostname: string ] {
     let privateAgeKey = ^sudo ssh-to-age -private-key -i $SSH_KEY_PATH
     ($privateAgeKey + "\n") | sudo tee --append /root/.config/sops/age/keys.txt
 
-    # --- ADD RULE TO .SOPS.YAML
-    ^cat .sops.yaml
-        | str replace "creation_rules:" $"  - &($hostname) ($privateAgeKey | age-keygen -y)\ncreation_rules:"
-        | do {
-            $in + $"
-  - path_regex: ^($HOST_DIR)/secrets.yaml$
-    key_groups:
-    - age:
-      - *($hostname)\n"       }
-        | save .sops.yaml --force
-
     # --- ADD LEAF PASSWORD TO SECRETS FILE
     let LEAF_PASS = (^pwgen -s 16 1)
     print $"The leaf password is: ($LEAF_PASS)"
@@ -48,11 +37,11 @@ export def "main create" [ hostname: string ] {
         "leaf": $LEAF_PASS,
       }
     } | to yaml
-      | ^sudo sops encrypt --filename-override $"($HOST_DIR)/secrets.yaml"
       | save $"($HOST_DIR)/secrets.yaml" --force
 
     # --- CREATE NIX FILES FROM TEMPLATES
-    print "Add the new host to network.nix:"
+    # dummy hardware config
+    "{}" | save --force $"($HOST_DIR)/hardware-configuration.nix"
     {
       stateVersion: (^nixos-version | split row "." | take 2 | str join "."),
     }
@@ -67,4 +56,11 @@ export def "main create" [ hostname: string ] {
     }
     | to yaml
     | ^mustache $"($env.FILE_PWD)/templates/meta.nix.mustache"
+
+    # --- Wait for user
+    print "Please add the above to network.nix and press ENTER"
+    input
+
+    # --- UPDATE SOPS CONFIG
+    ^manage-hosts refresh-sops-files
 }
