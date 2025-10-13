@@ -15,7 +15,10 @@
   # SSH access
   services.openssh = {
     enable = true;
-    settings.PermitRootLogin = "yes";
+    settings = {
+      PermitRootLogin = "yes";
+      PasswordAuthentication = lib.mkForce true;
+    };
   };
   users.users.root = {
     password = "nixos";
