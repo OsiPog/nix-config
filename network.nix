@@ -1,10 +1,6 @@
 # This file defines how all hosts are connected and which services are running where. You can find the option definitions
 # in modules/nixos/shared/network/default.nix.
-{inputs, ...}: {
-  imports = with inputs.nix-config-private.nixosModules; [
-    taswell-domain
-  ];
-
+{...}: {
   network = {
     hosts = {
       biome-fest = {
@@ -41,11 +37,6 @@
           allowConnectionsFrom = ["biome-fest" "dead-voxel"];
         };
       };
-      taswell = {
-        reverseProxy = {
-          enable = true;
-          # domain = "..."; # set by private taswell-domain module
-        };
       aria-math = {
         ssh = {
           publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFLZwgyWl1tOyvrIQoOaU9+O8FR3Ia/goUjSgeWwsyWb root@aria-math";
