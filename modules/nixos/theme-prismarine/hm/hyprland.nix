@@ -64,6 +64,9 @@ in {
         # "stayfocused, class:(w|r)ofi" # cant click outside
         # "dimaround, class:(w|r)ofi"
       ];
+      workspace = [
+        "f[1], gapsout:${toString themeCfg.margin}"
+      ];
 
       # --- Plugins ---
       plugin = {
