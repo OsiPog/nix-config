@@ -46,9 +46,10 @@
           enable = true;
           # domain = "..."; # set by private taswell-domain module
         };
+      aria-math = {
         ssh = {
-          publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO58gd6nHEMAdi8pth1PHytxa32DBJSD4s/EuN20zu/o root@taswell";
-          allowConnectionsFrom = ["biome-fest"];
+          publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFLZwgyWl1tOyvrIQoOaU9+O8FR3Ia/goUjSgeWwsyWb root@aria-math";
+          allowConnectionsFrom = ["dead-voxel"];
         };
       };
     };
