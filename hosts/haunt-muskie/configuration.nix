@@ -10,23 +10,7 @@
     shared
 
     disko-basic
-    laravel
   ];
-
-  environment.systemPackages = with pkgs; [
-    devenv
-    helix
-  ];
-
-  services.nginx.virtualHosts."laravel-application.${config.networking.domain}" = {
-    useACMEHost = "${config.networking.domain}-cert";
-    forceSSL = true;
-    locations = {
-      "/".proxyPass = "http://localhost:8000";
-    };
-  };
-
-  security.acme.certs."${config.networking.domain}-cert".extraDomainNames = ["laravel-application.${config.networking.domain}"];
 
   system.stateVersion = "25.11";
 }
