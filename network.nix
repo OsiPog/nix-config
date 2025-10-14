@@ -95,7 +95,7 @@
       };
       minecraft-server = {
         enable = true;
-        host = "blind-spots";
+        host = "aria-math";
         port = 25565;
         reverseProxy = {
           enable = true;

@@ -35,6 +35,14 @@ They're all track names from [Minecraft - Volume Beta](https://minecraft.wiki/w/
 
 ## Guides to remember
 
+### Create NixOS installer
+
+Replace `x86_64-linux` with any other system if needed.
+
+```bash
+nix build .#lib.x86_64-linux.installerIso
+```
+
 ### Creating a new host
 
 Here I use [nixos-anywhere](https://github.com/nix-community/nixos-anywhere) to deploy new hosts anywhere.
@@ -47,9 +55,3 @@ Here I use [nixos-anywhere](https://github.com/nix-community/nixos-anywhere) to 
 2. `manage-hosts install <hostname> root@<ip-address>`
   - this is what calls `nixos-anywhere`
   - add `--build-on remote` to build on remote machine
-
-### Create NixOS installer
-
-```bash
-nix build .#nixosConfigurations.installer.config.system.build.isoImage
-```

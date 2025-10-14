@@ -1,8 +1,5 @@
-{
-  lib,
-  callPackage,
-  ...
-} @ pkgs: let
+{pkgs, ...}: let
+  inherit (pkgs) lib callPackage;
   inherit (builtins) readDir listToAttrs filter;
   inherit (lib) pipe;
   inherit (lib.strings) hasSuffix removeSuffix;

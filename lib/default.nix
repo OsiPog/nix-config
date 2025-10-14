@@ -21,12 +21,15 @@ in
   # lib argument
   (callAttrs (importFilesAsAttrs ./lib) lib)
   # flake argument
-  // (callAttrs (importFilesAsAttrs ./flake) flake)
+  // (callAttrs (importFilesAsAttrs ./flake) (flake.flake // {inherit (flake) inputs;}))
   # pkgs argument, do for each system
   // (pipe systems [
     (map (system: {
       name = system;
-      value = callAttrs (importFilesAsAttrs ./pkgs) nixpkgs.legacyPackages.${system};
+      value = callAttrs (importFilesAsAttrs ./pkgs) {
+        inherit (flake) flake;
+        pkgs = nixpkgs.legacyPackages.${system};
+      };
     }))
     listToAttrs
   ])

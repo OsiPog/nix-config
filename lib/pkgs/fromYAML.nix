@@ -1,9 +1,5 @@
-{
-  runCommand,
-  yq,
-  lib,
-  ...
-}: let
+{pkgs, ...}: let
+  inherit (pkgs) runCommand yq lib;
   inherit (builtins) fromJSON readFile;
   inherit (lib) pipe;
 in
