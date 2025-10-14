@@ -25,12 +25,10 @@ export def --wrapped "main rebuild" [
     assert ($host == null or $host in $nixosHosts) $"'($host)' is not a configured host from the hosts/ directory."
     assert ($build_on in ["local" "remote" "auto"]) "--build-on must one of 'local', 'remote', 'auto'"
 
-
-    if not $disable_git_commit {
-        cd $flakePath
-        ^git add --all
-        cd $previousPWD
-    }
+    # To prevent any missing files errors
+    cd $flakePath
+    ^git add --all
+    cd $previousPWD
 
     # In case no command was specified do nothing
     if $command == null {
@@ -60,14 +58,24 @@ export def --wrapped "main rebuild" [
         ]
         | append $rest
 
-        # try {
+        # 1. try to rebuild on current machine
+        try {
             ^nixos-rebuild ...$parameters
-        # } catch {
-        #     ^nixos-rebuild ...$parameters --build-host $"root@($host)"
-        # }
+        } catch {|$err|
+            # 2. try rebuilding again on remote host on error and build_on = auto
+            if ($env.LAST_EXIT_CODE == 1 and $build_on == 'auto') {
+                print "Build failed, trying again on remote host as build_on=auto..."
+                ^nixos-rebuild ...$parameters --build-host $"root@($host)"
+            } else {
+                error make $err
+            }
+        }
     } else {
         for $host in ($nixosHosts | input list --multi "Select host(s) to rebuild") {
             try {
+                # 1. try to connect
+                ^ssh -o ConnectTimeout=3 $"leaf@($host)" echo $"Connection to ($host) succeeded!"
+                # 2. now that we know connection is possible: rebuild
                 main rebuild $command --host $host --disable-git-commit
             } catch {
                 # error shown above
