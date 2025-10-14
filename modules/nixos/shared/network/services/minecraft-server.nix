@@ -1,6 +1,5 @@
 {
   config,
-  hostName,
   lib,
   flake,
   inputs,
@@ -9,16 +8,18 @@
 }: let
   inherit (lib) mkIf;
   inherit (flake.lib) mkServiceOptionsModule;
+  inherit (config.lib.network) isServiceEnabledOnHost;
   inherit (pkgs) fetchurl;
 
-  cfg = config.network.services.minecraft-server;
+  serviceName = "minecraft-server";
+  cfg = config.network.services.${serviceName};
 in {
   imports = [
-    (mkServiceOptionsModule "minecraft-server")
+    (mkServiceOptionsModule serviceName)
     inputs.nix-minecraft.nixosModules.minecraft-servers
   ];
 
-  config = mkIf (cfg.enable && cfg.host == hostName) {
+  config = mkIf (isServiceEnabledOnHost serviceName) {
     nixpkgs.config.allowUnfree = true;
 
     nixpkgs.overlays = [inputs.nix-minecraft.overlay];

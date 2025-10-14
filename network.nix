@@ -1,7 +1,8 @@
 # This file defines how all hosts are connected and which services are running where. You can find the option definitions
 # in modules/nixos/shared/network/default.nix.
-{...}: {
+{lib, ...}: {
   network = {
+    enable = lib.mkDefault true;
     hosts = {
       biome-fest = {
         ssh = {

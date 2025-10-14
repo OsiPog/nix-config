@@ -1,22 +1,23 @@
 {
   config,
-  hostName,
   lib,
   flake,
   ...
 }: let
   inherit (lib) mkIf;
   inherit (flake.lib) mkServiceOptionsModule;
+  inherit (config.lib.network) isServiceEnabledOnHost;
 
-  cfg = config.network.services.vsftpd;
+  serviceName = "vsftpd";
+  cfg = config.network.services.${serviceName};
 
   certName = "base-domain-cert";
   certCfg = config.security.acme.certs.${certName};
 in {
   imports = [
-    (mkServiceOptionsModule "vsftpd")
+    (mkServiceOptionsModule serviceName)
   ];
-  config = mkIf (cfg.enable && cfg.host == hostName) {
+  config = mkIf (isServiceEnabledOnHost serviceName) {
     assertions = [
       {
         assertion = !cfg.reverseProxy.enable;

@@ -8,7 +8,6 @@
   inherit (lib) mkIf pipe;
   inherit (lib.attrsets) attrsToList recursiveUpdate;
   inherit (lib.strings) concatLines;
-
   inherit (config.lib.network) toFullDomain;
 
   cfg = config.network;
@@ -32,7 +31,7 @@
     # this will only work when both are in the same Tailscale network with magic dns
     else service.value.host;
 in
-  mkIf hostCfg.reverseProxy.enable {
+  mkIf (cfg.enable && hostCfg.reverseProxy.enable) {
     networking = {
       inherit domain;
       firewall.allowedTCPPorts = [443] ++ (map (e: e.value.port) relevantStreamServices);

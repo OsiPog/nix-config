@@ -1,24 +1,25 @@
 {
   config,
-  hostName,
   lib,
   flake,
   ...
 }: let
   inherit (lib) mkIf;
   inherit (flake.lib) mkServiceOptionsModule;
+  inherit (config.lib.network) isServiceEnabledOnHost toFullDomain;
 
-  cfg = config.network.services.forgejo;
+  serviceName = "forgejo";
+  cfg = config.network.services.${serviceName};
 in {
   imports = [
-    (mkServiceOptionsModule "forgejo")
+    (mkServiceOptionsModule serviceName)
   ];
-  config = mkIf (cfg.enable && cfg.host == hostName) {
+  config = mkIf (isServiceEnabledOnHost serviceName) {
     services.forgejo = {
       enable = true;
       settings = {
         server = {
-          ROOT_URL = "https://" + (config.lib.network.toFullDomain "forgejo");
+          ROOT_URL = "https://" + (toFullDomain serviceName);
           HTTP_PORT = cfg.port;
         };
       };

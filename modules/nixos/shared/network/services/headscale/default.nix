@@ -7,20 +7,22 @@
 }: let
   inherit (lib) mkIf mkMerge;
   inherit (flake.lib) mkServiceOptionsModule;
+  inherit (config.lib.network) isServiceEnabledOnHost toFullDomain;
 
-  cfg = config.network.services.headscale;
+  serviceName = "headscale";
+  cfg = config.network.services.${serviceName};
 in {
   imports = [
-    (mkServiceOptionsModule "headscale")
+    (mkServiceOptionsModule serviceName)
   ];
   config = mkMerge [
-    (mkIf (cfg.enable && cfg.host == hostName) {
+    (mkIf (isServiceEnabledOnHost serviceName) {
       services.headscale = {
         enable = true;
         address = "0.0.0.0";
         port = cfg.port;
         settings = {
-          server_url = "https://" + (config.lib.network.toFullDomain "headscale");
+          server_url = "https://" + (toFullDomain serviceName);
           dns = {
             override_local_dns = true;
             nameservers.global = [
@@ -31,13 +33,13 @@ in {
             ];
             # Magic DNS
             magic_dns = true;
-            base_domain = "dns." + (config.lib.network.toFullDomain "headscale");
+            base_domain = "dns." + (toFullDomain serviceName);
           };
         };
       };
     })
     # Enable tailscale for every host
-    {
+    (mkIf config.network.enable {
       sops.secrets."tailscale/auth-key" = {sopsFile = ./secrets.yaml;};
 
       services.tailscale = {
@@ -47,11 +49,11 @@ in {
         useRoutingFeatures = "both";
         authKeyFile = config.getSopsFile "tailscale/auth-key";
         extraUpFlags = [
-          "--login-server=https://${config.lib.network.toFullDomain "headscale"}"
+          "--login-server=https://${toFullDomain serviceName}"
           "--hostname=${hostName}"
         ];
         # extraSetFlags = ["--accept-dns=false"];
       };
-    }
+    })
   ];
 }

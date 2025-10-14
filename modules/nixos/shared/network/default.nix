@@ -5,7 +5,7 @@
   ...
 }: let
   inherit (builtins) attrNames readDir filter listToAttrs;
-  inherit (lib) pipe types mkOption mkEnableOption;
+  inherit (lib) pipe types mkOption mkEnableOption mkIf mkMerge;
   inherit (lib.attrsets) attrsToList;
 
   hostnames = attrNames (readDir ../../../../hosts);
@@ -17,8 +17,12 @@
 
   toACMECert = serviceName: "${cfg.services.${serviceName}.reverseProxy.subdomain}-cert";
   toFullDomain = serviceName: "${cfg.services.${serviceName}.reverseProxy.subdomain}.${cfg.hosts.${cfg.services.${serviceName}.reverseProxy.host}.reverseProxy.domain}";
+
+  isServiceEnabledOnHost = serviceName: cfg.enable && cfg.services.${serviceName}.enable && cfg.services.${serviceName}.host == hostName;
 in {
   options.network = {
+    enable = mkEnableOption "network module";
+
     hosts = mkOption {
       type = types.attrsOf (types.submodule {
         options = {
@@ -56,33 +60,36 @@ in {
     ]
     ++ (map (e: ./services + "/${e}") (attrNames (readDir ./services)));
 
-  config = {
-    lib.network = {
-      inherit toACMECert toFullDomain;
-    };
+  config = mkMerge [
+    {
+      lib.network = {
+        inherit toACMECert toFullDomain isServiceEnabledOnHost;
+      };
+    }
+    (mkIf cfg.enable {
+      assertions =
+        []
+        # Check the services which should be reverse proxied if the reverse proxy host is actually a reverse proxy.
+        ++ (pipe cfg.services [
+          attrsToList
+          (filter (service: service.value.reverseProxy.enable))
+          (map (service: {
+            assertion = cfg.hosts.${service.value.reverseProxy.host}.reverseProxy.enable;
+            message = "Reverse proxy host \"${service.value.reverseProxy.host}\" of service \"${service.name}\" is not a reverse proxy.";
+          }))
+        ]);
 
-    assertions =
-      []
-      # Check the services which should be reverse proxied if the reverse proxy host is actually a reverse proxy.
-      ++ (pipe cfg.services [
-        attrsToList
-        (filter (service: service.value.reverseProxy.enable))
-        (map (service: {
-          assertion = cfg.hosts.${service.value.reverseProxy.host}.reverseProxy.enable;
-          message = "Reverse proxy host \"${service.value.reverseProxy.host}\" of service \"${service.name}\" is not a reverse proxy.";
-        }))
-      ]);
+      # Define the options for each host
+      network.hosts = listToAttrs (map (name: {
+          inherit name;
+          value = {};
+        })
+        hostnames);
 
-    # Define the options for each host
-    network.hosts = listToAttrs (map (name: {
-        inherit name;
-        value = {};
-      })
-      hostnames);
-
-    # Add authorized keys from hosts that are allowed to connect
-    users.users.leaf.openssh.authorizedKeys.keys = map (
-      other: cfg.hosts.${other}.ssh.publicKey
-    ) (hostCfg.ssh.allowConnectionsFrom);
-  };
+      # Add authorized keys from hosts that are allowed to connect
+      users.users.leaf.openssh.authorizedKeys.keys = map (
+        other: cfg.hosts.${other}.ssh.publicKey
+      ) (hostCfg.ssh.allowConnectionsFrom);
+    })
+  ];
 }

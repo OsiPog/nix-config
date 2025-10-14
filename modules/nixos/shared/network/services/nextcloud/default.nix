@@ -1,6 +1,5 @@
 {
   config,
-  hostName,
   lib,
   flake,
   pkgs,
@@ -8,11 +7,13 @@
 }: let
   inherit (lib) mkIf mkMerge;
   inherit (flake.lib) mkServiceOptionsModule;
+  inherit (config.lib.network) isServiceEnabledOnHost toFullDomain;
 
-  cfg = config.network.services.nextcloud;
+  serviceName = "nextcloud";
+  cfg = config.network.services.${serviceName};
 in {
   imports = [
-    (mkServiceOptionsModule "nextcloud")
+    (mkServiceOptionsModule serviceName)
   ];
 
   config = mkMerge [
@@ -24,13 +25,13 @@ in {
         }
       ];
     }
-    (mkIf (cfg.enable && cfg.host == hostName) {
+    (mkIf (isServiceEnabledOnHost serviceName) {
       sops.secrets."nextcloud/adminpass" = {sopsFile = ./secrets.yaml;};
 
       services.nextcloud = {
         enable = true;
         package = pkgs.nextcloud31;
-        hostName = config.lib.network.toFullDomain "nextcloud";
+        hostName = toFullDomain serviceName;
         https = true;
         config = {
           adminuser = "admin";
