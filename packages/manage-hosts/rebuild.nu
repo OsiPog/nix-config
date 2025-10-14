@@ -10,7 +10,6 @@ def maybe_apply [ ok: bool func: closure ] {
 export def --wrapped "main rebuild" [ 
     --host (-h): string # hostname in hosts/. Only should be used if the hosts is already in the tailnet.
     --flake-path (-p): path # path to the flake
-    --disable-git-commit # whether to disable committing at the end
     --flake (-f): string # full nix flake expression e. g. ~/nixos#nixosConfig
     --build-on (-b): string = "auto" # 'local' (default) - builds on local machine, 'remote' - builds on remote machine, 'auto' - tries local build and if that fails tries remote build
     --interactive (-i) # Whether hosts should be chosen interactively
@@ -71,20 +70,18 @@ export def --wrapped "main rebuild" [
             }
         }
     } else {
-        for $host in ($nixosHosts | input list --multi "Select host(s) to rebuild") {
+        let selectedHosts = ($nixosHosts | prepend "All" | input list --multi "Select host(s) to rebuild")
+        for $host in (if ("All" in $selectedHosts) {$nixosHosts} else {$selectedHosts}) {
             try {
-                # 1. try to connect
-                ^ssh -o ConnectTimeout=3 $"leaf@($host)" echo $"Connection to ($host) succeeded!"
+                # 1. try to connect if not self
+                if ($host != (^hostname)) {
+                    ^ssh -o ConnectTimeout=3 $"leaf@($host)" echo $"Connection to ($host) succeeded!"
+                }
                 # 2. now that we know connection is possible: rebuild
-                main rebuild $command --host $host --disable-git-commit
+                main rebuild $command --host $host
             } catch {
                 # error shown above
             }
         }
-    }
-
-    # Commit changes when nothing failed        
-    if not $disable_git_commit {
-        lazygit
     }
 }
