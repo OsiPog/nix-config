@@ -49,7 +49,13 @@ in {
         useRoutingFeatures = "both";
         authKeyFile = config.getSopsFile "tailscale/auth-key";
         extraUpFlags = [
-          "--login-server=https://${toFullDomain serviceName}"
+          # Nginx uses tailscale to reverse proxy to other hosts on the tailnet. So the host that runs headscale must depend on nginx.
+          # thus, we directly connect to localhost
+          "--login-server=${
+            if (cfg.host == hostName)
+            then "http://localhost:${toString cfg.port}"
+            else "https://${toFullDomain serviceName}"
+          }"
           "--hostname=${hostName}"
         ];
         # extraSetFlags = ["--accept-dns=false"];
