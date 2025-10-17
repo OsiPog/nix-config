@@ -11,7 +11,7 @@ This is the NixOS flake which defines the system on all of my devices running Ni
   - acts as my workstation until I actually have one
 
 - `haunt-muskie` - Small Hetzner VPS
-  - thats where https://kazuka.zip points to
+  - thats where https://axelhax.net points to
   - reverse proxy for all services onto the domain
   - Headscale server
 

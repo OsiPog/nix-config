@@ -2,22 +2,23 @@
 {
   inputs,
   config,
-  hostName,
   lib,
   flake,
   ...
 }: let
   inherit (lib) mkIf;
   inherit (flake.lib) mkServiceOptionsModule;
+  inherit (config.lib.network) isServiceEnabledOnHost;
 
-  cfg = config.network.services.mailserver;
+  serviceName = "mailserver";
+  cfg = config.network.services.${serviceName};
 in {
   imports = [
     inputs.simple-nixos-mailserver.nixosModules.default
-    (mkServiceOptionsModule "mailserver")
+    (mkServiceOptionsModule serviceName)
   ];
 
-  config = mkIf (cfg.enable && cfg.host == hostName) {
+  config = mkIf (isServiceEnabledOnHost serviceName) {
     assertions = [
       {
         assertion = !cfg.reverseProxy.enable;

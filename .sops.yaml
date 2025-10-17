@@ -67,6 +67,10 @@ creation_rules:
     - *dead-voxel
     - *haunt-muskie
     - *wet-hands
+- path_regex: modules/nixos/shared/network/services/mailserver/secrets.yaml$
+  key_groups:
+  - age:
+    - *haunt-muskie
 - path_regex: modules/nixos/shared/network/services/nextcloud/secrets.yaml$
   key_groups:
   - age:

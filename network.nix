@@ -17,7 +17,7 @@
         };
         reverseProxy = {
           enable = true;
-          domain = "kazuka.zip";
+          domain = "axelhax.net";
         };
       };
       wet-hands = {
@@ -93,8 +93,12 @@
           subdomain = "auth";
         };
       };
-      minecraft-server = {
+      mailserver = {
         enable = true;
+        host = "haunt-muskie";
+      };
+      minecraft-server = {
+        enable = false;
         host = "aria-math";
         port = 25565;
         reverseProxy = {

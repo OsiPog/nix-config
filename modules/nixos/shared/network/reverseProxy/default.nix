@@ -17,13 +17,11 @@
   # Only the services that should be reverse proxied by current host
   relevantServices = pipe cfg.services [
     attrsToList
-    (filter (service: service.value.reverseProxy.enable && service.value.reverseProxy.host == hostName))
+    (filter (service: service.value.enable && service.value.reverseProxy.enable && service.value.reverseProxy.host == hostName))
   ];
 
   relevantVirtualHostServices = filter (e: e.value.reverseProxy.method == "virtual-host") relevantServices;
   relevantStreamServices = filter (e: e.value.reverseProxy.method == "stream") relevantServices;
-
-  acmeCertName = "${domain}-cert";
 
   ipAddrOf = service:
     if service.value.host == hostName
@@ -49,13 +47,10 @@ in
           (service: let
             proxyConf = service.value.reverseProxy;
             virtualHostsConfig = {
-              useACMEHost = acmeCertName;
+              useACMEHost = "default";
               forceSSL = true;
               locations."/" = {
-                proxyPass = "$upstream";
-                extraConfig = ''
-                  set $upstream http://${ipAddrOf service}:${toString service.value.port};
-                '';
+                proxyPass = "http://${ipAddrOf service}:${toString service.value.port}";
               };
             };
           in {
@@ -83,7 +78,7 @@ in
     security.acme = {
       acceptTerms = true;
       defaults.email = "osibluber@pm.me";
-      certs."${acmeCertName}" = {
+      certs.default = {
         inherit domain;
         extraDomainNames = map (service: toFullDomain service.name) relevantVirtualHostServices;
         dnsProvider = "porkbun";
