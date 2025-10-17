@@ -80,7 +80,9 @@ in {
         };
         dynamic-cursors = {
           enabled = true;
-          mode = "rotate";
+          mode = "none";
+          shake.effects = true;
+          hyprcursor.resolution = "256";
         };
       };
     };
