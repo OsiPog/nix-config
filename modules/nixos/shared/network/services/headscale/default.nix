@@ -60,6 +60,14 @@ in {
         ];
         # extraSetFlags = ["--accept-dns=false"];
       };
+
+      # overwrite the autoconnect service
+      systemd.services.tailscaled-autoconnect.script = let
+        inherit (lib) escapeShellArgs;
+        cfg = config.services.tailscale;
+      in ''
+        tailscale up --auth-key="$(cat ${cfg.authKeyFile})" ${escapeShellArgs cfg.extraUpFlags}
+      '';
     })
   ];
 }
