@@ -5,8 +5,6 @@
   ...
 }: let
   repositoryOrigin = "git@github.com:OsiPog/pass.git";
-
-  inherit (builtins) match;
 in {
   home.packages = [
     # a script to fetch the password store easily in the correct folder
