@@ -19,8 +19,8 @@ in {
       enable = true;
       settings = {
         server = {
-          ROOT_URL = "https://" + (toFullDomain serviceName);
-          HTTP_PORT = cfg.port;
+          ROOT_URL = "https://" + (toFullDomain serviceName "web");
+          HTTP_PORT = cfg.ports.web.port;
         };
       };
     };

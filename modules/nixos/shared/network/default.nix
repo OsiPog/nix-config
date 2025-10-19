@@ -14,11 +14,6 @@
 
   cfg = config.network;
   hostCfg = cfg.hosts.${hostName};
-
-  toACMECert = serviceName: "${cfg.services.${serviceName}.reverseProxy.subdomain}-cert";
-  toFullDomain = serviceName: "${cfg.services.${serviceName}.reverseProxy.subdomain}.${cfg.hosts.${cfg.services.${serviceName}.reverseProxy.host}.reverseProxy.domain}";
-
-  isServiceEnabledOnHost = serviceName: cfg.enable && cfg.services.${serviceName}.enable && cfg.services.${serviceName}.host == hostName;
 in {
   options.network = {
     enable = mkEnableOption "network module";
@@ -56,26 +51,65 @@ in {
 
   imports =
     [
+      ./lib
       ./reverseProxy
     ]
     ++ (map (e: ./services + "/${e}") (attrNames (readDir ./services)));
 
-  config = mkMerge [
-    {
-      lib.network = {
-        inherit toACMECert toFullDomain isServiceEnabledOnHost;
-      };
-    }
-    (mkIf cfg.enable {
-      assertions =
-        []
-        # Check the services which should be reverse proxied if the reverse proxy host is actually a reverse proxy.
-        ++ (pipe cfg.services [
+  config = mkIf cfg.enable {
+      assertions = let
+        allPorts = pipe cfg.services [
           attrsToList
-          (filter (service: service.value.reverseProxy.enable))
-          (map (service: {
-            assertion = cfg.hosts.${service.value.reverseProxy.host}.reverseProxy.enable;
-            message = "Reverse proxy host \"${service.value.reverseProxy.host}\" of service \"${service.name}\" is not a reverse proxy.";
+          (map (service:
+            map (portEntry:
+              let
+                portCfg = portEntry.value;
+              in {
+                serviceName = service.name;
+                portName = portEntry.name;
+                portConfig = portCfg;
+              }
+            ) (attrsToList service.value.ports)
+          ))
+          (lib.lists.flatten)
+        ];
+      in
+        []
+        # Check that each port has exactly one of port or portRange
+        ++ (map (p: {
+          assertion = (p.portConfig.port == null) != (p.portConfig.portRange == null);
+          message = "Service \"${p.serviceName}\" port \"${p.portName}\" must have exactly one of 'port' or 'portRange' defined (not both, not neither).";
+        }) allPorts)
+        # Check that port ranges are valid
+        ++ (pipe allPorts [
+          (filter (p: p.portConfig.portRange != null))
+          (map (p: {
+            assertion = p.portConfig.portRange.from <= p.portConfig.portRange.to;
+            message = "Service \"${p.serviceName}\" port \"${p.portName}\" has invalid port range: 'from' (${toString p.portConfig.portRange.from}) must be <= 'to' (${toString p.portConfig.portRange.to}).";
+          }))
+        ])
+        # Check that virtual-host reverse proxy has a subdomain
+        ++ (pipe allPorts [
+          (filter (p: p.portConfig.reverseProxy.enable && p.portConfig.reverseProxy.method == "virtual-host"))
+          (map (p: {
+            assertion = p.portConfig.reverseProxy.subdomain != "";
+            message = "Service \"${p.serviceName}\" port \"${p.portName}\" uses virtual-host reverse proxy but no subdomain is specified.";
+          }))
+        ])
+        # Check that port ranges don't use virtual-host method
+        ++ (pipe allPorts [
+          (filter (p: p.portConfig.portRange != null && p.portConfig.reverseProxy.enable))
+          (map (p: {
+            assertion = p.portConfig.reverseProxy.method != "virtual-host";
+            message = "Service \"${p.serviceName}\" port \"${p.portName}\" has a port range and cannot use 'virtual-host' reverse proxy method. Use 'stream' instead.";
+          }))
+        ])
+        # Check the ports which should be reverse proxied if the reverse proxy host is actually a reverse proxy.
+        ++ (pipe allPorts [
+          (filter (p: p.portConfig.reverseProxy.enable))
+          (map (p: {
+            assertion = cfg.hosts.${p.portConfig.reverseProxy.host}.reverseProxy.enable;
+            message = "Reverse proxy host \"${p.portConfig.reverseProxy.host}\" of service \"${p.serviceName}\" port \"${p.portName}\" is not a reverse proxy.";
           }))
         ]);
 
@@ -90,6 +124,5 @@ in {
       users.users.leaf.openssh.authorizedKeys.keys = map (
         other: cfg.hosts.${other}.ssh.publicKey
       ) (hostCfg.ssh.allowConnectionsFrom);
-    })
-  ];
+  };
 }

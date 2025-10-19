@@ -6,7 +6,7 @@
   flake,
   ...
 }: let
-  inherit (lib) mkIf;
+  inherit (lib) mkIf mkMerge;
   inherit (flake.lib) mkServiceOptionsModule;
   inherit (config.lib.network) isServiceEnabledOnHost;
 
@@ -18,32 +18,38 @@ in {
     (mkServiceOptionsModule serviceName)
   ];
 
-  config = mkIf (isServiceEnabledOnHost serviceName) {
-    assertions = [
-      {
-        assertion = !cfg.reverseProxy.enable;
-        message = "Due to mail protocol requirements, mailserver cannot be reverse proxied.";
-      }
-    ];
-
-    sops.secrets."mailserver/pass-hashes/admin" = {sopsFile = ./secrets.yaml;};
-
-    mailserver = {
-      enable = true;
-      stateVersion = 3;
-      fqdn = "mail.${config.networking.domain}";
-      domains = [config.networking.domain];
-
-      # A list of all login accounts. To create the password hashes, use
-      # nix-shell -p mkpasswd --run 'mkpasswd -sm bcrypt'
-      loginAccounts = {
-        "admin@${config.networking.domain}" = {
-          hashedPasswordFile = config.getSopsFile "mailserver/pass-hashes/admin";
-        };
+  config = mkMerge [
+    {
+      network.services.${serviceName}.ports = {
       };
+    }
+    (mkIf (isServiceEnabledOnHost serviceName) {
+      assertions = [
+        {
+          assertion = !cfg.reverseProxy.enable;
+          message = "Due to mail protocol requirements, mailserver cannot be reverse proxied.";
+        }
+      ];
 
-      certificateScheme = "acme";
-      acmeCertificateName = "default";
-    };
-  };
+      sops.secrets."mailserver/pass-hashes/admin" = {sopsFile = ./secrets.yaml;};
+
+      mailserver = {
+        enable = true;
+        stateVersion = 3;
+        fqdn = "mail.${config.networking.domain}";
+        domains = [config.networking.domain];
+
+        # A list of all login accounts. To create the password hashes, use
+        # nix-shell -p mkpasswd --run 'mkpasswd -sm bcrypt'
+        loginAccounts = {
+          "admin@${config.networking.domain}" = {
+            hashedPasswordFile = config.getSopsFile "mailserver/pass-hashes/admin";
+          };
+        };
+
+        certificateScheme = "acme";
+        acmeCertificateName = "default";
+      };
+    })
+  ];
 }

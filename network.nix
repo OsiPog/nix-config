@@ -49,48 +49,59 @@
       forgejo = {
         enable = true;
         host = "blind-spots";
-        port = 2000;
-        reverseProxy = {
-          enable = true;
-          host = "haunt-muskie";
-          subdomain = "git";
+        ports.web = {
+          port = 2000;
+          reverseProxy = {
+            enable = true;
+            host = "haunt-muskie";
+            method = "virtual-host";
+            subdomain = "git";
+          };
         };
       };
       vsftpd = {
         enable = true;
         host = "haunt-muskie";
-        port = 21;
       };
       headscale = {
         enable = true;
         host = "haunt-muskie";
-        port = 8081;
-        reverseProxy = {
-          enable = true;
-          subdomain = "vpn";
-          extraVirtualHostsConfig = {
-            locations."/".proxyWebsockets = true;
+        ports.http = {
+          port = 8081;
+          reverseProxy = {
+            enable = true;
+            method = "virtual-host";
+            subdomain = "vpn";
+            extraVirtualHostsConfig = {
+              locations."/".proxyWebsockets = true;
+            };
           };
         };
       };
       nextcloud = {
         enable = true;
         host = "blind-spots";
-        port = 80;
-        reverseProxy = {
-          enable = true;
-          host = "haunt-muskie";
-          subdomain = "cloud";
+        ports.web = {
+          port = 80;
+          reverseProxy = {
+            enable = true;
+            host = "haunt-muskie";
+            method = "virtual-host";
+            subdomain = "cloud";
+          };
         };
       };
       authelia = {
         enable = true;
         host = "blind-spots";
-        port = 6000;
-        reverseProxy = {
-          enable = true;
-          host = "haunt-muskie";
-          subdomain = "auth";
+        ports.web = {
+          port = 6000;
+          reverseProxy = {
+            enable = true;
+            host = "haunt-muskie";
+            method = "virtual-host";
+            subdomain = "auth";
+          };
         };
       };
       mailserver = {
@@ -100,11 +111,13 @@
       minecraft-server = {
         enable = false;
         host = "aria-math";
-        port = 25565;
-        reverseProxy = {
-          enable = true;
-          host = "haunt-muskie";
-          method = "stream";
+        ports.game = {
+          port = 25565;
+          reverseProxy = {
+            enable = true;
+            host = "haunt-muskie";
+            method = "stream";
+          };
         };
       };
     };

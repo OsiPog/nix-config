@@ -20,7 +20,7 @@ in {
     {
       assertions = [
         {
-          assertion = cfg.port == 80;
+          assertion = cfg.ports.web.port == 80;
           message = "The nextcloud port needs to be 80 as that cannot be configured.";
         }
       ];
@@ -31,7 +31,7 @@ in {
       services.nextcloud = {
         enable = true;
         package = pkgs.nextcloud31;
-        hostName = toFullDomain serviceName;
+        hostName = toFullDomain serviceName "web";
         https = true;
         config = {
           adminuser = "admin";

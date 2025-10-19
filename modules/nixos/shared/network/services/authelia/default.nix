@@ -33,7 +33,7 @@ in {
         storageEncryptionKeyFile = config.getSopsFile "authelia/storageEncryptionKey";
       };
       settings = {
-        address = "http://0.0.0.0:${toString cfg.port}";
+        address = "http://0.0.0.0:${toString cfg.ports.web.port}";
 
         log = {
           level = "info";

@@ -35,7 +35,7 @@ in {
       servers.default = {
         enable = true;
         serverProperties = {
-          server-port = cfg.port;
+          server-port = cfg.ports.game.port;
         };
         operators = {
           OsiBluber = "10d6960e-0f45-486c-804a-d0f98f0fedd0";

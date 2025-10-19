@@ -20,9 +20,9 @@ in {
       services.headscale = {
         enable = true;
         address = "0.0.0.0";
-        port = cfg.port;
+        port = cfg.ports.http.port;
         settings = {
-          server_url = "https://" + (toFullDomain serviceName);
+          server_url = "https://" + (toFullDomain serviceName "http");
           dns = {
             override_local_dns = true;
             nameservers.global = [
@@ -33,7 +33,7 @@ in {
             ];
             # Magic DNS
             magic_dns = true;
-            base_domain = "dns." + (toFullDomain serviceName);
+            base_domain = "dns." + (toFullDomain serviceName "http");
           };
         };
       };
@@ -53,8 +53,8 @@ in {
           # thus, we directly connect to localhost
           "--login-server=${
             if (cfg.host == hostName)
-            then "http://localhost:${toString cfg.port}"
-            else "https://${toFullDomain serviceName}"
+            then "http://localhost:${toString cfg.ports.http.port}"
+            else "https://${toFullDomain serviceName "http"}"
           }"
           "--hostname=${hostName}"
         ];
