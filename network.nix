@@ -45,78 +45,75 @@
         };
       };
     };
+
     services = {
-      forgejo = {
-        enable = true;
-        host = "blind-spots";
-        ports.web = {
-          port = 2000;
-          reverseProxy = {
-            enable = true;
-            host = "haunt-muskie";
-            method = "virtual-host";
-            subdomain = "git";
+      haunt-muskie = {
+        vsftpd = {
+          enable = true;
+          ports = {
+            control.port = 21;
+            passive.portRange = {
+              from = 40000;
+              to = 40100;
+            };
           };
         };
-      };
-      vsftpd = {
-        enable = true;
-        host = "haunt-muskie";
-      };
-      headscale = {
-        enable = true;
-        host = "haunt-muskie";
-        ports.http = {
-          port = 8081;
-          reverseProxy = {
-            enable = true;
-            method = "virtual-host";
-            subdomain = "vpn";
-            extraVirtualHostsConfig = {
-              locations."/".proxyWebsockets = true;
+        mailserver.enable = true;
+        headscale = {
+          enable = true;
+          ports.http = {
+            port = 8081;
+            reverseProxy = {
+              enable = true;
+              subdomain = "vpn";
             };
           };
         };
       };
-      nextcloud = {
-        enable = true;
-        host = "blind-spots";
-        ports.web = {
-          port = 80;
-          reverseProxy = {
-            enable = true;
-            host = "haunt-muskie";
-            method = "virtual-host";
-            subdomain = "cloud";
+      blind-spots = {
+        forgejo = {
+          enable = true;
+          ports.web = {
+            port = 2000;
+            reverseProxy = {
+              enable = true;
+              host = "haunt-muskie";
+              subdomain = "git";
+            };
+          };
+        };
+        nextcloud = {
+          enable = true;
+          ports.web = {
+            port = 80;
+            reverseProxy = {
+              enable = true;
+              host = "haunt-muskie";
+              subdomain = "cloud";
+            };
+          };
+        };
+        authelia = {
+          enable = true;
+          ports.web = {
+            port = 6000;
+            reverseProxy = {
+              enable = true;
+              host = "haunt-muskie";
+              subdomain = "auth";
+            };
           };
         };
       };
-      authelia = {
-        enable = true;
-        host = "blind-spots";
-        ports.web = {
-          port = 6000;
-          reverseProxy = {
-            enable = true;
-            host = "haunt-muskie";
-            method = "virtual-host";
-            subdomain = "auth";
-          };
-        };
-      };
-      mailserver = {
-        enable = true;
-        host = "haunt-muskie";
-      };
-      minecraft-server = {
-        enable = false;
-        host = "aria-math";
-        ports.game = {
-          port = 25565;
-          reverseProxy = {
-            enable = true;
-            host = "haunt-muskie";
-            method = "stream";
+      aria-math = {
+        minecraft-server = {
+          enable = false;
+          ports.game = {
+            port = 25565;
+            reverseProxy = {
+              enable = true;
+              host = "haunt-muskie";
+            };
           };
         };
       };

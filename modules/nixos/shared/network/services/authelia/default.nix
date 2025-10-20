@@ -2,19 +2,20 @@
   config,
   lib,
   flake,
+  hostName,
   ...
 }: let
   inherit (lib) mkIf;
   inherit (flake.lib) mkServiceOptionsModule;
-  inherit (config.lib.network) isServiceEnabledOnHost;
 
   serviceName = "authelia";
-  cfg = config.network.services.${serviceName};
+  networkCfg = config.network;
+  cfg = networkCfg.services.${hostName}.${serviceName};
 in {
   imports = [
     (mkServiceOptionsModule serviceName)
   ];
-  config = mkIf (isServiceEnabledOnHost serviceName) {
+  config = mkIf (networkCfg.enable && cfg.enable) {
     sops.secrets = {
       "authelia/jwtSecret" = {
         owner = config.services.authelia.instances.default.user;

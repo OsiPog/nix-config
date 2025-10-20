@@ -4,9 +4,9 @@
   hostName,
   ...
 }: let
-  inherit (builtins) filter listToAttrs concatLists;
-  inherit (lib) mkIf pipe mapAttrsToList;
-  inherit (lib.attrsets) attrsToList recursiveUpdate;
+  inherit (builtins) filter listToAttrs;
+  inherit (lib) mkIf pipe;
+  inherit (lib.attrsets) recursiveUpdate mapAttrsToList filterAttrs;
   inherit (lib.strings) concatLines;
   inherit (lib.lists) range flatten;
   inherit (config.lib.network) toFullDomain;
@@ -15,45 +15,51 @@
   hostCfg = cfg.hosts.${hostName};
   inherit (hostCfg.reverseProxy) domain;
 
-  # Flatten services into a list of {serviceName, portName, port, reverseProxy, serviceHost}
+  # Flatten all services in all hosts into a list of {port, host, serviceName, portName, portConfig}
+  # portRange is also flattenend into individual entries
   allServicePorts = pipe cfg.services [
-    attrsToList
-    (map (
-      service:
-        mapAttrsToList (portName: portCfg: {
-          serviceName = service.name;
-          portName = portName;
-          portConfig = portCfg;
-          serviceHost = service.value.host;
-          serviceEnable = service.value.enable;
-        })
-        service.value.ports
+    (mapAttrsToList (
+      hostName: services:
+        pipe services [
+          # only include enabled services
+          (filterAttrs (_: service: service.enable))
+          (mapAttrsToList (serviceName: service:
+            pipe service.ports [
+              (mapAttrsToList (portName: portConfig: let
+                servicePort = {
+                  inherit portName portConfig serviceName hostName;
+                };
+
+                portRange =
+                  if (portConfig.portRange != null)
+                  then portConfig.portRange
+                  else {
+                    from = portConfig.port;
+                    to = portConfig.port;
+                  };
+              in
+                pipe portRange [
+                  # to list of numbers
+                  (r: range r.from r.to)
+                  (map (port: {inherit port;} // servicePort))
+                ]))
+            ]))
+        ]
     ))
-    concatLists
+    flatten
   ];
 
   # Only the ports that should be reverse proxied by current host
   relevantPorts =
     filter (
       p:
-        p.serviceEnable
-        && p.portConfig.reverseProxy.enable
+        p.portConfig.reverseProxy.enable
         && p.portConfig.reverseProxy.host == hostName
     )
     allServicePorts;
 
   relevantVirtualHostPorts = filter (e: e.portConfig.reverseProxy.method == "virtual-host") relevantPorts;
-  relevantStreamPorts = pipe relevantPorts [
-    (filter (e: e.portConfig.reverseProxy.method == "stream"))
-    # Create a new entry for each port in range
-    (p: let
-      ports = range p.portConfig.portRange.from p.portConfig.portRange.to;
-    in
-      if (p.portConfig ? "portRange")
-      then map (port: recursiveUpdate p {portConfig.port = port;}) ports
-      else p)
-    flatten
-  ];
+  relevantStreamPorts = filter (e: e.portConfig.reverseProxy.method == "stream") relevantPorts;
 
   ipAddrOf = serviceHost:
     if serviceHost == hostName
@@ -76,26 +82,27 @@ in
       recommendedTlsSettings = true;
       virtualHosts = pipe relevantVirtualHostPorts [
         (map
-          (portEntry: let
-            proxyConf = portEntry.portConfig.reverseProxy;
+          (p: let
+            proxyConf = p.portConfig.reverseProxy;
             virtualHostsConfig = {
               useACMEHost = "default";
               forceSSL = true;
               locations."/" = {
-                proxyPass = "http://${ipAddrOf portEntry.serviceHost}:${toString portEntry.portConfig.port}";
+                proxyPass = "http://${ipAddrOf p.hostName}:${toString p.portConfig.port}";
+                proxyWebsockets = true;
               };
             };
           in {
-            name = toFullDomain portEntry.serviceName portEntry.portName;
+            name = toFullDomain {inherit (p) serviceName portName hostName;};
             value = recursiveUpdate virtualHostsConfig proxyConf.extraVirtualHostsConfig;
           }))
         listToAttrs
       ];
       streamConfig = pipe relevantStreamPorts [
-        (map (portEntry: ''
+        (map (p: ''
           server {
-            listen ${toString portEntry.portConfig.port};
-            proxy_pass ${ipAddrOf portEntry.serviceHost}:${toString portEntry.portConfig.port};
+            listen ${toString p.portConfig.port};
+            proxy_pass ${ipAddrOf p.hostName}:${toString p.portConfig.port};
             proxy_timeout 20s;
           }
         ''))
@@ -112,7 +119,7 @@ in
       defaults.email = "osibluber@pm.me";
       certs.default = {
         inherit domain;
-        extraDomainNames = map (p: toFullDomain p.serviceName p.portName) relevantVirtualHostPorts;
+        extraDomainNames = map (p: toFullDomain {inherit (p) serviceName portName hostName;}) relevantVirtualHostPorts;
         dnsProvider = "porkbun";
         environmentFile = config.getSopsFile "acme/porkbun";
       };

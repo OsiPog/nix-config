@@ -3,35 +3,38 @@
   lib,
   flake,
   pkgs,
+  hostName,
   ...
 }: let
   inherit (lib) mkIf mkMerge;
   inherit (flake.lib) mkServiceOptionsModule;
-  inherit (config.lib.network) isServiceEnabledOnHost toFullDomain;
+  inherit (config.lib.network) toFullDomain;
 
   serviceName = "nextcloud";
-  cfg = config.network.services.${serviceName};
+  networkCfg = config.network;
+  cfg = networkCfg.services.${hostName}.${serviceName};
 in {
   imports = [
     (mkServiceOptionsModule serviceName)
   ];
 
   config = mkMerge [
-    {
+    (mkIf (networkCfg.enable && cfg.enable) {
       assertions = [
         {
           assertion = cfg.ports.web.port == 80;
           message = "The nextcloud port needs to be 80 as that cannot be configured.";
         }
       ];
-    }
-    (mkIf (isServiceEnabledOnHost serviceName) {
       sops.secrets."nextcloud/adminpass" = {sopsFile = ./secrets.yaml;};
 
       services.nextcloud = {
         enable = true;
         package = pkgs.nextcloud31;
-        hostName = toFullDomain serviceName "web";
+        hostName = toFullDomain {
+          inherit serviceName;
+          portName = "web";
+        };
         https = true;
         config = {
           adminuser = "admin";

@@ -2,14 +2,15 @@
   config,
   lib,
   flake,
+  hostName,
   ...
 }: let
   inherit (lib) mkIf mkMerge;
   inherit (flake.lib) mkServiceOptionsModule;
-  inherit (config.lib.network) isServiceEnabledOnHost;
 
   serviceName = "vsftpd";
-  cfg = config.network.services.${serviceName};
+  networkCfg = config.network;
+  cfg = networkCfg.services.${hostName}.${serviceName};
 
   certCfg = config.security.acme.certs.default;
 in {
@@ -18,25 +19,14 @@ in {
   ];
   config = mkMerge [
     {
-      network.services.${serviceName}.ports = {
-        control = {
-          port = 21;
-        };
-        passive = {
-          portRange = {
-            from = 40000;
-            to = 40100;
-          };
-        };
-      };
     }
-    (mkIf (isServiceEnabledOnHost serviceName) {
-      assertions = [
-        {
-          assertion = !cfg.reverseProxy.enable;
-          message = "Due to limitations in the FTP protocol, vsftpd cannot be reverse proxied on a subdomain.";
-        }
-      ];
+    (mkIf (networkCfg.enable && cfg.enable) {
+      # assertions = [
+      #   {
+      #     assertion = !cfg.reverseProxy.enable;
+      #     message = "Due to limitations in the FTP protocol, vsftpd cannot be reverse proxied on a subdomain.";
+      #   }
+      # ];
       services.vsftpd = {
         enable = true;
 

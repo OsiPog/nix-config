@@ -5,24 +5,30 @@
   flake,
   ...
 }: let
-  inherit (lib) mkIf mkMerge;
+  inherit (lib) mkIf mkMerge mkForce;
   inherit (flake.lib) mkServiceOptionsModule;
-  inherit (config.lib.network) isServiceEnabledOnHost toFullDomain;
+  inherit (config.lib.network) toFullDomain;
 
   serviceName = "headscale";
-  cfg = config.network.services.${serviceName};
+  networkCfg = config.network;
+  cfg = networkCfg.services.${hostName}.${serviceName};
 in {
   imports = [
     (mkServiceOptionsModule serviceName)
   ];
   config = mkMerge [
-    (mkIf (isServiceEnabledOnHost serviceName) {
+    (mkIf (networkCfg.enable && cfg.enable) {
       services.headscale = {
         enable = true;
         address = "0.0.0.0";
         port = cfg.ports.http.port;
         settings = {
-          server_url = "https://" + (toFullDomain serviceName "http");
+          server_url =
+            "https://"
+            + (toFullDomain {
+              inherit serviceName;
+              portName = "http";
+            });
           dns = {
             override_local_dns = true;
             nameservers.global = [
@@ -33,14 +39,22 @@ in {
             ];
             # Magic DNS
             magic_dns = true;
-            base_domain = "dns." + (toFullDomain serviceName "http");
+            base_domain =
+              "dns."
+              + (toFullDomain {
+                inherit serviceName;
+                portName = "http";
+              });
           };
         };
       };
     })
     # Enable tailscale for every host
-    (mkIf config.network.enable {
+    (mkIf networkCfg.enable {
       sops.secrets."tailscale/auth-key" = {sopsFile = ./secrets.yaml;};
+
+      # disable kresd
+      services.kresd.enable = mkForce false;
 
       services.tailscale = {
         enable = true;
@@ -52,9 +66,12 @@ in {
           # Nginx uses tailscale to reverse proxy to other hosts on the tailnet. So the host that runs headscale must depend on nginx.
           # thus, we directly connect to localhost
           "--login-server=${
-            if (cfg.host == hostName)
+            if (cfg.enable)
             then "http://localhost:${toString cfg.ports.http.port}"
-            else "https://${toFullDomain serviceName "http"}"
+            else "https://${toFullDomain {
+              inherit serviceName;
+              portName = "http";
+            }}"
           }"
           "--hostname=${hostName}"
         ];
@@ -62,12 +79,13 @@ in {
       };
 
       # overwrite the autoconnect service
-      systemd.services.tailscaled-autoconnect.script = let
-        inherit (lib) escapeShellArgs;
-        cfg = config.services.tailscale;
-      in ''
-        tailscale up --auth-key="$(cat ${cfg.authKeyFile})" ${escapeShellArgs cfg.extraUpFlags}
-      '';
+      # systemd.services.tailscaled-autoconnect.script = let
+      #   inherit (lib) escapeShellArgs;
+      #   cfg = config.services.tailscale;
+      # in
+      #   mkForce ''
+      #     tailscale up --auth-key="$(cat ${cfg.authKeyFile})" ${escapeShellArgs cfg.extraUpFlags}
+      #   '';
     })
   ];
 }

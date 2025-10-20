@@ -4,14 +4,15 @@
   config,
   lib,
   flake,
+  hostName,
   ...
 }: let
   inherit (lib) mkIf mkMerge;
   inherit (flake.lib) mkServiceOptionsModule;
-  inherit (config.lib.network) isServiceEnabledOnHost;
 
   serviceName = "mailserver";
-  cfg = config.network.services.${serviceName};
+  networkCfg = config.network;
+  cfg = networkCfg.services.${hostName}.${serviceName};
 in {
   imports = [
     inputs.simple-nixos-mailserver.nixosModules.default
@@ -20,16 +21,14 @@ in {
 
   config = mkMerge [
     {
-      network.services.${serviceName}.ports = {
-      };
     }
-    (mkIf (isServiceEnabledOnHost serviceName) {
-      assertions = [
-        {
-          assertion = !cfg.reverseProxy.enable;
-          message = "Due to mail protocol requirements, mailserver cannot be reverse proxied.";
-        }
-      ];
+    (mkIf (networkCfg.enable && cfg.enable) {
+      # assertions = [
+      #   {
+      #     assertion = !cfg.reverseProxy.enable;
+      #     message = "Due to mail protocol requirements, mailserver cannot be reverse proxied.";
+      #   }
+      # ];
 
       sops.secrets."mailserver/pass-hashes/admin" = {sopsFile = ./secrets.yaml;};
 
