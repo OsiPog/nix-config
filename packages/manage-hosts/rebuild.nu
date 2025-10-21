@@ -62,7 +62,7 @@ export def --wrapped "main rebuild" [
             ^nixos-rebuild ...$parameters
         } catch {|$err|
             # 2. try rebuilding again on remote host on error and build_on = auto
-            if ($env.LAST_EXIT_CODE == 1 and $build_on == 'auto') {
+            if ($env.LAST_EXIT_CODE == 1 and $build_on == 'auto' and $host != (^hostname)) {
                 print "Build failed, trying again on remote host as build_on=auto..."
                 ^nixos-rebuild ...$parameters --build-host $"root@($host)"
             } else {
