@@ -1,70 +1,26 @@
 {
   pkgs,
-  lib,
   config,
   ...
-}: let
-  inherit (builtins) listToAttrs concatStringsSep;
-  inherit (lib) pipe flatten concatLines;
-
-  authorKeys = [
-    "primary"
-    "secondary"
-  ];
-in {
+}: {
   home.packages = with pkgs; [
     lazygit
-    (writeShellApplication {
-      name = "git-set-author";
-      runtimeInputs = with pkgs; [
-        git
-        fzf
-        jq
-      ];
-      text = ''
-        declare -A names
-        ${pipe authorKeys [
-          (map (author: ''names["${author}"]=$(cat ${config.getSopsFile "git-authors/${author}/name"})''))
-          concatLines
-        ]}
-        declare -A emails
-        ${pipe authorKeys [
-          (map (author: ''emails["${author}"]=$(cat ${config.getSopsFile "git-authors/${author}/email"})''))
-          concatLines
-        ]}
-
-        author=$(echo -e "${
-          pipe authorKeys [
-            (map (author: "${author} - \${names['${author}']}"))
-            (concatStringsSep "\\n")
-          ]
-        }" | fzf | awk '{print $1}')
-
-        git config user.name "''${names["$author"]}"
-        git config user.email "''${emails["$author"]}"
-      '';
-    })
   ];
 
-  sops.secrets =
-    {
-      "ssh-keys/gh-primary/private" = {sopsFile = ./secrets.yaml;};
-      "ssh-keys/gh-secondary/private" = {sopsFile = ./secrets.yaml;};
-    }
-    // (pipe authorKeys [
-      (map (author: [
-        {
-          name = "git-authors/${author}/name";
-          value = {sopsFile = ./secrets.yaml;};
-        }
-        {
-          name = "git-authors/${author}/email";
-          value = {sopsFile = ./secrets.yaml;};
-        }
-      ]))
-      flatten
-      listToAttrs
-    ]);
+  programs.fish.functions.git-smart-clone =
+    /*
+    fish
+    */
+    ''
+      nu ${./git-smart-clone.nu} --authors-json "$(cat ${config.getSopsFile "git-authors-json"})" $argv
+      cd $(cat /tmp/git-smart-clone-cd)
+    '';
+
+  sops.secrets = {
+    "ssh-keys/gh-primary/private" = {sopsFile = ./secrets.yaml;};
+    "ssh-keys/gh-secondary/private" = {sopsFile = ./secrets.yaml;};
+    "git-authors-json" = {sopsFile = ./secrets.yaml;};
+  };
 
   programs.git = {
     enable = true;
