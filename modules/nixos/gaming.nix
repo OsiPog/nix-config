@@ -1,6 +1,5 @@
 {
   inputs,
-  flake,
   pkgs,
   ...
 }: {
@@ -11,6 +10,16 @@
 
   environment.systemPackages = with pkgs; [
     wine-wayland
+    (retroarch.withCores (cores:
+      with cores; [
+        # citra-canary
+        dolphin
+      ]))
+  ];
+
+  # For retroarch
+  nixpkgs.config.permittedInsecurePackages = [
+    "mbedtls-2.28.10"
   ];
 
   hardware.graphics.enable32Bit = true;
