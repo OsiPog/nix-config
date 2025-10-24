@@ -16,7 +16,7 @@ export def --wrapped "main rebuild" [
     command?: string # passed to nixos-rebuild e. g. `switch`
     ...rest: string
 ] {
-    let flakePath = $flake_path | default ($env.HOME + "/nix-config")
+    let flakePath = $flake_path | default (pwd)
     let previousPWD = $env.PWD
     let host = $host | default (^hostname)
     let nixosHosts = (^nix eval --impure --json --expr $"__attrNames \(__getFlake \"($flakePath)\"\).nixosConfigurations" | from json)
