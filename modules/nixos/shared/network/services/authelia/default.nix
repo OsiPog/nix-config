@@ -10,7 +10,7 @@
 
   serviceName = "authelia";
   networkCfg = config.network;
-  cfg = networkCfg.services.${hostName}.${serviceName};
+  cfg = networkCfg.hosts.${hostName}.services.${serviceName};
 in {
   imports = [
     (mkServiceOptionsModule serviceName)

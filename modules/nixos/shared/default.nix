@@ -10,8 +10,6 @@
     ./users.nix
     ./openssh.nix
     ./first-install.nix
-
     ./network
-    ../../../network.nix
   ];
 }

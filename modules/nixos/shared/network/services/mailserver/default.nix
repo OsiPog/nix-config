@@ -12,7 +12,7 @@
 
   serviceName = "mailserver";
   networkCfg = config.network;
-  cfg = networkCfg.services.${hostName}.${serviceName};
+  cfg = networkCfg.hosts.${hostName}.services.${serviceName};
 in {
   imports = [
     inputs.simple-nixos-mailserver.nixosModules.default

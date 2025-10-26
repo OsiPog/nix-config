@@ -6,7 +6,7 @@
 }: let
   inherit (builtins) filter listToAttrs;
   inherit (lib) mkIf pipe;
-  inherit (lib.attrsets) recursiveUpdate mapAttrsToList filterAttrs;
+  inherit (lib.attrsets) recursiveUpdate mapAttrsToList filterAttrs attrsToList;
   inherit (lib.strings) concatLines;
   inherit (lib.lists) range flatten;
   inherit (config.lib.network) toFullDomain;
@@ -17,9 +17,16 @@
 
   # Flatten all services in all hosts into a list of {port, host, serviceName, portName, portConfig}
   # portRange is also flattenend into individual entries
-  allServicePorts = pipe cfg.services [
-    (mapAttrsToList (
-      hostName: services:
+  allServicePorts = pipe cfg.hosts [
+    attrsToList
+    (map (
+      {
+        name,
+        value,
+      }: let
+        hostName = name;
+        services = value.services;
+      in
         pipe services [
           # only include enabled services
           (filterAttrs (_: service: service.enable))

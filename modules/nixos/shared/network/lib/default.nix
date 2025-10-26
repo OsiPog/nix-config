@@ -3,8 +3,9 @@
   lib,
   ...
 }: let
-  inherit (builtins) attrNames filter length head throw;
+  inherit (builtins) attrNames filter length head throw getAttr;
   inherit (lib) pipe;
+  inherit (lib.lists) flatten;
 
   cfg = config.network;
 in {
@@ -20,9 +21,9 @@ in {
         then hostName
         else let
           # Find hosts where this service is enabled
-          enabledHosts = pipe cfg.services [
+          enabledHosts = pipe cfg.hosts [
             attrNames
-            (filter (h: cfg.services.${h}.${serviceName}.enable or false))
+            (filter (hostName: cfg.hosts.${hostName}.services.${serviceName}.enable or false))
           ];
           numHosts = length enabledHosts;
         in
@@ -32,7 +33,7 @@ in {
           then throw "Service '${serviceName}' is enabled on multiple hosts (${toString enabledHosts}). Please specify hostName explicitly."
           else head enabledHosts;
 
-      serviceCfg = cfg.services.${selectedHostName}.${serviceName};
+      serviceCfg = cfg.hosts.${selectedHostName}.services.${serviceName};
 
       # Determine which port to use
       selectedPortName =

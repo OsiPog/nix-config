@@ -55,11 +55,8 @@ export def "main create" [ hostname: string ] {
       allowedConnectionHostname: (^hostname),
     }
     | to yaml
-    | ^mustache $"($env.FILE_PWD)/templates/meta.nix.mustache"
-
-    # --- Wait for user
-    print "Please add the above to network.nix and press ENTER"
-    input
+    | ^mustache $"($env.FILE_PWD)/templates/network.nix.mustache"
+    | save $"($HOST_DIR)/network.nix" --force
 
     # --- UPDATE SOPS CONFIG
     ^manage-hosts refresh-sops-files

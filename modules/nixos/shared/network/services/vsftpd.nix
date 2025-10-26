@@ -10,7 +10,7 @@
 
   serviceName = "vsftpd";
   networkCfg = config.network;
-  cfg = networkCfg.services.${hostName}.${serviceName};
+  cfg = networkCfg.hosts.${hostName}.services.${serviceName};
 
   certCfg = config.security.acme.certs.default;
 in {

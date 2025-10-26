@@ -1,0 +1,6 @@
+{...}: {
+  ssh = {
+    publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDIcVpuDI9fFcNWeMEHelbaItqQJwmAkibSFR+nBhxng root@biome-fest";
+    allowConnectionsFrom = ["dead-voxel"];
+  };
+}

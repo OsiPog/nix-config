@@ -10,9 +10,9 @@ flake: serviceName: {
   hostNames = attrNames (readDir "${flake}/hosts");
 
   serviceOptions = hostName: let
-    cfg = config.network.services.${hostName}.${serviceName};
+    cfg = config.network.hosts.${hostName}.services.${serviceName};
   in {
-    options.network.services.${hostName}.${serviceName} = mkOption {
+    options.network.hosts.${hostName}.services.${serviceName} = mkOption {
       description = "Configuration for the ${serviceName} service.";
       type = types.submodule (_module: {
         options = {
