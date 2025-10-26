@@ -64,8 +64,6 @@
     image = ../../modules/nixos/theme-prismarine/nms.jpg;
   };
 
-  services.desktopManager.plasma6.enable = true;
-
   # slower mouse
   home-manager.users.osi.wayland.windowManager.hyprland.settings.input.sensitivity = -0.5;
 
