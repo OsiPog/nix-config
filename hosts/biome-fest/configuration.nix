@@ -50,7 +50,7 @@
 
   # The laptop has a fingerprint sensor
   # Make sure to patch the firmware: https://github.com/goodix-fp-linux-dev/goodix-fp-dump
-  services.fprintd.package = inputs.libfprint-goodix-55b4.packages.x86_64-linux.fprintd;
+  services.fprintd.package = inputs.libfprint.packages.x86_64-linux.fprintd;
 
   # Swapfile needed because low raw
   swapDevices = [

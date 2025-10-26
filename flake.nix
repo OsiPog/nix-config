@@ -5,7 +5,10 @@
     # --- Core Foundation
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/release-25.05";
-    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+    determinate = {
+      url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # --- Flake Libraries
     blueprint = {
@@ -15,14 +18,20 @@
 
     # --- NixOS Modules
     # Private modules
-    nix-config-private.url = "git+ssh://git@github.com/osipog/nix-config-private.git?ref=main&shallow=1";
+    nix-config-private = {
+      url = "git+ssh://git@github.com/osipog/nix-config-private.git?ref=main&shallow=1";
+      inputs.blueprint.follows = "blueprint";
+    };
     # Declarative dotfiles
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # Declarative disk partitioning
-    disko.url = "github:nix-community/disko";
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # Automatic hardware configuration
     nixos-facter-modules.url = "github:nix-community/nixos-facter-modules";
     # Applies a theme to all programs
@@ -92,7 +101,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # Customized build of libfprint to make my laptops fingerprint reader work
-    libfprint-goodix-55b4.url = "github:oscar-schwarz/libfprint-goodix-55b4";
+    libfprint = {
+      url = "github:osipog/libfprint";
+      inputs.blueprint.follows = "blueprint";
+    };
   };
 
   outputs = inputs: inputs.blueprint {inherit inputs;};
