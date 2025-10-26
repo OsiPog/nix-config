@@ -1,4 +1,4 @@
-{inputs, ...}: {
+{...}: {
   imports = [
     # inputs.determinate.nixosModules.default
   ];
@@ -28,10 +28,10 @@
     gc = {
       automatic = true;
       dates = "monthly";
-      options = "--delete-older-than 30d";
+      options = "--delete-older-than 14d";
     };
 
-    checkConfig = false; # to allow setting options below that nix can't parse
+    # checkConfig = false; # to allow setting options below that normal nix can't parse
     extraOptions = ''
       download-buffer-size = 134217728
       # eval-cores = 0
