@@ -3,11 +3,11 @@ flake: serviceName: {
   config,
   ...
 }: let
-  inherit (builtins) attrNames foldl' concatLists readDir;
+  inherit (builtins) foldl' concatLists;
   inherit (lib) types mkOption mkEnableOption pipe;
   inherit (lib.attrsets) recursiveUpdate attrsToList;
 
-  hostNames = attrNames (readDir "${flake}/hosts");
+  hostNames = flake.lib.nixosHostNames;
 
   serviceOptions = hostName: let
     cfg = config.network.hosts.${hostName}.services.${serviceName};

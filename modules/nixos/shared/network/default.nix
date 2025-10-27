@@ -9,7 +9,7 @@ _module @ {
   inherit (lib) types mkOption mkEnableOption mkIf mkOptionDefault;
   inherit (lib.attrsets) genAttrs;
 
-  hostnames = attrNames (readDir ../../../../hosts);
+  hostnames = flake.lib.nixosHostNames;
   # Define the available hostnames as an enum based on /hosts folder names
   hostnameEnum = types.enum hostnames;
 

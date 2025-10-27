@@ -3,7 +3,6 @@
   flake,
   ...
 }: let
-  inherit (builtins) attrNames readDir;
   inherit (pkgs) lib system;
   inherit (lib) mkForce pipe;
   inherit (flake.inputs.nixpkgs.lib) nixosSystem;
@@ -27,9 +26,7 @@ in
         network.enable = false;
 
         # allow any host to connect to this installer with passwordless login
-        users.users.root.openssh.authorizedKeys.keys = pipe "${flake}/hosts" [
-          readDir
-          attrNames
+        users.users.root.openssh.authorizedKeys.keys = pipe flake.lib.nixosHostNames [
           (map (host: config.network.hosts.${host}.ssh.publicKey))
         ];
       })

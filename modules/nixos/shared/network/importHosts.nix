@@ -3,14 +3,12 @@ _module @ {
   lib,
   ...
 }: let
-  inherit (builtins) attrNames readDir pathExists;
+  inherit (builtins) pathExists;
   inherit (lib.attrsets) genAttrs;
-
-  hostNames = attrNames (readDir ../../../../hosts);
 in {
   network = {
     # populate network.hosts.<name> with the respective host config in hosts/<name>/network.nix
-    hosts = genAttrs hostNames (
+    hosts = genAttrs flake.lib.nixosHostNames (
       hostName: let
         hostConfigFile = "${flake}/hosts/${hostName}/network.nix";
       in
