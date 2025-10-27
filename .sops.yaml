@@ -50,14 +50,11 @@ creation_rules:
   - age:
     - *biome-fest
     - *dead-voxel
-- path_regex: modules/nixos/shared/network/reverseProxy/secrets.yaml$
-  key_groups:
-  - age:
-    - *haunt-muskie
-- path_regex: modules/nixos/shared/network/services/authelia/secrets.yaml$
+- path_regex: modules/nixos/porkbunAcme/secrets.yaml$
   key_groups:
   - age:
     - *blind-spots
+    - *haunt-muskie
 - path_regex: modules/nixos/shared/network/services/headscale/secrets.yaml$
   key_groups:
   - age:
@@ -72,6 +69,10 @@ creation_rules:
   - age:
     - *haunt-muskie
 - path_regex: modules/nixos/shared/network/services/nextcloud/secrets.yaml$
+  key_groups:
+  - age:
+    - *blind-spots
+- path_regex: modules/nixos/shared/network/services/portunus/secrets.yaml$
   key_groups:
   - age:
     - *blind-spots

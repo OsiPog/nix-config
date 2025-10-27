@@ -1,8 +1,9 @@
 # Evaluates all NixOS configurations and updates the .sops.yaml file based on which secret files are used in which hosts
 export def "main refresh-sops-files" [
-  --flake: string = "/home/osi/nix-config"
+  --flake: string
   --sops-config: string = ".sops.yaml"
 ] {
+  let flake = $flake | default (pwd)
 
   # Parse the nix flake to get the necessary data hosts secrets and their relations
   ^git add . # also new files should be evaluated

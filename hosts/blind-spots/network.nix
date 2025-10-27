@@ -37,5 +37,16 @@
         };
       };
     };
+    portunus = {
+      enable = true;
+      ports.web = {
+        port = 7000;
+        reverseProxy = {
+          enable = true;
+          host = "haunt-muskie";
+          subdomain = "ldap";
+        };
+      };
+    };
   };
 }

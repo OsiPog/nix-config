@@ -1,4 +1,5 @@
 {
+  flake,
   lib,
   config,
   hostName,
@@ -73,8 +74,9 @@
     then "127.0.0.1"
     # this will only work when both are in the same Tailscale network with magic dns
     else serviceHost;
-in
-  mkIf (cfg.enable && hostCfg.reverseProxy.enable) {
+in {
+  imports = [flake.nixosModules.porkbunAcme];
+  config = mkIf (cfg.enable && hostCfg.reverseProxy.enable) {
     networking = {
       inherit domain;
       firewall.allowedTCPPorts = [443] ++ (map (p: p.portConfig.port) relevantStreamPorts);
@@ -117,18 +119,7 @@ in
       ];
     };
 
-    users.users.nginx.extraGroups = ["acme"];
-
-    sops.secrets."acme/porkbun" = {sopsFile = ./secrets.yaml;};
-
-    security.acme = {
-      acceptTerms = true;
-      defaults.email = "osibluber@pm.me";
-      certs.default = {
-        inherit domain;
-        extraDomainNames = map (p: toFullDomain {inherit (p) serviceName portName hostName;}) relevantVirtualHostPorts;
-        dnsProvider = "porkbun";
-        environmentFile = config.getSopsFile "acme/porkbun";
-      };
-    };
-  }
+    services.porkbunAcme.enable = true;
+    security.acme.certs.default.extraDomainNames = map (p: toFullDomain {inherit (p) serviceName portName hostName;}) relevantVirtualHostPorts;
+  };
+}
