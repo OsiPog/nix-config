@@ -109,6 +109,9 @@ in {
 
   programs.claude-code = {
     enable = true;
+    memory.text = ''
+      Run any command that is not part of core linux with `nix run nixpkgs#<package-name>`
+    '';
     settings = {
       apiKeyHelper = "cat " + (config.getSopsFile "api-keys/anthropic");
     };
