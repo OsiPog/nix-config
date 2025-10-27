@@ -23,6 +23,11 @@
         # determinate systems
         "cache.flakehub.com-3:hJuILl5sVK4iKm86JzgdXW12Y2Hwd5G07qKtHTOcDCM="
       ];
+
+      # For AOSP building
+      sandbox-paths = [
+        "/var/cache/ccache"
+      ];
     };
     # Automatic garbage collection
     gc = {
