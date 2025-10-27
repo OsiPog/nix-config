@@ -43,6 +43,9 @@
     '';
   };
 
+  # create cache dir from above
+  system.activationScripts.mkdir-ccache.text = "mkdir -p /var/cache/ccache";
+
   # Disable generation of man caches
   documentation.man.generateCaches = false;
 }
