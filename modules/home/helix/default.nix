@@ -4,8 +4,11 @@
   flake,
   nixosConfig,
   inputs,
+  config,
   ...
 }: {
+  sops.secrets."api-keys/anthropic" = {sopsFile = ./secrets.yaml;};
+
   programs.helix = {
     enable = true;
     extraPackages = with pkgs; [
@@ -22,6 +25,16 @@
 
       # QML
       kdePackages.qtdeclarative # contains `qmlls`
+
+      # ai assistance
+      (writeShellApplication {
+        name = "lsp-ai";
+        runtimeInputs = [pkgs.lsp-ai];
+        text = ''
+          export ANTHROPIC_API_KEY=${config.getSopsFile "api-keys/anthropic"}
+          lsp-ai "$@"
+        '';
+      })
     ];
     settings = {
       editor = {
@@ -42,7 +55,7 @@
         # Nix
         nixd = {
           config = let
-            flakeExpr = "(builtins.getFlake \"/home/osi/nix-config\")";
+            flakeExpr = "(__getFlake \"github:osipog/nix-config\")";
             pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
             currentSystemExpr = flakeExpr + ".nixosConfigurations.${nixosConfig.networking.hostName}";
           in {
@@ -97,6 +110,25 @@
             ];
           };
         };
+
+        # lsp-ai for every language
+        lsp-ai = {
+          command = "lsp-ai";
+          args = ["--use-seperate-log-file"];
+          config = {
+            memory.file_store = {};
+            models.claude = {
+              type = "anthropic";
+              chat_endpoint = "https://api.anthropic.com/v1/messages";
+              model = "claude-sonnet-4-5-20250929";
+              auth_token_env_var_name = "ANTHROPIC_API_KEY";
+            };
+            completion = {
+              model = "claude";
+              parameters.system = "Instructions:\n- You are an AI programming assistant.\n- Given a piece of code with the cursor location marked by \"<CURSOR>\", replace \"<CURSOR>\" with the correct code or comment.\n- First, think step-by-step.\n- Describe your plan for what to build in pseudocode, written out in great detail.\n- Then output the code replacing the \"<CURSOR>\"\n- Ensure that your completion fits within the language context of the provided code snippet (e.g., Python, JavaScript, Rust).\n\nRules:\n- Only respond with code or comments.\n- Only replace \"<CURSOR>\"; do not include any previously written code.\n- Never include \"<CURSOR>\" in your response\n- If the cursor is within a comment, complete the comment meaningfully.\n- Handle ambiguous cases by providing the most contextually appropriate completion.\n- Be consistent with your responses.";
+            };
+          };
+        };
       };
       language = [
         {
@@ -104,6 +136,7 @@
           language-servers = [
             "nixd"
             "nil"
+            "lsp-ai"
           ];
           file-types = ["nix"];
           formatter = {
