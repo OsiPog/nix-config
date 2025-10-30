@@ -910,10 +910,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1759946871,
-        "narHash": "sha256-P0VvZXDMn0UQSIGVGosa1lV9jvDAcz+wjdVXlgU7NAY=",
+        "lastModified": 1761851776,
+        "narHash": "sha256-93Kth2dNTuSYhjuJ1c6lMVjKACDPq/ko5xrqK8zfNHI=",
         "ref": "main",
-        "rev": "337e60224cf9187395d2790dc33f6f63bf523ef7",
+        "rev": "bf82d6d68d986bd176aed0273e281463303bf48b",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/osipog/nix-config-private.git"
