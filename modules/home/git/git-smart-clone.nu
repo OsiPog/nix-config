@@ -10,6 +10,7 @@ def --wrapped main [url: string --base-dir: path = "~/repositories" --authors-js
     | str downcase
     | str replace "https://" ""
     | str replace "http://" ""
+    | str replace ".git" ""
     # remove sshuser@ prefix
     | split row "@" | last | str join ""
     | str replace ":" "/"
