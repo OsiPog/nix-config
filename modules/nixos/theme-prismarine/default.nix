@@ -90,6 +90,8 @@ in {
         # plymouth.logo = pkgs.runCommand "tinted-nixos-256x256-png" {} ''
         #   ${pkgs.imagemagick}/bin/convert -resize 256x256
         # '';
+        # TODO: remove when it works again
+        gtksourceview.enable = false;
       };
     };
 
