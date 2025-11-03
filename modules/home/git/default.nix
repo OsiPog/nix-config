@@ -12,8 +12,7 @@
     fish
     */
     ''
-      nu ${./git-smart-clone.nu} --authors-json "$(cat ${config.getSopsFile "git-authors-json"})" $argv
-      cd $(cat /tmp/git-smart-clone-cd)
+      nu ${./git-smart-clone.nu} --authors-json "$(cat ${config.getSopsFile "git-authors-json"})" $argv && cd $(cat /tmp/git-smart-clone-cd)
     '';
 
   sops.secrets = {

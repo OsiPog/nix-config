@@ -1,4 +1,4 @@
-def --wrapped main [url: string --base-dir: path = "~/repositories" --authors-json: string ...rest] {
+def --wrapped main [url: string --base-dir: path = "~/repositories" --authors-json: string --get-directory ...rest] {
   let $authors = if ($authors_json != null) {
       $authors_json | from json
     } else {
@@ -10,11 +10,20 @@ def --wrapped main [url: string --base-dir: path = "~/repositories" --authors-js
     | str downcase
     | str replace "https://" ""
     | str replace "http://" ""
-    | str replace ".git" ""
+    | str replace "ssh://" ""
+    | str replace --regex ".git$" ""
+    | str replace --regex ":\\d+" "" # remove port from url
+    | str replace --regex "(?:[a-z-]+\\.)*([a-z-]+\\.[a-z-]+[:/])" "$1" # shorten domain to just sld.tld
     # remove sshuser@ prefix
     | split row "@" | last | str join ""
     | str replace ":" "/"
     | do {($base_dir | str replace "~" $env.HOME) + "/" + $in}
+
+  if ($get_directory) {
+    print $directory
+    pwd | save --force /tmp/git-smart-clone-cd
+    return;
+  }
 
   mkdir $directory
 
