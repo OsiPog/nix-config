@@ -173,7 +173,7 @@ in {
         packages = with addons; [
           ublock-origin # adblock
           darkreader # dark mode for every website
-          chameleon-ext # user agent spoofing
+          locale-switcher # switch language on the fly for application testing
           vimium-ff # vim motions for browser
           vue-js-devtools-v6-legacy
 
