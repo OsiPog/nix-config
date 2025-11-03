@@ -20,8 +20,8 @@ pkgs.python3Packages.buildPythonApplication {
   src = pkgs.fetchFromGitHub {
     owner = "ideasman42";
     repo = "nerd-dictation";
-    rev = "main";
-    sha256 = "sha256-M/05SUAe2Fq5I40xuWZ/lTn1+mNLr4Or6o0yKfylVk8=";
+    rev = "41f372789c640e01bb6650339a78312661530843";
+    sha256 = "sha256-xjaHrlJvk8bNvWp1VE4EAHi2VJlAutBxUgWB++3Qo+s=";
   };
 
   format = "other"; # This is a script, not a standard Python package
