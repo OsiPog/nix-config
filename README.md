@@ -26,13 +26,6 @@ This is the NixOS flake which defines the system on all of my devices running Ni
   - Nextcloud
   - Forgejo
 
-- `aria-math` - Another Home Server (also, an old laptop, though a little beefier)
-  - meant to run game servers so that a minecraft server does not slow my nextcloud down
-
-*What are those host names?*
-
-They're all track names from [Minecraft - Volume Beta](https://minecraft.wiki/w/Minecraft_-_Volume_Beta).
-
 ## Guides to remember
 
 ### Create NixOS installer
