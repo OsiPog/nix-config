@@ -204,5 +204,5 @@
     };
   };
 
-  home.sessionVariables."EDITOR" = "hx";
+  home.sessionVariables."VISUAL" = "hx";
 }
