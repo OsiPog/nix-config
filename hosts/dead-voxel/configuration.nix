@@ -19,7 +19,6 @@
     obs-studio
     printing
     sound
-    speicherfresser
     gaming
     podman
     nix-access-tokens

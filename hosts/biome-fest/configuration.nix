@@ -22,7 +22,6 @@
     obs-studio
     printing
     sound
-    speicherfresser
     tuigreet
     podman
     nix-access-tokens
