@@ -39,16 +39,27 @@
     settings = {
       editor = {
         line-number = "relative";
-        cursor-shape.insert = "bar";
+        cursor-shape = {
+          insert = "bar";
+          select = "underline";
+        };
         indent-guides.render = true;
         inline-diagnostics = {
           cursor-line = "hint";
           max-wrap = 0;
         };
-        jump-label-alphabet = "arstneiodhqwfpluyzxcvm";
+        jump-label-alphabet = "arstneiodhqwfpluyzxcvmARSTNEIODHQWFPLUYZXCVM";
         auto-save.after-delay.enable = true;
+        lsp = {
+          display-progress-messages = true;
+        };
       };
-      keys.normal.space.v = ":sh codium $PWD --goto %{buffer_name}:%{cursor_line}:%{cursor_column}";
+      keys = {
+        normal.space.v = ":sh codium $PWD --goto %{buffer_name}:%{cursor_line}:%{cursor_column}";
+        select.space.v = {
+          b = ":sh git blame -L %{selection_line_start},%{selection_line_end} %{buffer_name}";
+        };
+      };
     };
     languages = {
       language-server = {
