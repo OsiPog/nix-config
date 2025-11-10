@@ -63,6 +63,14 @@
     image = ../../modules/nixos/theme-prismarine/nms.jpg;
   };
 
+  # Swapfile needed because low raw
+  swapDevices = [
+    {
+      device = "/var/lib/swapfile";
+      size = 16 * 1024;
+    }
+  ];
+
   # slower mouse
   home-manager.users.osi.wayland.windowManager.hyprland.settings.input.sensitivity = -0.5;
 
