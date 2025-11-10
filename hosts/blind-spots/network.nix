@@ -23,6 +23,13 @@
           enable = true;
           host = "haunt-muskie";
           subdomain = "cloud";
+          extraVirtualHostsConfig = let
+            size = "999M";
+          in {
+            extraConfig = ''
+              client_max_body_size ${size};
+            '';
+          };
         };
       };
     };
