@@ -46,9 +46,6 @@
       cli-tools
       godot
 
-      # syncing files
-      syncthing
-
       uni
     ]
     ++ (with inputs.nix-config-private.homeModules; [

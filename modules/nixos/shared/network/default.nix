@@ -39,6 +39,18 @@ in {
           default = "";
         };
       };
+      syncthing = {
+        enable = mkEnableOption "syncthing for this host";
+        id = mkOption {
+          type = types.str;
+          description = "Syncthing device ID for this host";
+        };
+        sharedFolders = mkOption {
+          type = types.attrsOf types.str;
+          default = {};
+          description = "Shared folders to sync with other hosts. Key is the folder name, value is the path.";
+        };
+      };
       # Is populated by `mkServiceOptionsModule`
       services = {};
     });
@@ -49,6 +61,7 @@ in {
       ./lib
       ./reverseProxy
       ./importHosts.nix
+      ./syncthing.nix
     ]
     ++ (map (e: ./services + "/${e}") (attrNames (readDir ./services)));
 
