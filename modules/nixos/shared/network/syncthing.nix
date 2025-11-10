@@ -1,3 +1,11 @@
+# This module makes syncing specific folders across hosts as easy as possible.
+# All hosts can configure `syncthing.sharedFolders` in their `network.nix` which is a basic attrset which maps syncthing folder names to the local
+# paths on the hosts.
+# All hosts that have the same syncthing folder names configured are matched together and these folders are automatically
+# shared between them via syncthing. Each host will sync its local folder path with all other hosts that have declared the same folder name.
+#
+# For each shared folder, a bind mount is created using fuse.bindfs to allow the syncthing service to access the folder.
+# For folders under /home, the bind mount maps the folder owner to the syncthing user, ensuring proper permissions.
 {
   lib,
   config,
