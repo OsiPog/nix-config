@@ -55,7 +55,10 @@
         };
       };
       keys = {
-        normal.space.v = ":sh codium $PWD --goto %{buffer_name}:%{cursor_line}:%{cursor_column}";
+        normal = {
+          space.v = ":sh codium $PWD --goto %{buffer_name}:%{cursor_line}:%{cursor_column}";
+          g.l = "goto_line_end_newline";
+        };
         select.space.v = {
           b = ":sh git blame -L %{selection_line_start},%{selection_line_end} %{buffer_name}";
         };
