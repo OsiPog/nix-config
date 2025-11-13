@@ -113,15 +113,16 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1761597452,
-        "narHash": "sha256-R5HR2Vr4fCRZZLK5f5MWD2JijDOVzuKUW2g6Q4REk1Q=",
+        "lastModified": 1762962523,
+        "narHash": "sha256-7b2uhXLIS4cQKmT9R9JudJiGJejzHLuQQyA34lM1mTU=",
         "owner": "osipog",
         "repo": "blueprint",
-        "rev": "873b8594891f6e190e250367269a7bdeed54b2f2",
+        "rev": "867af435ee69cf4b3823895635d1ba6902acef85",
         "type": "github"
       },
       "original": {
         "owner": "osipog",
+        "ref": "feat/allow-nixpkgs-package-definitions",
         "repo": "blueprint",
         "type": "github"
       }

@@ -14,7 +14,8 @@
     # --- Flake Libraries
     blueprint = {
       # url = "github:numtide/blueprint";
-      url = "github:osipog/blueprint";
+      url = "github:osipog/blueprint/feat/allow-nixpkgs-package-definitions";
+      # url = "/home/osi/repositories/github.com/osipog/blueprint.git";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
