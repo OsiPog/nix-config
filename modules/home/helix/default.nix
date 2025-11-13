@@ -22,6 +22,13 @@
 
       # Nodejs and friends
       vtsls
+      # Extracted language servers from vscode, contains:
+      # `vscode-css-language-server`
+      # `vscode-html-language-server`
+      # `vscode-eslint-language-server` # TODO: This is broken!!
+      # `vscode-json-language-server`
+      # `vscode-markdown-language-server`
+      flake.packages.${pkgs.system}.vscode-langservers-extracted
 
       # QML
       kdePackages.qtdeclarative # contains `qmlls`
@@ -54,13 +61,46 @@
           display-progress-messages = true;
         };
       };
-      keys = {
-        normal = {
-          space.v = ":sh codium $PWD --goto %{buffer_name}:%{cursor_line}:%{cursor_column}";
-          g.l = "goto_line_end_newline";
+      keys = let
+        lintCodeScript =
+          pkgs.writeShellScript "lint-code"
+          /*
+          bash
+          */
+          ''
+            set +e # Failing is okay here!
+            if command -v eslint; then
+              eslint "$1"
+            fi
+            echo "End of linter output"
+          '';
+
+        # Binds in the menu that opens on "+"
+        plusBinds = {
+          # Open VSCodium
+          v = ":sh codium $PWD --goto %{buffer_name}:%{cursor_line}:%{cursor_column}";
+          # Format File
+          f = ":format";
+          # Lint File
+          l = ":sh ${lintCodeScript} %{buffer_name}";
+          # Format and Lint
+          L = [
+            ":format"
+            ":sh ${lintCodeScript} %{buffer_name}"
+          ];
         };
-        select.space.v = {
+
+        # Binds in the menu that opens on "+" and need select mode
+        plusBindsNeedSelection = {
           b = ":sh git blame -L %{selection_line_start},%{selection_line_end} %{buffer_name}";
+        };
+      in {
+        normal = {
+          g.l = "goto_line_end_newline";
+          "+" = plusBinds;
+        };
+        select = {
+          "+" = plusBinds // plusBindsNeedSelection;
         };
       };
     };
@@ -94,7 +134,7 @@
         #   config.typescript.tsdk = "${pkgs.typescript}/lib/node_modules/typescript/lib";
         # };
 
-        # Typescript
+        # Typescript/Javascript/Vue
         vtsls = {
           command = "vtsls";
           args = ["--stdio"];
@@ -124,25 +164,6 @@
             ];
           };
         };
-
-        # lsp-ai for every language
-        lsp-ai = {
-          command = "lsp-ai";
-          args = ["--use-seperate-log-file"];
-          config = {
-            memory.file_store = {};
-            models.claude = {
-              type = "anthropic";
-              chat_endpoint = "https://api.anthropic.com/v1/messages";
-              model = "claude-sonnet-4-5-20250929";
-              auth_token_env_var_name = "ANTHROPIC_API_KEY";
-            };
-            completion = {
-              model = "claude";
-              parameters.system = "Instructions:\n- You are an AI programming assistant.\n- Given a piece of code with the cursor location marked by \"<CURSOR>\", replace \"<CURSOR>\" with the correct code or comment.\n- First, think step-by-step.\n- Describe your plan for what to build in pseudocode, written out in great detail.\n- Then output the code replacing the \"<CURSOR>\"\n- Ensure that your completion fits within the language context of the provided code snippet (e.g., Python, JavaScript, Rust).\n\nRules:\n- Only respond with code or comments.\n- Only replace \"<CURSOR>\"; do not include any previously written code.\n- Never include \"<CURSOR>\" in your response\n- If the cursor is within a comment, complete the comment meaningfully.\n- Handle ambiguous cases by providing the most contextually appropriate completion.\n- Be consistent with your responses.";
-            };
-          };
-        };
       };
       language = [
         {
@@ -168,7 +189,8 @@
           file-types = ["vue"];
           language-servers = [
             "vtsls"
-            "vue-language-server"
+            # "vue-language-server"
+            "vscode-eslint-language-server"
           ];
           scope = "source.vue";
           roots = ["package.json"];
@@ -204,11 +226,25 @@
         }
         {
           name = "javascript";
-          language-servers = ["vtsls"];
+          language-servers = [
+            "vtsls"
+            "vscode-eslint-language-server"
+          ];
+          formatter = {
+            command = "prettier";
+            args = ["--parser" "typescript"];
+          };
         }
         {
           name = "typescript";
-          language-servers = ["vtsls"];
+          language-servers = [
+            "vtsls"
+            "vscode-eslint-language-server"
+          ];
+          formatter = {
+            command = "prettier";
+            args = ["--parser" "typescript"];
+          };
         }
         {
           name = "sql";
