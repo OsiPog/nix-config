@@ -19,14 +19,14 @@
   baseDomain = networkCfg.hosts.${cfg.ports.web.reverseProxy.host}.reverseProxy.domain;
 in {
   imports = [
-    (mkServiceOptionsModule serviceName {})
+    (mkServiceOptionsModule serviceName {
+      portsDefault = {
+        ldap.port = 636;
+      };
+    })
     flake.nixosModules.porkbunAcme
   ];
   config = mkMerge [
-    # defaults
-    {
-      network.hosts.${hostName}.services.${serviceName}.ports.ldap.port = 636;
-    }
     (mkIf (networkCfg.enable && cfg.enable) {
       sops.secrets."portunus/admin-pass" = {
         sopsFile = ./secrets.yaml;
