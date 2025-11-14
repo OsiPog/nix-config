@@ -1,7 +1,7 @@
 {
   flake,
   pkgs,
-  config,
+  lib,
   ...
 }: {
   imports = with flake.nixosModules; [
@@ -71,8 +71,8 @@
     }
   ];
 
-  # slower mouse
-  home-manager.users.osi.wayland.windowManager.hyprland.settings.input.sensitivity = -0.5;
+  # TODO: remove when it works again
+  jovian.steam.enable = lib.mkForce false;
 
   # Don't change, will break things!
   system.stateVersion = "25.11";
