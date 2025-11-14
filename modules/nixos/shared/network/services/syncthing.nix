@@ -1,6 +1,8 @@
 # This module makes syncing specific folders across hosts as easy as possible.
-# All hosts can configure `syncthing.sharedFolders` in their `network.nix` which is a basic attrset which maps syncthing folder names to the local
-# paths on the hosts.
+# All hosts can configure `services.syncthing` in their `network.nix` with:
+#   - id: The syncthing device ID for this host
+#   - sharedFolders: A basic attrset which maps syncthing folder names to local paths
+#
 # All hosts that have the same syncthing folder names configured are matched together and these folders are automatically
 # shared between them via syncthing. Each host will sync its local folder path with all other hosts that have declared the same folder name.
 #
@@ -10,28 +12,51 @@
   lib,
   config,
   hostName,
+  flake,
   ...
 }: let
   inherit (builtins) hasAttr attrNames;
-  inherit (lib) mkIf pipe;
+  inherit (lib) mkIf pipe types mkOption;
   inherit (lib.attrsets) mapAttrs mapAttrs' filterAttrs;
   inherit (lib.strings) hasPrefix splitString optionalString;
   inherit (lib.lists) elemAt;
+  inherit (flake.lib) mkServiceOptionsModule;
 
-  cfg = config.network;
-  hostCfg = cfg.hosts.${hostName};
+  serviceName = "syncthing";
+  networkCfg = config.network;
+  cfg = networkCfg.hosts.${hostName}.services.${serviceName};
 
   toMountPoint = path: "/mnt/sync/${path}";
 in {
-  config = mkIf (cfg.enable && hostCfg.syncthing.enable) {
+  imports = [
+    (mkServiceOptionsModule serviceName {
+      settingsOptions = {
+        id = mkOption {
+          type = types.str;
+          description = "The syncthing device ID for this host.";
+        };
+
+        sharedFolders = mkOption {
+          type = types.attrsOf types.str;
+          default = {};
+          description = ''
+            Attrset mapping syncthing folder names to local paths on this host.
+            Folders with matching names across hosts will be automatically synced.
+          '';
+        };
+      };
+    })
+  ];
+
+  config = mkIf (networkCfg.enable && cfg.enable) {
     services.syncthing = {
       enable = true;
       openDefaultPorts = true;
       settings = {
-        devices = pipe cfg.hosts [
-          (filterAttrs (name: host: host.syncthing.enable && name != hostName))
+        devices = pipe networkCfg.hosts [
+          (filterAttrs (name: host: host.services.${serviceName}.enable && name != hostName))
           (mapAttrs (name: host: {
-            id = host.syncthing.id;
+            id = host.services.${serviceName}.settings.id;
             autoAcceptFolders = true;
             addresses = [
               # works for tailscale magicdns
@@ -39,14 +64,14 @@ in {
             ];
           }))
         ];
-        folders = pipe hostCfg.syncthing.sharedFolders [
+        folders = pipe cfg.settings.sharedFolders [
           (mapAttrs (folderName: folder: {
             path = toMountPoint folder;
-            devices = pipe cfg.hosts [
+            devices = pipe networkCfg.hosts [
               (filterAttrs (
                 name: host:
-                  host.syncthing.enable
-                  && (hasAttr folderName host.syncthing.sharedFolders)
+                  host.services.${serviceName}.enable
+                  && (hasAttr folderName host.services.${serviceName}.settings.sharedFolders)
                   && name != hostName
               ))
               attrNames
@@ -70,6 +95,6 @@ in {
           ]);
         };
       })
-      hostCfg.syncthing.sharedFolders;
+      cfg.settings.sharedFolders;
   };
 }
