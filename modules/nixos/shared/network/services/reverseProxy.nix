@@ -6,15 +6,18 @@
   ...
 }: let
   inherit (builtins) filter listToAttrs;
-  inherit (lib) mkIf pipe;
+  inherit (lib) mkIf mkOption pipe types;
   inherit (lib.attrsets) recursiveUpdate mapAttrsToList filterAttrs attrsToList;
   inherit (lib.strings) concatLines;
   inherit (lib.lists) range flatten;
   inherit (config.lib.network) toFullDomain;
+  inherit (flake.lib) mkServiceOptionsModule;
+
+  serviceName = "reverseProxy";
 
   cfg = config.network;
   hostCfg = cfg.hosts.${hostName};
-  inherit (hostCfg.reverseProxy) domain;
+  serviceCfg = hostCfg.services.${serviceName};
 
   # Flatten all services in all hosts into a list of {port, host, serviceName, portName, portConfig}
   # portRange is also flattenend into individual entries
@@ -75,10 +78,21 @@
     # this will only work when both are in the same Tailscale network with magic dns
     else serviceHost;
 in {
-  imports = [flake.nixosModules.porkbunAcme];
-  config = mkIf (cfg.enable && hostCfg.reverseProxy.enable) {
+  imports = [
+    flake.nixosModules.porkbunAcme
+    (mkServiceOptionsModule serviceName {
+      settingsOptions = {
+        domain = mkOption {
+          type = types.str;
+          description = "The domain configured to connect to this host.";
+          default = "";
+        };
+      };
+    })
+  ];
+  config = mkIf (cfg.enable && serviceCfg.enable) {
     networking = {
-      inherit domain;
+      inherit (serviceCfg.settings) domain;
       firewall.allowedTCPPorts = [443] ++ (map (p: p.portConfig.port) relevantStreamPorts);
     };
 

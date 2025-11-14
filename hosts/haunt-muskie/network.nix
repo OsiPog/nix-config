@@ -3,11 +3,11 @@
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAcSqngrHbdtiCGzPmt6peImIQfYek/WLcaXIwrhN5oS root@haunt-muskie";
     allowConnectionsFrom = ["biome-fest" "dead-voxel"];
   };
-  reverseProxy = {
-    enable = true;
-    domain = "axelhax.net";
-  };
   services = {
+    reverseProxy = {
+      enable = true;
+      settings.domain = "axelhax.net";
+    };
     vsftpd = {
       enable = true;
       ports = {

@@ -54,6 +54,6 @@ in {
           else head virtualHostPorts;
 
       portCfg = serviceCfg.ports.${selectedPortName};
-    in "${portCfg.reverseProxy.subdomain}.${cfg.hosts.${portCfg.reverseProxy.host}.reverseProxy.domain}";
+    in "${portCfg.reverseProxy.subdomain}.${cfg.hosts.${portCfg.reverseProxy.host}.services.reverseProxy.settings.domain}";
   };
 }

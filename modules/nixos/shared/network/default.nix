@@ -31,14 +31,6 @@ in {
           description = "List of host names that are allowed to connect to this host via SSH";
         };
       };
-      reverseProxy = {
-        enable = mkEnableOption "a reverse proxy responsible for mapping the domains of the services to their servers";
-        domain = mkOption {
-          type = types.str;
-          description = "The domain configured to connect to this host.";
-          default = "";
-        };
-      };
       # Is populated by `mkServiceOptionsModule`
       services = {};
     });
@@ -47,7 +39,6 @@ in {
   imports =
     [
       ./lib
-      ./reverseProxy
       ./importHosts.nix
     ]
     ++ (map (e: ./services + "/${e}") (attrNames (readDir ./services)));
