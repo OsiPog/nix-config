@@ -30,12 +30,14 @@
 in {
   imports = [
     (mkServiceOptionsModule serviceName {
+      portsDefault = {
+        web.port = 8384;
+      };
       settingsOptions = {
         id = mkOption {
           type = types.str;
           description = "The syncthing device ID for this host.";
         };
-
         sharedFolders = mkOption {
           type = types.attrsOf types.str;
           default = {};
@@ -52,6 +54,7 @@ in {
     services.syncthing = {
       enable = true;
       openDefaultPorts = true;
+      guiAddress = "127.0.0.1:${cfg.ports.web.port}";
       settings = {
         devices = pipe networkCfg.hosts [
           (filterAttrs (name: host: host.services.${serviceName}.enable && name != hostName))
