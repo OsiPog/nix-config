@@ -16,7 +16,7 @@
   cfg = networkCfg.hosts.${hostName}.services.${serviceName};
 in {
   imports = [
-    (mkServiceOptionsModule serviceName)
+    (mkServiceOptionsModule serviceName {})
     inputs.nix-minecraft.nixosModules.minecraft-servers
   ];
 

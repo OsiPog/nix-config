@@ -15,7 +15,7 @@
   certCfg = config.security.acme.certs.default;
 in {
   imports = [
-    (mkServiceOptionsModule serviceName)
+    (mkServiceOptionsModule serviceName {})
   ];
   config = mkMerge [
     {

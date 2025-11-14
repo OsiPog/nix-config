@@ -1,4 +1,7 @@
 flake: serviceName: {
+  settingsOptions ? {},
+  portsDefault ? {},
+}: {
   lib,
   config,
   ...
@@ -17,6 +20,7 @@ flake: serviceName: {
       type = types.submodule (_module: {
         options = {
           enable = mkEnableOption "the ${serviceName} service";
+          settings = settingsOptions;
           ports = mkOption {
             type = types.attrsOf (types.submodule (_portModule: {
               options = {
@@ -85,7 +89,7 @@ flake: serviceName: {
                 };
               };
             }));
-            default = {};
+            default = portsDefault;
             description = ''
               Named ports for this service. Each port can have either a single port number
               or a port range, along with optional reverse proxy configuration.

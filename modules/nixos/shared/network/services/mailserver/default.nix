@@ -16,7 +16,7 @@
 in {
   imports = [
     inputs.simple-nixos-mailserver.nixosModules.default
-    (mkServiceOptionsModule serviceName)
+    (mkServiceOptionsModule serviceName {})
   ];
 
   config = mkMerge [

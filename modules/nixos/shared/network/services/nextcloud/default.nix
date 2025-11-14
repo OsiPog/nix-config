@@ -15,7 +15,7 @@
   cfg = networkCfg.hosts.${hostName}.services.${serviceName};
 in {
   imports = [
-    (mkServiceOptionsModule serviceName)
+    (mkServiceOptionsModule serviceName {})
   ];
 
   config = mkMerge [

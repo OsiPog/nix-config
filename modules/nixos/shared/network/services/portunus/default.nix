@@ -19,7 +19,7 @@
   baseDomain = networkCfg.hosts.${cfg.ports.web.reverseProxy.host}.reverseProxy.domain;
 in {
   imports = [
-    (mkServiceOptionsModule serviceName)
+    (mkServiceOptionsModule serviceName {})
     flake.nixosModules.porkbunAcme
   ];
   config = mkMerge [

@@ -14,7 +14,7 @@
   cfg = networkCfg.hosts.${hostName}.services.${serviceName};
 in {
   imports = [
-    (mkServiceOptionsModule serviceName)
+    (mkServiceOptionsModule serviceName {})
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     services.forgejo = {
