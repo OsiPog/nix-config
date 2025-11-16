@@ -11,6 +11,7 @@
       hypridle
       hyprpolkitagent
       ydotool
+      hyprmon
     ];
     sessionVariables = {
       XDG_SESSION_TYPE = "wayland";
