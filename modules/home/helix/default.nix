@@ -111,8 +111,9 @@
           config = let
             flakeExpr = "(__getFlake \"github:osipog/nix-config\")";
             pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
-            currentSystemExpr = flakeExpr + ".nixosConfigurations.${nixosConfig.networking.hostName}";
+            currentSystemExpr = "(${flakeExpr}.nixosConfigurations.${nixosConfig.networking.hostName})";
           in {
+            autoArchive = true;
             nixpkgs.expr = pkgsExpr;
             options = {
               nixos.expr = "${currentSystemExpr}.options";
@@ -171,7 +172,6 @@
           language-servers = [
             "nixd"
             "nil"
-            "lsp-ai"
           ];
           file-types = ["nix"];
           formatter = {
