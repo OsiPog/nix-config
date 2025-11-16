@@ -5,9 +5,20 @@ flake: let
   inherit (builtins) attrNames typeOf;
   inherit (lib) pipe;
   inherit (lib.attrsets) listToAttrs mapAttrs;
-
   # Need to import that manually
-  importFilesAsAttrs = dir: mapAttrs (_: value: import value) ((import ./lib/fileTreeAsAttrs.nix lib) dir);
+  fileTreeAsAttrs = dir: (import ./lib/fileTreeAsAttrs.nix lib) dir;
+
+  importFilesAsAttrs = dir: let
+    attrsFiles = fileTreeAsAttrs dir;
+
+    func = mapAttrs (
+      _: value:
+        if typeOf value == "set"
+        then func value
+        else import value
+    );
+  in
+    func attrsFiles;
 
   callAttrs = attrs: arg:
     mapAttrs (_: value:
