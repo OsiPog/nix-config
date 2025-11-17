@@ -71,9 +71,6 @@
     }
   ];
 
-  # TODO: remove when it works again
-  jovian.steam.enable = lib.mkForce false;
-
   # Don't change, will break things!
   system.stateVersion = "25.11";
 }
