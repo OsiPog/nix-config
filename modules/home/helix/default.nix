@@ -18,7 +18,7 @@
       nixd
 
       # PHP
-      phpactor
+      intelephense
 
       # Nodejs and friends
       vtsls
@@ -203,7 +203,10 @@
         {
           name = "php";
           file-types = ["php"];
-          language-servers = ["phpactor"];
+          language-servers = [
+            # "phpactor"
+            "intelephense"
+          ];
           debugger = {
             name = "vscode-php-debug";
             transport = "stdio";
