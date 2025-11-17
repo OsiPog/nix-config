@@ -177,6 +177,9 @@
         # The base gnucash window should be tiled, everything else should be floating
         "float, class:gnucash"
         "tile, title:.*- GnuCash$"
+
+        # Gamescope errors should be float
+        "float, title:Gamescope WSI Layer Error"
       ];
     };
   };
