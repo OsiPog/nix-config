@@ -22,9 +22,12 @@ This is the NixOS flake which defines the system on all of my devices running Ni
   - Hyprland
   - Geforce RTX 3060 12GB with AMD Ryzen 3600
 
-- `blind-spots` - Home Server (just an old laptop)
-  - Nextcloud
-  - Forgejo
+- `floating-trees` - Home Server
+  - runs all services
+  - backup server for all other hosts
+
+- `blind-spots` - External Backup Server (just an old laptop)
+  - backup of the backup in a different geographical location
 
 ## Guides to remember
 
