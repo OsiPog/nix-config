@@ -19,6 +19,7 @@
 
       # PHP
       intelephense
+      phpactor
 
       # Nodejs and friends
       vtsls
@@ -204,7 +205,7 @@
           name = "php";
           file-types = ["php"];
           language-servers = [
-            # "phpactor"
+            "phpactor"
             "intelephense"
           ];
           debugger = {
