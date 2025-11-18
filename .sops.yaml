@@ -50,6 +50,10 @@ creation_rules:
   - age:
     - *biome-fest
     - *dead-voxel
+- path_regex: modules/nixos/drive-blaze-husk/secrets.yaml$
+  key_groups:
+  - age:
+    - *floating-trees
 - path_regex: modules/nixos/nix-access-tokens/secrets.yaml$
   key_groups:
   - age:
@@ -81,6 +85,10 @@ creation_rules:
   key_groups:
   - age:
     - *blind-spots
+- path_regex: modules/nixos/speicherfresser/secrets.yaml$
+  key_groups:
+  - age:
+    - *dead-voxel
 - path_regex: modules/nixos/uni-vpn/secrets.yaml$
   key_groups:
   - age:
