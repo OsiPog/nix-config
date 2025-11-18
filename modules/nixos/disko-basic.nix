@@ -7,7 +7,11 @@
 
   disko.devices = {
     disk.disk1 = {
-      device = lib.mkDefault "/dev/sda";
+      device = lib.mkDefault (throw ''
+        Please define the root disk with:
+          disko.devices.disk.disk1.device = \"/dev/disk/by-id/some-disk-id\"
+        You can find out the correct disk ID with `lsblk` and `ls -l /dev/disk/by-id`.
+      '');
       type = "disk";
       content = {
         type = "gpt";
@@ -33,24 +37,6 @@
             content = {
               type = "lvm_pv";
               vg = "pool";
-            };
-          };
-        };
-      };
-    };
-    lvm_vg = {
-      pool = {
-        type = "lvm_vg";
-        lvs = {
-          root = {
-            size = "100%FREE";
-            content = {
-              type = "filesystem";
-              format = "ext4";
-              mountpoint = "/";
-              mountOptions = [
-                "defaults"
-              ];
             };
           };
         };
