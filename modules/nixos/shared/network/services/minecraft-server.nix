@@ -42,15 +42,17 @@ in {
         enable = true;
         serverProperties = {
           server-port = cfg.ports.game.port;
-          whitelist = "on";
+          white-list = true;
           spawn-protection = 0;
+          enforce-secure-profile = false;
         };
         operators = {
           OsiBluber = "10d6960e-0f45-486c-804a-d0f98f0fedd0";
         };
         package = pkgs.minecraftServers.paper-1_21_10;
         symlinks = {
-          # Plugins
+          # --- Plugins
+          # Geyser, allow Bedrock players to connect to java server
           "plugins/Geyser-Spigot.jar" = fetchurl {
             url = "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot";
             hash = "sha256-rJcKRpLzkwEXZuHg/JiOfFVNLWJNy1j11sgZc4I4UcA=";
@@ -58,6 +60,11 @@ in {
           # "plugins/Geyser-Spigot/config.yml".value = {
           #   bedrock.port = cfg.ports.bedrock.port;
           # };
+          # better compatibility for bedrock players
+          "plugins/floodgate-spigot.jar" = fetchurl {
+            url = "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot";
+            hash = "sha256-c5N3B5s2L67M9dFvMUK6A0CphupISzcPIOymngWBDrY=";
+          };
         };
       };
     };
