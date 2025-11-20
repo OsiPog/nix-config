@@ -16,7 +16,12 @@
   cfg = networkCfg.hosts.${hostName}.services.${serviceName};
 in {
   imports = [
-    (mkServiceOptionsModule serviceName {})
+    (mkServiceOptionsModule serviceName {
+      portsDefault = {
+        game.port = 25565;
+        bedrock.port = 19132;
+      };
+    })
     inputs.nix-minecraft.nixosModules.minecraft-servers
   ];
 
@@ -37,6 +42,8 @@ in {
         enable = true;
         serverProperties = {
           server-port = cfg.ports.game.port;
+          whitelist = "on";
+          spawn-protection = 0;
         };
         operators = {
           OsiBluber = "10d6960e-0f45-486c-804a-d0f98f0fedd0";
@@ -45,12 +52,12 @@ in {
         symlinks = {
           # Plugins
           "plugins/Geyser-Spigot.jar" = fetchurl {
-            url = "https://cdn.modrinth.com/data/wKkoqHrH/versions/TudMk9ax/Geyser-Spigot.jar";
-            hash = "sha256-2lNPbrP1XTv1RTPVSVPyNefTgWF9EPgrUhU3Ms2Qktw=";
+            url = "https://cdn.modrinth.com/data/wKkoqHrH/versions/10bubppO/Geyser-Spigot.jar";
+            hash = "sha256-zDHoe3EASp+cNWvtlqVfaODCgVK90GqC/lzk8LuxRo4=";
           };
-          "plugins/Geyser-Spigot/config.yml".value = {
-            bedrock.port = 19132;
-          };
+          # "plugins/Geyser-Spigot/config.yml".value = {
+          #   bedrock.port = cfg.ports.bedrock.port;
+          # };
         };
       };
     };

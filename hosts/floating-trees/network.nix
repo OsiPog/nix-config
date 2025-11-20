@@ -6,6 +6,28 @@
     allowConnectionsFrom = ["dead-voxel"];
   };
   services = {
-    # ...
+    # portunus = {
+    #   enable = true;
+    #   settings.domain = "axelhax";
+    # };
+    minecraft-server = {
+      enable = true;
+      ports = let
+        reverseProxy = {
+          enable = true;
+          host = "haunt-muskie";
+          method = "stream";
+        };
+      in {
+        game = {
+          inherit reverseProxy;
+          port = 25565;
+        };
+        bedrock = {
+          inherit reverseProxy;
+          port = 19132;
+        };
+      };
+    };
   };
 }
