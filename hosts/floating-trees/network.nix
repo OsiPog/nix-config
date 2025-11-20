@@ -3,7 +3,7 @@
 {...}: {
   ssh = {
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDYdr33vJvtTnrSDiEhCUkc0fL7GyrZG9UEL8zjaKJpU root@floating-trees";
-    allowConnectionsFrom = ["dead-voxel"];
+    allowConnectionsFrom = ["dead-voxel" "biome-fest"];
   };
   services = {
     # portunus = {
