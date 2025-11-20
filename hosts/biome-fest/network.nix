@@ -9,6 +9,7 @@
       id = "SGSXHMI-OZGR23Y-4MO3YJZ-LW25XIP-R7LD52C-RGGEUYR-SKYDJLV-S253WAG";
       sharedFolders = {
         "working-files" = "/home/osi/files";
+        "prism-launcher" = "/home/osi/.local/share/PrismLauncher";
       };
     };
   };
