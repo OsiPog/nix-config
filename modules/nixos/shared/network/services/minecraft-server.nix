@@ -52,8 +52,8 @@ in {
         symlinks = {
           # Plugins
           "plugins/Geyser-Spigot.jar" = fetchurl {
-            url = "https://cdn.modrinth.com/data/wKkoqHrH/versions/10bubppO/Geyser-Spigot.jar";
-            hash = "sha256-zDHoe3EASp+cNWvtlqVfaODCgVK90GqC/lzk8LuxRo4=";
+            url = "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot";
+            hash = "sha256-rJcKRpLzkwEXZuHg/JiOfFVNLWJNy1j11sgZc4I4UcA=";
           };
           # "plugins/Geyser-Spigot/config.yml".value = {
           #   bedrock.port = cfg.ports.bedrock.port;

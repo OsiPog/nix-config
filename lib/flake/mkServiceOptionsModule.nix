@@ -82,6 +82,8 @@ flake: serviceName: {
                         default = {};
                         description = "Extra options to merge into services.nginx.virtualHosts.<name>. Only used when method is 'virtual-host'.";
                       };
+
+                      udp = mkEnableOption "UDP stream instead of TCP. Only relevant when method is 'stream'";
                     };
                   });
                   default = {};

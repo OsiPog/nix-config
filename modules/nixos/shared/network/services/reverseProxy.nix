@@ -93,7 +93,10 @@ in {
   config = mkIf (cfg.enable && serviceCfg.enable) {
     networking = {
       inherit (serviceCfg.settings) domain;
-      firewall.allowedTCPPorts = [443] ++ (map (p: p.portConfig.port) relevantStreamPorts);
+      firewall = {
+        allowedTCPPorts = [443] ++ (map (p: p.port) (filter (p: !p.portConfig.reverseProxy.udp) relevantStreamPorts));
+        allowedUDPPorts = map (p: p.port) (filter (p: p.portConfig.reverseProxy.udp) relevantStreamPorts);
+      };
     };
 
     # If the current host is the service exposer expose the services to the domain
@@ -122,11 +125,30 @@ in {
         listToAttrs
       ];
       streamConfig = pipe relevantStreamPorts [
-        (map (p: ''
-          server {
-            listen ${toString p.portConfig.port};
-            proxy_pass ${ipAddrOf p.hostName}:${toString p.portConfig.port};
-            proxy_timeout 20s;
+        (map (p: let
+          upstream = p.hostName + "-" + p.serviceName + "-" + p.portName;
+        in ''
+          upstream ${upstream} {
+            server ${ipAddrOf p.hostName}:${toString p.portConfig.port};
+          }
+          ${
+            if p.portConfig.reverseProxy.udp
+            then ''
+              server {
+                listen ${toString p.portConfig.port} udp;
+                proxy_pass ${upstream};
+                proxy_requests 8640000;
+                proxy_timeout 20s;
+                proxy_responses 0;
+              }
+            ''
+            else ''
+              server {
+                listen ${toString p.portConfig.port};
+                proxy_pass ${upstream};
+                proxy_timeout 20s;
+              }
+            ''
           }
         ''))
         concatLines
