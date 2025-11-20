@@ -11,7 +11,7 @@ in {
   wayland.windowManager.hyprland = {
     plugins = with pkgs.hyprlandPlugins; [
       hyprfocus # currently broken in nixpkgs
-      hypr-dynamic-cursors
+      # hypr-dynamic-cursors
     ];
 
     settings = {
@@ -78,12 +78,12 @@ in {
             flash_opacity = 0.8;
           };
         };
-        dynamic-cursors = {
-          enabled = true;
-          mode = "none";
-          shake.effects = true;
-          hyprcursor.resolution = "256";
-        };
+        # dynamic-cursors = {
+        #   enabled = true;
+        #   mode = "none";
+        #   shake.effects = true;
+        #   hyprcursor.resolution = "256";
+        # };
       };
     };
   };
