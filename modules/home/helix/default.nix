@@ -89,6 +89,11 @@
             ":format"
             ":sh ${lintCodeScript} %{buffer_name}"
           ];
+          # Copy GitHub permalink to current cursor position
+          c = [
+            ":sh gh repo view --json url | jq -r \".url + \\\"/blob/$(git rev-parse HEAD)/%{buffer_name}#L%{cursor_column}\\\"\" | wl-copy"
+            ":sh echo permalink copied to clipboard"
+          ];
         };
 
         # Binds in the menu that opens on "+" and need select mode
