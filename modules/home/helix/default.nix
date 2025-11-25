@@ -18,7 +18,7 @@
       nixd
 
       # PHP
-      intelephense
+      # intelephense
       phpactor
 
       # Nodejs and friends

@@ -11,16 +11,12 @@
           --set XDG_CURRENT_DESKTOP "GNOME"
       '';
   });
-  # GnuCash should be in german
-  gnucashOverride = pkgs.gnucash.overrideAttrs (prev: {
-    preFixup =
-      prev.preFixup
-      + ''
-        gappsWrapperArgs+=(
-          --set LANG de_DE.utf8
-          --set LANGUAGE de_DE.utf8
-        )
-      '';
+  # Force XWayland
+  arduinoIdeOverride = pkgs.arduino-ide.overrideAttrs (prev: {
+    extraInstallCommands = builtins.trace (builtins.attrNames prev) "";
+    # + ''
+    #   substituteInPlace $out/share/applications/${prev.pname}.desktop --replace-fail 'Exec=${prev.pname} %U' 'Exec=${prev.pname} --enable-features=UseOzonePlatform --ozone-platform=x11 %U'
+    # '';
   });
 in {
   home.packages = with pkgs; [
@@ -37,10 +33,8 @@ in {
     krita # best drawing
     cheese # camera app
     audacity # audio editing
-    # gnucashOverride
-    gnucash # money
     discord
-    betterdiscordctl
+    arduinoIdeOverride
   ];
 
   # Default apps
