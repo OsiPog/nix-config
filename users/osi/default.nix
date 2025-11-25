@@ -23,7 +23,8 @@ in {
 
   programs.hyprland.enable = true;
 
-  users.extraGroups.podman.members = ["osi"];
+  users.extraGroups.podman.members = [username];
+  users.extraGroups.dialout.members = [username];
 
   programs.adb.enable = true;
 
