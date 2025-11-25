@@ -89,16 +89,14 @@
             ":format"
             ":sh ${lintCodeScript} %{buffer_name}"
           ];
+          # Open blame for selected lines
+          b = ":sh git blame -L %{selection_line_start},%{selection_line_end} %{buffer_name}";
           # Copy GitHub permalink to current cursor position
-          c = [
-            ":sh gh repo view --json url | jq -r \".url + \\\"/blob/$(git rev-parse HEAD)/%{buffer_name}#L%{cursor_line}\\\"\" | wl-copy"
-            ":sh echo permalink copied to clipboard"
-          ];
+          c = ":sh gh repo view --json url | jq -r \".url + \\\"/blob/$(git rev-parse HEAD)/%{buffer_name}#L%{selection_line_start}-L%{selection_line_end}\\\"\" | wl-copy";
         };
 
         # Binds in the menu that opens on "+" and need select mode
         plusBindsNeedSelection = {
-          b = ":sh git blame -L %{selection_line_start},%{selection_line_end} %{buffer_name}";
         };
       in {
         normal = {
