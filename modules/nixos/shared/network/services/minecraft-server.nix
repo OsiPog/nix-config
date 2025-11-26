@@ -52,8 +52,14 @@ in {
         package = pkgs.minecraftServers.paper-1_21_10;
         symlinks = {
           # --- Plugins
+          # For modrinth downloads:
+          # 1. go to versions page of plugin/mod
+          # 2. select version and copy version id
+          # 3. run `nix-modrinth-prefetch {version id}`
+          #
           # Regarding Geyser download.geysermc.org downloads, version pinning is not perfect but its fine. (url still points to latest build)
           # To get all versions of a project query: https://download.geysermc.org/v2/projects/$PROJECT
+          #
           #
           # Geyser, allow Bedrock players to connect to java server
           "plugins/Geyser-Spigot.jar" = fetchurl {
