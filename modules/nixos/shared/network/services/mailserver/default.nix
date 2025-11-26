@@ -35,6 +35,7 @@ in {
       mailserver = {
         enable = true;
         stateVersion = 3;
+        mailDirectory = cfg.stateDir;
         fqdn = "mail.${config.networking.domain}";
         domains = [config.networking.domain];
 

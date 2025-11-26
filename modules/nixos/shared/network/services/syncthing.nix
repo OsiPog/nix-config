@@ -56,6 +56,7 @@ in {
     services.syncthing = {
       enable = true;
       openDefaultPorts = true;
+      dataDir = cfg.stateDir;
       guiAddress = "127.0.0.1:${toString cfg.ports.web.port}";
       settings = {
         devices = pipe networkCfg.hosts [

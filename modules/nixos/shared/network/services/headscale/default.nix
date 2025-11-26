@@ -14,7 +14,11 @@
   cfg = networkCfg.hosts.${hostName}.services.${serviceName};
 in {
   imports = [
-    (mkServiceOptionsModule serviceName {})
+    (mkServiceOptionsModule serviceName {
+      defaults = {
+        stateDir = "/var/lib/headscale"; # this is hardcoded in the nixos module
+      };
+    })
   ];
   config = mkMerge [
     (mkIf (networkCfg.enable && cfg.enable) {

@@ -19,6 +19,7 @@ in {
   config = mkIf (networkCfg.enable && cfg.enable) {
     services.forgejo = {
       enable = true;
+      inherit (cfg) stateDir;
       settings = {
         server = {
           ROOT_URL =

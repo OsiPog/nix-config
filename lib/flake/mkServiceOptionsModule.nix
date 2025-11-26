@@ -20,6 +20,11 @@ flake: serviceName: {
       type = types.submodule (_module: {
         options = {
           enable = mkEnableOption "the ${serviceName} service";
+          stateDir = mkOption {
+            type = types.str;
+            description = "The state directory of the service. Is used for backups and home directories.";
+            default = "/var/lib/${serviceName}";
+          };
           settings = settingsOptions;
           ports = mkOption {
             type = types.attrsOf (types.submodule (_portModule: {

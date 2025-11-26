@@ -13,7 +13,11 @@
   cfg = networkCfg.hosts.${hostName}.services.${serviceName};
 in {
   imports = [
-    (mkServiceOptionsModule serviceName {})
+    (mkServiceOptionsModule serviceName {
+      defaults = {
+        stateDir = "/var/lib/authelia-default"; # seems to create its stuff there
+      };
+    })
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     sops.secrets = {

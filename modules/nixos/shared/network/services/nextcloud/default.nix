@@ -31,6 +31,7 @@ in {
       services.nextcloud = {
         enable = true;
         package = pkgs.nextcloud31;
+        home = cfg.stateDir;
         hostName = toFullDomain {
           inherit serviceName;
           portName = "web";

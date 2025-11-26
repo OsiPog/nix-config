@@ -16,7 +16,7 @@
   networkCfg = config.network;
   cfg = networkCfg.hosts.${hostName}.services.${serviceName};
 
-  baseDomain = networkCfg.hosts.${cfg.ports.web.reverseProxy.host}.reverseProxy.domain;
+  baseDomain = networkCfg.hosts.${cfg.ports.web.reverseProxy.host}.services.reverseProxy.settings.domain;
 in {
   imports = [
     (mkServiceOptionsModule serviceName {
@@ -44,6 +44,7 @@ in {
 
       services.portunus = {
         enable = true;
+        inherit (cfg) stateDir;
         domain = toFullDomain {
           inherit serviceName;
           portName = "web";

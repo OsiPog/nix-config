@@ -48,7 +48,7 @@ in {
     services.minecraft-servers = {
       enable = true;
       eula = true;
-      dataDir = "/var/minecraft";
+      dataDir = cfg.stateDir;
       servers.default = {
         enable = true;
         serverProperties = {
