@@ -20,8 +20,10 @@
 in {
   imports = [
     (mkServiceOptionsModule serviceName {
-      portsDefault = {
-        ldap.port = 636;
+      defaults = {
+        ports = {
+          ldap.port = 636;
+        };
       };
     })
     flake.nixosModules.porkbunAcme

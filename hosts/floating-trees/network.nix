@@ -13,22 +13,17 @@
     minecraft-server = {
       enable = true;
       ports = {
-        game = {
+        java = {
           reverseProxy = {
             enable = true;
             host = "haunt-muskie";
-            method = "stream";
           };
-          port = 25565;
         };
         bedrock = {
           reverseProxy = {
             enable = true;
             host = "haunt-muskie";
-            method = "stream";
-            udp = true;
           };
-          port = 19132;
         };
       };
     };

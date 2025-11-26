@@ -17,9 +17,20 @@
 in {
   imports = [
     (mkServiceOptionsModule serviceName {
-      portsDefault = {
-        game.port = 25565;
-        bedrock.port = 19132;
+      defaults = {
+        ports = {
+          java = {
+            port = 25565;
+            reverseProxy.method = "stream";
+          };
+          bedrock = {
+            port = 19132;
+            reverseProxy = {
+              method = "stream";
+              udp = true;
+            };
+          };
+        };
       };
     })
     inputs.nix-minecraft.nixosModules.minecraft-servers
@@ -41,7 +52,7 @@ in {
       servers.default = {
         enable = true;
         serverProperties = {
-          server-port = cfg.ports.game.port;
+          server-port = cfg.ports.java.port;
           white-list = true;
           spawn-protection = 0;
           enforce-secure-profile = false;
@@ -66,6 +77,7 @@ in {
             url = "https://download.geysermc.org/v2/projects/geyser/versions/2.9.1/builds/latest/downloads/spigot";
             hash = "sha256-5f21qdfY2SZUDqknf1bGU846GGoSkzjDELmgsrvr2Rs=";
           };
+          # Geyser likes to update its config, so this cannot be a symlink
           # "plugins/Geyser-Spigot/config.yml".value = {
           #   bedrock.port = cfg.ports.bedrock.port;
           # };

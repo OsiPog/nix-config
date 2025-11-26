@@ -30,8 +30,10 @@
 in {
   imports = [
     (mkServiceOptionsModule serviceName {
-      portsDefault = {
-        web.port = 8384;
+      defaults = {
+        ports = {
+          web.port = 8384;
+        };
       };
       settingsOptions = {
         id = mkOption {

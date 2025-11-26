@@ -1,14 +1,14 @@
 flake: serviceName: {
   settingsOptions ? {},
-  portsDefault ? {},
+  defaults ? {},
 }: {
   lib,
   config,
   ...
 }: let
-  inherit (builtins) foldl' concatLists;
-  inherit (lib) types mkOption mkEnableOption pipe;
-  inherit (lib.attrsets) recursiveUpdate attrsToList;
+  inherit (builtins) foldl' concatLists isAttrs;
+  inherit (lib) types mkOption mkEnableOption pipe mkDefault;
+  inherit (lib.attrsets) recursiveUpdate attrsToList mapAttrs;
 
   hostNames = flake.lib.nixosHostNames;
 
@@ -91,7 +91,7 @@ flake: serviceName: {
                 };
               };
             }));
-            default = portsDefault;
+            default = {};
             description = ''
               Named ports for this service. Each port can have either a single port number
               or a port range, along with optional reverse proxy configuration.
@@ -135,6 +135,18 @@ flake: serviceName: {
         ))
         concatLists
       ];
+
+      # Set defaults
+      network.hosts.${hostName}.services.${serviceName} = let
+        # Recursively apply mkDefault to all values in an attribute set
+        applyDefaultsRecursively = attrs:
+          mapAttrs (name: value:
+            if isAttrs value && !value._type or false
+            then applyDefaultsRecursively value
+            else mkDefault value)
+          attrs;
+      in
+        applyDefaultsRecursively defaults;
     };
   };
 in
