@@ -53,12 +53,12 @@ in {
         symlinks = {
           # --- Plugins
           # Regarding Geyser download.geysermc.org downloads, version pinning is not perfect but its fine. (url still points to latest build)
-          # To get all versions of a project query: https://download.geysermc.org/v2/projects/$PROJECT/versions
+          # To get all versions of a project query: https://download.geysermc.org/v2/projects/$PROJECT
           #
           # Geyser, allow Bedrock players to connect to java server
           "plugins/Geyser-Spigot.jar" = fetchurl {
-            url = "https://download.geysermc.org/v2/projects/geyser/versions/2.9.0/builds/latest/downloads/spigot";
-            hash = "sha256-rJcKRpLzkwEXZuHg/JiOfFVNLWJNy1j11sgZc4I4UcA=";
+            url = "https://download.geysermc.org/v2/projects/geyser/versions/2.9.1/builds/latest/downloads/spigot";
+            hash = "sha256-5f21qdfY2SZUDqknf1bGU846GGoSkzjDELmgsrvr2Rs=";
           };
           # "plugins/Geyser-Spigot/config.yml".value = {
           #   bedrock.port = cfg.ports.bedrock.port;
