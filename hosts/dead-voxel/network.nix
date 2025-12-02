@@ -10,6 +10,7 @@
       sharedFolders = {
         "working-files" = "/home/osi/files";
         "prism-launcher" = "/home/osi/.local/share/PrismLauncher";
+        "ryujinx" = "/home/osi/.config/Ryujinx";
       };
     };
   };

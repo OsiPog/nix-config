@@ -1,6 +1,7 @@
 {
   inputs,
   pkgs,
+  lib,
   ...
 }: {
   imports = [
@@ -15,6 +16,7 @@
         # citra-canary
         dolphin
       ]))
+    ryubing
   ];
 
   # For retroarch
@@ -27,6 +29,7 @@
   nixpkgs.config.allowUnfree = true;
 
   jovian.steam.enable = true;
+  programs.steam.localNetworkGameTransfers.openFirewall = true;
 
   home-manager.sharedModules = [
     ({...}: {
