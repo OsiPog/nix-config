@@ -6,6 +6,18 @@
     allowConnectionsFrom = ["dead-voxel" "biome-fest"];
   };
   services = {
+    backup = {
+      enable = true;
+      settings = {
+        paths = [
+          "/mnt/husk" # big drive
+        ];
+        server = {
+          enable = true;
+          repository = "/mnt/blaze";
+        };
+      };
+    };
     # portunus = {
     #   enable = true;
     #   settings.domain = "axelhax";
