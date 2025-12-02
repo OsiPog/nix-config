@@ -35,6 +35,7 @@ in {
     audacity # audio editing
     discord
     arduinoIdeOverride
+    transmission_4-gtk
   ];
 
   # Default apps
