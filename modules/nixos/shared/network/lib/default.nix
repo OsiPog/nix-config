@@ -45,7 +45,7 @@
     # For port configs that define ranges create a servicePort for each port in that range
     allEnabledServicePorts = pipe allEnabledServices [
       (map (s:
-        pipe s.service.ports [
+        pipe s.serviceCfg.ports [
           (mapAttrsToList (portName: portCfg:
             # Create a servicePort for each port in a port range
               pipe portCfg.portRange [
