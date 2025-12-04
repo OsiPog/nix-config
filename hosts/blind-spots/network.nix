@@ -1,4 +1,5 @@
 {...}: {
+  vpn.ip = "100.64.0.5";
   ssh = {
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKShjod8+H+fuNp9e6gjifRfu8/vdEwKO837MmFgViil root@blind-spots";
     allowConnectionsFrom = ["biome-fest" "dead-voxel"];
@@ -10,6 +11,7 @@
         port = 2000;
         reverseProxy = {
           enable = true;
+          hidden = true;
           host = "haunt-muskie";
           subdomain = "git";
         };

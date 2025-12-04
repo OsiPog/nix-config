@@ -14,6 +14,8 @@ const HOSTNAMES = [
 
 # Creates a new host.
 export def "main create" [ hostname: string ] {
+    let nixosHosts = (^nix eval --impure --json --expr $"__attrNames \(__getFlake \"($env.PWD)\"\).nixosConfigurations" | from json)
+
     let HOST_DIR = $"hosts/($hostname)"
     mkdir $HOST_DIR
 
@@ -53,6 +55,7 @@ export def "main create" [ hostname: string ] {
       hostname: $hostname,
       sshPublicKey: (^sudo ssh-keygen -y -f $SSH_KEY_PATH),
       allowedConnectionHostname: (^hostname),
+      vpnIp: ("100.64.0." + ((($nixosHosts | length) + 1) | into string)),
     }
     | to yaml
     | ^mustache $"($env.FILE_PWD)/templates/network.nix.mustache"

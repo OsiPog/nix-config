@@ -1,4 +1,4 @@
-_module @ {
+{
   lib,
   flake,
   config,
@@ -20,6 +20,10 @@ in {
     enable = (mkEnableOption "network module") // {default = true;};
 
     hosts = genAttrs hostnames (hostname: {
+      vpn.ip = mkOption {
+        type = types.str;
+        description = "VPN IP address for the host";
+      };
       ssh = {
         publicKey = mkOption {
           type = types.str;
