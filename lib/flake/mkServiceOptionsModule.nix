@@ -63,6 +63,8 @@ flake: serviceName: {
                         default = hostName;
                       };
 
+                      hidden = mkEnableOption "that the service is only accessable in the VPN";
+
                       method = mkOption {
                         type = types.enum ["virtual-host" "stream"];
                         default =
@@ -136,6 +138,10 @@ flake: serviceName: {
               assertion = !p.value.reverseProxy.enable || config.network.hosts.${p.value.reverseProxy.host}.reverseProxy.enable;
               message = "Reverse proxy host \"${p.value.reverseProxy.host}\" of service \"${serviceName}\" port \"${p.name}\" is not a reverse proxy.";
             }
+            # {
+            #   assertion = !p.value.reverseProxy.enable || !p.value.reverseProxy.hidden || p.value.reverseProxy.method != "stream" || p.value.reverseProxy.subdomain != null;
+            #   message = "When hiding a stream port behind the VPN"
+            # }
           ]
         ))
         concatLists

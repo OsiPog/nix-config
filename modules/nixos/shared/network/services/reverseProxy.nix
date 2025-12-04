@@ -77,6 +77,10 @@ in {
                 proxyPass = "http://${ipAddrOf p.hostName}:${toString p.portCfg.port}";
                 proxyWebsockets = true;
               };
+              extraConfig = mkIf (proxyConf.hidden) ''
+                allow 100.64.0.0/10;
+                deny all;
+              '';
             };
           in {
             name = toFullDomain {inherit (p) serviceName portName hostName;};
@@ -91,24 +95,28 @@ in {
           upstream ${upstream} {
             server ${ipAddrOf p.hostName}:${toString p.portCfg.port};
           }
-          ${
+          server {
+            proxy_pass ${upstream};
+            proxy_timeout 20s;
+            ${
             if p.portCfg.reverseProxy.udp
             then ''
-              server {
-                listen ${toString p.portCfg.port} udp;
-                proxy_pass ${upstream};
-                proxy_requests 8640000;
-                proxy_timeout 20s;
-                proxy_responses 0;
-              }
+              listen ${toString p.portCfg.port} udp;
+              proxy_requests 8640000;
+              proxy_responses 0;
             ''
             else ''
-              server {
-                listen ${toString p.portCfg.port};
-                proxy_pass ${upstream};
-                proxy_timeout 20s;
-              }
+              listen ${toString p.portCfg.port};
             ''
+          }
+            ${
+            if p.portCfg.reverseProxy.hidden
+            then ''
+              allow 100.64.0.0/10;
+              deny all;
+            ''
+            else ""
+          }
           }
         ''))
         concatLines
