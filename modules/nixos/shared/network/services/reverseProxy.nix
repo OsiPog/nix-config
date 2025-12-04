@@ -10,7 +10,7 @@
   inherit (lib.attrsets) recursiveUpdate mapAttrsToList filterAttrs attrsToList;
   inherit (lib.strings) concatLines;
   inherit (lib.lists) range flatten;
-  inherit (config.lib.network) toFullDomain allServicePorts;
+  inherit (config.lib.network) toFullDomain allEnabledServicePorts;
   inherit (flake.lib) mkServiceOptionsModule;
 
   serviceName = "reverseProxy";
@@ -26,7 +26,7 @@
         p.portConfig.reverseProxy.enable
         && p.portConfig.reverseProxy.host == hostName
     )
-    allServicePorts;
+    allEnabledServicePorts;
 
   relevantVirtualHostPorts = filter (e: e.portConfig.reverseProxy.method == "virtual-host") relevantPorts;
   relevantStreamPorts = filter (e: e.portConfig.reverseProxy.method == "stream") relevantPorts;

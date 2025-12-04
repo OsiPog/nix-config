@@ -9,46 +9,64 @@
   inherit (lib.lists) flatten range;
 
   cfg = config.network;
-in {
-  config.lib.network = {
-    # Flatten all services in all hosts into a list of {port, host, serviceName, portName, portConfig}
-    # portRange is also flattenend into individual entries
-    allServicePorts = pipe cfg.hosts [
-      attrsToList
-      (map (
-        {
-          name,
-          value,
-        }: let
-          hostName = name;
-          services = value.services;
-        in
-          pipe services [
-            # only include enabled services
-            (filterAttrs (_: service: service.enable))
-            (mapAttrsToList (serviceName: service:
-              pipe service.ports [
-                (mapAttrsToList (portName: portConfig: let
-                  servicePort = {
-                    inherit portName portConfig serviceName hostName;
-                  };
 
-                  portRange =
-                    if (portConfig.portRange != null)
-                    then portConfig.portRange
-                    else {
+  networkLib = rec {
+    # Flatten all enabled services across all hosts into list of:
+    # {
+    #   hostName: string
+    #   serviceName: string
+    #   service: attrset
+    # }
+    allEnabledServices = pipe cfg.hosts [
+      attrsToList
+      (map (host:
+        pipe host.value.services [
+          (filterAttrs (_: service: service.enable))
+          (mapAttrsToList (name: value: {
+            serviceName = name;
+            service = value;
+            hostName = host.name;
+          }))
+        ]))
+      flatten
+    ];
+
+    # Flatten all enabled services across all hosts into a list of:
+    # {
+    #   hostName: string;
+    #
+    #   serviceName: string;
+    #
+    #   port: int;
+    #   portName: string;
+    #   portConfig: attrset;
+    # }
+    # For port configs that define ranges create a servicePort for each port in that range
+    allEnabledServicePorts = pipe allEnabledServices [
+      (map (s:
+        pipe s.service.ports [
+          (mapAttrsToList (portName: portConfig:
+            # Create a servicePort for each port in a port range
+              pipe portConfig.portRange [
+                # For ports that do not have a range but a single one simulate a range of one
+                (
+                  portRange:
+                    if (portRange == null)
+                    then {
                       from = portConfig.port;
                       to = portConfig.port;
-                    };
-                in
-                  pipe portRange [
-                    # to list of numbers
-                    (r: range r.from r.to)
-                    (map (port: {inherit port;} // servicePort))
-                  ]))
+                    }
+                    else portRange
+                )
+                # create list for all ports in the port range
+                (r: range r.from r.to)
+                # define the servicePort for each port in the range
+                (map (port: {
+                  inherit (s) serviceName hostName;
+                  inherit port portName portConfig;
+                }))
               ]))
-          ]
-      ))
+        ]))
       flatten
     ];
     toFullDomain = {
@@ -97,4 +115,6 @@ in {
       portCfg = serviceCfg.ports.${selectedPortName};
     in "${portCfg.reverseProxy.subdomain}.${cfg.hosts.${portCfg.reverseProxy.host}.services.reverseProxy.settings.domain}";
   };
+in {
+  config.lib.network = networkLib;
 }
