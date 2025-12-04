@@ -9,6 +9,8 @@
   inherit (lib) types mkOption mkEnableOption mkIf mkOptionDefault;
   inherit (lib.attrsets) genAttrs;
 
+  importDir = path: (map (e: "${path}/${e}") (attrNames (readDir path)));
+
   hostnames = flake.lib.nixosHostNames;
   # Define the available hostnames as an enum based on /hosts folder names
   hostnameEnum = types.enum hostnames;
@@ -45,7 +47,7 @@ in {
       ./lib
       ./importHosts.nix
     ]
-    ++ (map (e: ./services + "/${e}") (attrNames (readDir ./services)));
+    ++ (importDir "${./.}/services");
 
   config = mkIf cfg.enable {
     # Add authorized keys from hosts that are allowed to connect

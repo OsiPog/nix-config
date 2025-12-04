@@ -114,7 +114,11 @@
           else head virtualHostPorts;
 
       portCfg = serviceCfg.ports.${selectedPortName};
-    in "${portCfg.reverseProxy.subdomain}.${cfg.hosts.${portCfg.reverseProxy.host}.services.reverseProxy.settings.domain}";
+    in "${
+      if (portCfg.reverseProxy.subdomain != null)
+      then "${portCfg.reverseProxy.subdomain}."
+      else ""
+    }${cfg.hosts.${portCfg.reverseProxy.host}.services.reverseProxy.settings.domain}";
   };
 in {
   config.lib.network = networkLib;
