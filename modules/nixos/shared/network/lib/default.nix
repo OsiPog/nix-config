@@ -15,7 +15,7 @@
     # {
     #   hostName: string
     #   serviceName: string
-    #   service: attrset
+    #   serviceCfg: attrset
     # }
     allEnabledServices = pipe cfg.hosts [
       attrsToList
@@ -24,7 +24,7 @@
           (filterAttrs (_: service: service.enable))
           (mapAttrsToList (name: value: {
             serviceName = name;
-            service = value;
+            serviceCfg = value;
             hostName = host.name;
           }))
         ]))
@@ -36,25 +36,26 @@
     #   hostName: string;
     #
     #   serviceName: string;
+    #   serviceCfg string;
     #
     #   port: int;
     #   portName: string;
-    #   portConfig: attrset;
+    #   portCfg: attrset;
     # }
     # For port configs that define ranges create a servicePort for each port in that range
     allEnabledServicePorts = pipe allEnabledServices [
       (map (s:
         pipe s.service.ports [
-          (mapAttrsToList (portName: portConfig:
+          (mapAttrsToList (portName: portCfg:
             # Create a servicePort for each port in a port range
-              pipe portConfig.portRange [
+              pipe portCfg.portRange [
                 # For ports that do not have a range but a single one simulate a range of one
                 (
                   portRange:
                     if (portRange == null)
                     then {
-                      from = portConfig.port;
-                      to = portConfig.port;
+                      from = portCfg.port;
+                      to = portCfg.port;
                     }
                     else portRange
                 )
@@ -62,8 +63,8 @@
                 (r: range r.from r.to)
                 # define the servicePort for each port in the range
                 (map (port: {
-                  inherit (s) serviceName hostName;
-                  inherit port portName portConfig;
+                  inherit (s) serviceCfg serviceName hostName;
+                  inherit port portName portCfg;
                 }))
               ]))
         ]))

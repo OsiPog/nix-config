@@ -23,13 +23,13 @@
   relevantPorts =
     filter (
       p:
-        p.portConfig.reverseProxy.enable
-        && p.portConfig.reverseProxy.host == hostName
+        p.portCfg.reverseProxy.enable
+        && p.portCfg.reverseProxy.host == hostName
     )
     allEnabledServicePorts;
 
-  relevantVirtualHostPorts = filter (e: e.portConfig.reverseProxy.method == "virtual-host") relevantPorts;
-  relevantStreamPorts = filter (e: e.portConfig.reverseProxy.method == "stream") relevantPorts;
+  relevantVirtualHostPorts = filter (e: e.portCfg.reverseProxy.method == "virtual-host") relevantPorts;
+  relevantStreamPorts = filter (e: e.portCfg.reverseProxy.method == "stream") relevantPorts;
 
   ipAddrOf = serviceHost:
     if serviceHost == hostName
@@ -53,8 +53,8 @@ in {
     networking = {
       inherit (serviceCfg.settings) domain;
       firewall = {
-        allowedTCPPorts = [443] ++ (map (p: p.port) (filter (p: !p.portConfig.reverseProxy.udp) relevantStreamPorts));
-        allowedUDPPorts = map (p: p.port) (filter (p: p.portConfig.reverseProxy.udp) relevantStreamPorts);
+        allowedTCPPorts = [443] ++ (map (p: p.port) (filter (p: !p.portCfg.reverseProxy.udp) relevantStreamPorts));
+        allowedUDPPorts = map (p: p.port) (filter (p: p.portCfg.reverseProxy.udp) relevantStreamPorts);
       };
     };
 
@@ -68,12 +68,12 @@ in {
       virtualHosts = pipe relevantVirtualHostPorts [
         (map
           (p: let
-            proxyConf = p.portConfig.reverseProxy;
+            proxyConf = p.portCfg.reverseProxy;
             virtualHostsConfig = {
               useACMEHost = "default";
               forceSSL = true;
               locations."/" = {
-                proxyPass = "http://${ipAddrOf p.hostName}:${toString p.portConfig.port}";
+                proxyPass = "http://${ipAddrOf p.hostName}:${toString p.portCfg.port}";
                 proxyWebsockets = true;
               };
             };
@@ -88,13 +88,13 @@ in {
           upstream = p.hostName + "-" + p.serviceName + "-" + p.portName;
         in ''
           upstream ${upstream} {
-            server ${ipAddrOf p.hostName}:${toString p.portConfig.port};
+            server ${ipAddrOf p.hostName}:${toString p.portCfg.port};
           }
           ${
-            if p.portConfig.reverseProxy.udp
+            if p.portCfg.reverseProxy.udp
             then ''
               server {
-                listen ${toString p.portConfig.port} udp;
+                listen ${toString p.portCfg.port} udp;
                 proxy_pass ${upstream};
                 proxy_requests 8640000;
                 proxy_timeout 20s;
@@ -103,7 +103,7 @@ in {
             ''
             else ''
               server {
-                listen ${toString p.portConfig.port};
+                listen ${toString p.portCfg.port};
                 proxy_pass ${upstream};
                 proxy_timeout 20s;
               }
