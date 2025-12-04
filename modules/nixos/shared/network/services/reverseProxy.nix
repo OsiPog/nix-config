@@ -3,6 +3,7 @@
   lib,
   config,
   hostName,
+  pkgs,
   ...
 }: let
   inherit (builtins) filter listToAttrs;
@@ -49,11 +50,11 @@ in {
       };
     })
   ];
-  config = mkIf (cfg.enable && serviceCfg.enable) {
+  config = mkIf (networkCfg.enable && cfg.enable) {
     networking = {
-      inherit (serviceCfg.settings) domain;
+      inherit (cfg.settings) domain;
       firewall = {
-        allowedTCPPorts = [443] ++ (map (p: p.port) (filter (p: !p.portCfg.reverseProxy.udp) relevantStreamPorts));
+        allowedTCPPorts = [443] ++ (map (p: p.port) (filter (p: !p.portCfg.reverseProxy.udp && !p.portCfg.reverseProxy.hidden) relevantStreamPorts));
         allowedUDPPorts = map (p: p.port) (filter (p: p.portCfg.reverseProxy.udp) relevantStreamPorts);
       };
     };
