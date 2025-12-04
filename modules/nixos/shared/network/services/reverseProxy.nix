@@ -10,55 +10,14 @@
   inherit (lib.attrsets) recursiveUpdate mapAttrsToList filterAttrs attrsToList;
   inherit (lib.strings) concatLines;
   inherit (lib.lists) range flatten;
-  inherit (config.lib.network) toFullDomain;
+  inherit (config.lib.network) toFullDomain allServicePorts;
   inherit (flake.lib) mkServiceOptionsModule;
 
   serviceName = "reverseProxy";
 
-  cfg = config.network;
-  hostCfg = cfg.hosts.${hostName};
-  serviceCfg = hostCfg.services.${serviceName};
-
-  # Flatten all services in all hosts into a list of {port, host, serviceName, portName, portConfig}
-  # portRange is also flattenend into individual entries
-  allServicePorts = pipe cfg.hosts [
-    attrsToList
-    (map (
-      {
-        name,
-        value,
-      }: let
-        hostName = name;
-        services = value.services;
-      in
-        pipe services [
-          # only include enabled services
-          (filterAttrs (_: service: service.enable))
-          (mapAttrsToList (serviceName: service:
-            pipe service.ports [
-              (mapAttrsToList (portName: portConfig: let
-                servicePort = {
-                  inherit portName portConfig serviceName hostName;
-                };
-
-                portRange =
-                  if (portConfig.portRange != null)
-                  then portConfig.portRange
-                  else {
-                    from = portConfig.port;
-                    to = portConfig.port;
-                  };
-              in
-                pipe portRange [
-                  # to list of numbers
-                  (r: range r.from r.to)
-                  (map (port: {inherit port;} // servicePort))
-                ]))
-            ]))
-        ]
-    ))
-    flatten
-  ];
+  networkCfg = config.network;
+  hostCfg = networkCfg.hosts.${hostName};
+  cfg = hostCfg.services.${serviceName};
 
   # Only the ports that should be reverse proxied by current host
   relevantPorts =
