@@ -22,7 +22,6 @@
     gaming
     podman
     nix-access-tokens
-    nvidia-ampere
 
     ../../users/osi
   ];
