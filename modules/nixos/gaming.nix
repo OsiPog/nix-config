@@ -29,7 +29,14 @@
   nixpkgs.config.allowUnfree = true;
 
   jovian.steam.enable = true;
-  programs.steam.localNetworkGameTransfers.openFirewall = true;
+  programs = {
+    steam = {
+      enable = true;
+      remotePlay.openFirewall = true;
+      dedicatedServer.openFirewall = true;
+      localNetworkGameTransfers.openFirewall = true;
+    };
+  };
 
   home-manager.sharedModules = [
     ({...}: {
