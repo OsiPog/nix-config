@@ -14,7 +14,7 @@
 in {
   imports = [
     (mkServiceOptionsModule serviceName {
-      defaults = {
+      config = {...}: {
         stateDir = "/var/lib/authelia-default"; # seems to create its stuff there
       };
     })

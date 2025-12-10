@@ -15,7 +15,7 @@
 in {
   imports = [
     (mkServiceOptionsModule serviceName {
-      defaults = {
+      config = {...}: {
         stateDir = "/var/lib/headscale"; # this is hardcoded in the nixos module
       };
     })

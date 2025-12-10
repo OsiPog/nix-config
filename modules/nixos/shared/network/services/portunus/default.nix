@@ -6,7 +6,7 @@
   ...
 }: let
   inherit (builtins) concatStringsSep;
-  inherit (lib) mkIf pipe mkMerge mkDefault;
+  inherit (lib) mkIf pipe mkMerge;
   inherit (lib.strings) splitString;
 
   inherit (flake.lib) mkServiceOptionsModule;
@@ -20,7 +20,7 @@
 in {
   imports = [
     (mkServiceOptionsModule serviceName {
-      defaults = {
+      config = {...}: {
         ports = {
           ldap.port = 636;
         };

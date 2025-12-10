@@ -16,7 +16,7 @@
   ...
 }: let
   inherit (builtins) hasAttr attrNames;
-  inherit (lib) mkIf pipe types mkOption;
+  inherit (lib) mkIf pipe types mkOption mkDefault;
   inherit (lib.attrsets) mapAttrs mapAttrs' filterAttrs;
   inherit (lib.strings) hasPrefix splitString optionalString;
   inherit (lib.lists) elemAt;
@@ -30,9 +30,9 @@
 in {
   imports = [
     (mkServiceOptionsModule serviceName {
-      defaults = {
+      config = {...}: {
         ports = {
-          web.port = 8384;
+          web.port = mkDefault 8384;
         };
       };
       settingsOptions = {

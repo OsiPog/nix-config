@@ -7,7 +7,7 @@
   hostName,
   ...
 }: let
-  inherit (lib) mkIf;
+  inherit (lib) mkIf mkDefault;
   inherit (flake.lib) mkServiceOptionsModule;
   inherit (pkgs) fetchurl;
 
@@ -17,14 +17,14 @@
 in {
   imports = [
     (mkServiceOptionsModule serviceName {
-      defaults = {
+      config = {...}: {
         ports = {
           java = {
-            port = 25565;
+            port = mkDefault 25565;
             reverseProxy.method = "stream";
           };
           bedrock = {
-            port = 19132;
+            port = mkDefault 19132;
             reverseProxy = {
               method = "stream";
               udp = true;
