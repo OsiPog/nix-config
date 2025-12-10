@@ -73,6 +73,13 @@
     }
   ];
 
+  # motherboard cant wake up from sleep
+  systemd.sleep.extraConfig = ''
+    AllowSuspend=no
+    AllowHybridSleep=no
+    AllowSuspendThenHibernate=no
+  '';
+
   # Don't change, will break things!
   system.stateVersion = "25.11";
 }
