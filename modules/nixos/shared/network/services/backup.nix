@@ -3,35 +3,19 @@
   config,
   flake,
   hostName,
+  pkgs,
   ...
 }: let
-  inherit (builtins) filter attrValues;
+  inherit (builtins) filter attrValues length mapAttrs listToAttrs;
   inherit (lib) types mkIf mkOption mkEnableOption mkMerge pipe;
-  inherit (lib.attrsets) attrsToList;
+  inherit (lib.attrsets) filterAttrs mapAttrs';
+  inherit (lib.lists) flatten;
 
-  inherit (flake.lib) mkServiceOptionsModule;
+  inherit (flake.lib) mkServiceOptionsModule nixosHostNames;
 
   serviceName = "backup";
   networkCfg = config.network;
   cfg = networkCfg.hosts.${hostName}.services.${serviceName};
-
-  backupUser = networkCfg.hosts.${cfg.settings.host}.services.backup.settings.server.user;
-  backupMount = "/mnt/backup";
-  backupRepository =
-    if cfg.settings.host != hostName
-    then backupMount
-    else cfg.settings.server.repository;
-  backupJobOptions = {
-    # we assume that the password sits in the repo
-    passwordFile = "${backupRepository}/password";
-    repository = backupRepository;
-    inhibitsSleep = true;
-    timerConfig = {
-      OnCalendar = "00:05";
-      Persistent = true;
-      RandomizedDelaySec = "5h";
-    };
-  };
 in {
   imports = [
     (mkServiceOptionsModule serviceName {
@@ -58,11 +42,6 @@ in {
         };
         server = {
           enable = mkEnableOption "the backup server";
-          user = mkOption {
-            description = "A user that has rw access to the repository.";
-            default = "backup";
-            type = types.str;
-          };
           repository = mkOption {
             type = types.pathWith {absolute = true;};
           };
@@ -73,66 +52,128 @@ in {
   config = mkMerge [
     # config for clients
     (mkIf (networkCfg.enable && cfg.enable) {
-      # Create an sshfs to the backup repo
-      fileSystems.${backupMount} = mkIf (cfg.settings.host != hostName) {
-        device = "${backupUser}@${cfg.settings.host}:${networkCfg.hosts.${cfg.settings.host}.services.backup.settings.server.repository}";
-        fsType = "sshfs";
-        options = [
-          "nodev"
-          "noatime"
-          "allow_other"
-          "IdentityFile=/etc/ssh/id_ed25519"
-        ];
-      };
-
-      services.restic.backups.default =
-        backupJobOptions
-        // {
-          inherit (cfg.settings) exclude;
-          paths =
-            cfg.settings.paths
-            ++ (
-              if cfg.settings.serviceBackup
-              then
-                pipe networkCfg.hosts.${hostName}.services [
-                  attrValues
-                  (filter (e: e.enable))
-                  (map (e: e.stateDir))
-                ]
-              else []
-            );
-        };
+      # Allow all backup servers access to current host
+      users.users.root.openssh.authorizedKeys.keys = pipe networkCfg.hosts [
+        attrValues
+        (filter (host: host.services.backup.enable && host.services.backup.settings.host == hostName))
+        (map (host: host.ssh.publicKey))
+      ];
     })
     # config for backup server
-    (mkIf (networkCfg.enable && cfg.settings.server.enable) {
-      users = {
-        users.${backupUser} = {
-          description = "User that can access the backup repository";
-          home = cfg.settings.server.repository;
-          isNormalUser = true;
+    (mkIf (networkCfg.enable && cfg.settings.server.enable) (let
+      backupMount = "/mnt/backup";
 
-          group = backupUser;
-          openssh.authorizedKeys.keys = pipe networkCfg.hosts [
-            attrValues
-            (filter (host: host.services.backup.enable && host.services.backup.settings.host == hostName))
-            (map (host: host.ssh.publicKey))
-          ];
+      commonBackupOptions = {
+        inherit (cfg.settings.server) repository;
+        # we assume that the password sits in the repo
+        passwordFile = "${cfg.settings.server.repository}/password";
+        inhibitsSleep = true;
+        timerConfig = {
+          OnCalendar = "15:05";
+          Persistent = true;
+          RandomizedDelaySec = "5h";
         };
-        groups.${backupUser} = {};
       };
 
-      # prune job
-      services.restic.backups.prune =
-        backupJobOptions
+      backupPathsOf = hostName: let
+        host = networkCfg.hosts.${hostName};
+      in (host.services.backup.settings.paths
+        ++ (
+          if host.services.backup.settings.serviceBackup
+          then
+            pipe host.services [
+              (filterAttrs (serviceName: _: serviceName != "backup"))
+              attrValues
+              (filter (e: e.enable))
+              (map (e: e.stateDir))
+            ]
+          else []
+        ));
+      relevantHosts = (filterAttrs (_: host: host.services.backup.enable && host.services.backup.settings.host == hostName)) networkCfg.hosts;
+    in {
+      # mount all needed directories using sshfs
+      fileSystems =
+        mapAttrs' (hostName: _: {
+          name = "${backupMount}/${hostName}";
+          value = {
+            device = "root@${hostName}:/";
+            fsType = "sshfs";
+            options = [
+              "nodev"
+              "noatime"
+              "noauto"
+              "x-systemd.automount"
+              "_netdev"
+
+              "ServerAliveInterval=15"
+              "IdentityFile=/etc/ssh/id_ed25519"
+            ];
+          };
+        })
+        relevantHosts;
+
+      services.restic.backups =
+        (mapAttrs (hostName: host:
+          commonBackupOptions
+          // {
+            paths =
+              map (
+                path:
+                  if hostName != host.services.backup.settings.host
+                  then "${backupMount}/${hostName}${path}"
+                  else path
+              )
+              (backupPathsOf hostName);
+          })
+        relevantHosts)
         // {
-          createWrapper = true;
-          pruneOpts = [
-            "--keep-daily 7"
-            "--keep-weekly 5"
-            "--keep-monthly 12"
-            "--keep-yearly 75"
-          ];
+          # prune job
+          prune =
+            commonBackupOptions
+            // {
+              pruneOpts = let
+                perHost = 2;
+                countStr = toString ((length nixosHostNames) * perHost);
+              in [
+                "--keep-daily ${countStr}"
+                "--keep-weekly ${countStr}"
+                "--keep-monthly ${countStr}"
+                "--keep-yearly ${countStr}"
+              ];
+            };
+          # only exists to have a common command to access the repo
+          command =
+            commonBackupOptions
+            // {
+              createWrapper = true;
+            };
         };
-    })
+
+      # Make services automatically restart when failed (hosts might be offline)
+      systemd.services =
+        mapAttrs' (hostName: host: {
+          name = "restic-backups-${hostName}";
+          value = {
+            path = with pkgs; [
+              openssh
+              sshfs
+              umount
+            ];
+            preStart = ''
+              # check connection is possible at all
+              ssh -o ConnectTimeout=3 -i /etc/ssh/id_ed25519 "root@${hostName}" echo "Connection succeeded!"
+            '';
+            postStop = ''
+              # After backup unmount sshfs
+              umount ${backupMount}/${hostName} --force
+            '';
+            serviceConfig = {
+              Restart = "on-failure";
+              RestartSec = "15min";
+            };
+          };
+        })
+        relevantHosts;
+    }))
   ];
 }
