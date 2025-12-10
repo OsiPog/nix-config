@@ -9,6 +9,18 @@
 }: {
   sops.secrets."api-keys/anthropic" = {sopsFile = ./secrets.yaml;};
 
+  home.packages = with pkgs; [
+    (writeShellApplication {
+      name = "helix";
+      runtimeInputs = [
+        pkgs.helix
+      ];
+      text = ''
+        hx "$@"
+      '';
+    })
+  ];
+
   programs.helix = {
     enable = true;
     extraPackages = with pkgs; [
@@ -262,4 +274,6 @@
   };
 
   home.sessionVariables."VISUAL" = "hx";
+
+  programs.lazygit.settings.os.editPreset = "helix";
 }
