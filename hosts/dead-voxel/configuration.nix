@@ -43,8 +43,6 @@
     luks.fido2Support = false;
   };
 
-  jovian.steam.user = "osi";
-
   services.displayManager.sddm = {
     enable = true;
     wayland = {

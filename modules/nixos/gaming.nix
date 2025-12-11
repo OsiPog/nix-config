@@ -5,7 +5,6 @@
   ...
 }: {
   imports = [
-    inputs.jovian-nixos.nixosModules.default
     inputs.home-manager.nixosModules.default
   ];
 
@@ -28,8 +27,11 @@
 
   nixpkgs.config.allowUnfree = true;
 
-  jovian.steam.enable = true;
   programs = {
+    gamescope = {
+      enable = true;
+      capSysNice = false;
+    };
     steam = {
       enable = true;
       remotePlay.openFirewall = true;
@@ -41,6 +43,12 @@
   home-manager.sharedModules = [
     ({...}: {
       programs.lutris.enable = true;
+
+      xdg.desktopEntries.steam-gamescope = {
+        icon = "steam";
+        name = "Steam Gamescope";
+        exec = "gamescope -w 1920 -h 1080 --xwayland-count 2 --steam -- steam -tenfoot";
+      };
     })
   ];
 }

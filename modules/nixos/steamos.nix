@@ -1,6 +1,7 @@
 {
   inputs,
   flake,
+  lib,
   ...
 }: {
   imports = [
@@ -12,6 +13,8 @@
   ];
 
   nixpkgs.config.allowUnfree = true;
+
+  programs.gamescope.enable = lib.mkForce false;
 
   jovian = {
     steam = {
