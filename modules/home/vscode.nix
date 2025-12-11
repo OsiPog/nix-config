@@ -406,7 +406,7 @@ in {
   };
 
   # Set VSCodium to be git editor
-  programs.git.extraConfig = let
+  programs.git.settings = let
     codium = "codium --wait --new-window";
   in {
     core.editor = "codium --wait";

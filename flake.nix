@@ -62,7 +62,7 @@
     };
     # NixOS on the steam deck
     jovian-nixos = {
-      url = "github:Jovian-Experiments/Jovian-NixOS/f6483fb735869c01592db599c767fa77177bb3ad";
+      url = "github:Jovian-Experiments/Jovian-NixOS";
       # inputs.nixpkgs.follows = "nixpkgs";
     };
     simple-nixos-mailserver = {

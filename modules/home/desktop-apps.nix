@@ -12,12 +12,12 @@
       '';
   });
   # Force XWayland
-  arduinoIdeOverride = pkgs.arduino-ide.overrideAttrs (prev: {
-    extraInstallCommands = builtins.trace (builtins.attrNames prev) "";
-    # + ''
-    #   substituteInPlace $out/share/applications/${prev.pname}.desktop --replace-fail 'Exec=${prev.pname} %U' 'Exec=${prev.pname} --enable-features=UseOzonePlatform --ozone-platform=x11 %U'
-    # '';
-  });
+  # arduinoIdeOverride = pkgs.arduino-ide.overrideAttrs (prev: {
+  #   extraInstallCommands = builtins.trace (builtins.attrNames prev) "";
+  #   # + ''
+  #   #   substituteInPlace $out/share/applications/${prev.pname}.desktop --replace-fail 'Exec=${prev.pname} %U' 'Exec=${prev.pname} --enable-features=UseOzonePlatform --ozone-platform=x11 %U'
+  #   # '';
+  # });
 in {
   home.packages = with pkgs; [
     gnome-disk-utility # format disks
@@ -34,7 +34,7 @@ in {
     cheese # camera app
     audacity # audio editing
     discord
-    arduinoIdeOverride
+    arduino-ide
     transmission_4-gtk
   ];
 
