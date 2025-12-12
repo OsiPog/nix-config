@@ -1,0 +1,30 @@
+From 388720fcdc4c7a0480d73b288e3ecb614cd36014 Mon Sep 17 00:00:00 2001
+From: Summer Tea <acuteaangle@disroot.org>
+Date: Sun, 25 May 2025 02:07:45 -0400
+Subject: [PATCH] Don’t blacklist pcspkr
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Ubuntu blacklists the `pcspkr` module by default for ‘getting on
+everyone's nerves’.
+Comment this out so that `pcspkr` can be loaded as expected.
+---
+ modprobe.d/blacklist.conf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modprobe.d/blacklist.conf b/modprobe.d/blacklist.conf
+index eecdf1286547..8632629fe994 100644
+--- a/modprobe.d/blacklist.conf
++++ b/modprobe.d/blacklist.conf
+@@ -43,7 +43,7 @@ blacklist snd_pcsp
+ 
+ # ugly and loud noise, getting on everyone's nerves; this should be done by a
+ # nice pulseaudio bing (Ubuntu: #77010)
+-blacklist pcspkr
++#blacklist pcspkr
+ 
+ # EDAC driver for amd76x clashes with the agp driver preventing the aperture
+ # from being initialised (Ubuntu: #297750). Blacklist so that the driver
+-- 
+2.48.1
