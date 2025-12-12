@@ -47,6 +47,9 @@ in {
         options = [
           "defaults"
           "noatime"
+          "noauto"
+          "x-systemd.automount"
+          "x-systemd.idle-timeout=3min"
         ];
       };
     })
