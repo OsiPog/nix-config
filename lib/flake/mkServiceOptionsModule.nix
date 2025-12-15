@@ -87,10 +87,14 @@ in
                           description = "If set the service will be reverse proxied through HTTPS a virtual host on the reverse proxy.";
                         };
 
-                        extraVirtualHostsConfig = mkOption {
-                          type = types.attrs;
+                        extraConfig = mkOption {
+                          type = with types; either attrs str;
                           default = {};
-                          description = "Extra options to merge into services.nginx.virtualHosts.<name>. Only used when method is 'virtual-host'.";
+                          description = ''
+                            Extra configuration options:
+                            - When method is 'virtual-host': merged into services.nginx.virtualHosts.<name>
+                            - When method is 'stream': applied as additional configuration in the stream server block
+                          '';
                         };
 
                         udp = mkEnableOption "UDP stream instead of TCP. Only relevant when method is 'stream'";
@@ -143,7 +147,7 @@ in
               }
               # {
               #   assertion = !p.value.reverseProxy.enable || !p.value.reverseProxy.hidden || p.value.reverseProxy.method != "stream" || p.value.reverseProxy.subdomain != null;
-              #   message = "When hiding a stream port behind the VPN"
+              #   message = "When hiding a stream port behind the VPN you must define a subdomain";
               # }
             ]
           ))

@@ -6,7 +6,7 @@
   pkgs,
   ...
 }: let
-  inherit (builtins) filter listToAttrs;
+  inherit (builtins) filter listToAttrs typeOf;
   inherit (lib) mkIf mkOption pipe types;
   inherit (lib.attrsets) recursiveUpdate mapAttrsToList filterAttrs attrsToList;
   inherit (lib.strings) concatLines;
@@ -49,6 +49,8 @@ in {
         };
       };
     })
+
+    ../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     networking = {
@@ -77,20 +79,21 @@ in {
                 proxyPass = "http://${ipAddrOf p.hostName}:${toString p.portCfg.port}";
                 proxyWebsockets = true;
               };
-              extraConfig = mkIf (proxyConf.hidden) ''
-                allow 100.64.0.0/10;
-                deny all;
-              '';
             };
           in {
             name = toFullDomain {inherit (p) serviceName portName hostName;};
-            value = recursiveUpdate virtualHostsConfig proxyConf.extraVirtualHostsConfig;
+            value = recursiveUpdate virtualHostsConfig proxyConf.extraConfig;
           }))
         listToAttrs
       ];
       streamConfig = pipe relevantStreamPorts [
         (map (p: let
           upstream = p.hostName + "-" + p.serviceName + "-" + p.portName;
+          proxyConf = p.portCfg.reverseProxy;
+          extraStreamConfig =
+            if (typeOf proxyConf.extraConfig == "string")
+            then proxyConf.extraConfig
+            else "";
         in ''
           upstream ${upstream} {
             server ${ipAddrOf p.hostName}:${toString p.portCfg.port};
@@ -99,7 +102,7 @@ in {
             proxy_pass ${upstream};
             proxy_timeout 20s;
             ${
-            if p.portCfg.reverseProxy.udp
+            if proxyConf.udp
             then ''
               listen ${toString p.portCfg.port} udp;
               proxy_requests 8640000;
@@ -117,6 +120,7 @@ in {
             ''
             else ""
           }
+            ${extraStreamConfig}
           }
         ''))
         concatLines

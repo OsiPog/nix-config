@@ -19,6 +19,8 @@ in {
         stateDir = "/var/lib/headscale"; # this is hardcoded in the nixos module
       };
     })
+
+    ../../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
   config = mkMerge [
     (mkIf (networkCfg.enable && cfg.enable) {

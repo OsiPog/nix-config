@@ -24,6 +24,8 @@ in {
         inherit stateDir;
       };
     })
+
+    ../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     services.dnsmasq = {
