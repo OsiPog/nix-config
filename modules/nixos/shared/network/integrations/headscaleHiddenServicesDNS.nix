@@ -8,28 +8,23 @@
   inherit (builtins) filter;
   inherit (lib) mkIf pipe;
   inherit (lib.attrsets) genAttrs;
-  inherit (lib.lists) unique findFirst;
 
-  inherit (config.lib.network) allEnabledServicePorts allEnabledServices toFullDomain;
-
-  uniqueBy = attr: listOfAttrs: let
-    uniqueValues = unique (map (e: e.${attr}) listOfAttrs);
-  in
-    map (value: findFirst (e: e.${attr} == value) (throw "Will always find it") listOfAttrs) uniqueValues;
+  inherit (flake.lib) uniqueBy;
+  inherit (config.lib.network) allEnabledServicePorts toFullDomain;
 
   networkCfg = config.network;
   headscaleCfg = networkCfg.hosts.${hostName}.services.headscale;
+
+  allRelevantServicePorts = filter (p: p.portCfg.reverseProxy.enable && p.portCfg.reverseProxy.subdomain != null) allEnabledServicePorts;
 in
   mkIf (networkCfg.enable && headscaleCfg.enable) {
     services.headscale.settings.dns = {
-      nameservers.split = pipe allEnabledServices [
-        (filter (s: s.serviceCfg.enable && s.serviceName == "reverseProxy"))
-        (map (s: s.serviceCfg.settings.domain))
+      nameservers.split = pipe allRelevantServicePorts [
+        (map (p: toFullDomain {inherit (p) serviceName portName hostName;}))
         (ss: genAttrs ss (_: []))
       ];
 
-      extra_records = pipe allEnabledServicePorts [
-        (filter (p: p.portCfg.reverseProxy.enable))
+      extra_records = pipe allRelevantServicePorts [
         (map (p: {
           name = toFullDomain {inherit (p) serviceName portName hostName;};
           type = "A";
