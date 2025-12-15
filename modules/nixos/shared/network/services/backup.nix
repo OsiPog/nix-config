@@ -150,7 +150,7 @@ in {
         };
 
       # Make services automatically restart when failed (hosts might be offline)
-      systemd.services =
+      systemd.services = mkIf (hostName != cfg.settings.host) (
         mapAttrs' (hostName: host: {
           name = "restic-backups-${hostName}";
           value = {
@@ -173,7 +173,8 @@ in {
             };
           };
         })
-        relevantHosts;
+        relevantHosts
+      );
     }))
   ];
 }
