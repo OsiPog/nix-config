@@ -7,6 +7,7 @@
     allowConnectionsFrom = ["dead-voxel" "biome-fest"];
   };
   services = {
+    dnsmasq.enable = true;
     backup = {
       enable = true;
       settings = {

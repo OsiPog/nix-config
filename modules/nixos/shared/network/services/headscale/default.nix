@@ -5,7 +5,7 @@
   flake,
   ...
 }: let
-  inherit (lib) mkIf mkMerge mkForce;
+  inherit (lib) mkIf mkDefault mkMerge mkForce;
   inherit (flake.lib) mkServiceOptionsModule;
   inherit (config.lib.network) toFullDomain;
 
@@ -19,8 +19,6 @@ in {
         stateDir = "/var/lib/headscale"; # this is hardcoded in the nixos module
       };
     })
-
-    ../../integrations/headscaleReverseProxyDNS.nix
   ];
   config = mkMerge [
     (mkIf (networkCfg.enable && cfg.enable) {
@@ -37,7 +35,8 @@ in {
             });
           dns = {
             override_local_dns = true;
-            nameservers.global = [
+            # can be overriden ;)
+            nameservers.global = mkDefault [
               "1.1.1.1"
               "1.0.0.1"
               "2606:4700:4700::1111"
