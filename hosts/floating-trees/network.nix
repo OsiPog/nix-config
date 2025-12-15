@@ -20,10 +20,6 @@
         };
       };
     };
-    # portunus = {
-    #   enable = true;
-    #   settings.domain = "axelhax";
-    # };
     minecraft-server = {
       enable = true;
       ports = {
@@ -38,6 +34,17 @@
             enable = true;
             host = "haunt-muskie";
           };
+        };
+      };
+    };
+    portunus = {
+      enable = true;
+      ports.web = {
+        reverseProxy = {
+          enable = true;
+          hidden = true;
+          host = "haunt-muskie";
+          subdomain = "ldap";
         };
       };
     };

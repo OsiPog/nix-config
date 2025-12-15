@@ -22,11 +22,12 @@ in {
     (mkServiceOptionsModule serviceName {
       config = {...}: {
         ports = {
+          web.port = 6000;
           ldap.port = 636;
         };
       };
     })
-    flake.nixosModules.porkbunAcme
+    # flake.nixosModules.porkbunAcme
   ];
   config = mkMerge [
     (mkIf (networkCfg.enable && cfg.enable) {
@@ -35,12 +36,12 @@ in {
         owner = config.services.portunus.user;
       };
 
-      # custom module that sets up acme with porkbun
-      services.porkbunAcme = {
-        enable = true;
-        certName = config.services.portunus.domain;
-        domain = config.services.portunus.domain;
-      };
+      # # custom module that sets up acme with porkbun
+      # services.porkbunAcme = {
+      #   enable = true;
+      #   certName = config.services.portunus.domain;
+      #   domain = config.services.portunus.domain;
+      # };
 
       services.portunus = {
         enable = true;

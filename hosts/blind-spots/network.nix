@@ -5,57 +5,46 @@
     allowConnectionsFrom = ["biome-fest" "dead-voxel"];
   };
   services = {
-    forgejo = {
-      enable = true;
-      ports.web = {
-        port = 2000;
-        reverseProxy = {
-          enable = true;
-          hidden = true;
-          host = "haunt-muskie";
-          subdomain = "git";
-        };
-      };
-    };
-    nextcloud = {
-      enable = true;
-      ports.web = {
-        port = 80;
-        reverseProxy = {
-          enable = true;
-          host = "haunt-muskie";
-          subdomain = "cloud";
-          extraVirtualHostsConfig = let
-            size = "999M";
-          in {
-            extraConfig = ''
-              client_max_body_size ${size};
-            '';
-          };
-        };
-      };
-    };
-    authelia = {
-      enable = false;
-      ports.web = {
-        port = 6000;
-        reverseProxy = {
-          enable = true;
-          host = "haunt-muskie";
-          subdomain = "auth";
-        };
-      };
-    };
-    portunus = {
-      enable = true;
-      ports.web = {
-        port = 7000;
-        reverseProxy = {
-          enable = true;
-          host = "haunt-muskie";
-          subdomain = "ldap";
-        };
-      };
-    };
+    # forgejo = {
+    #   enable = true;
+    #   ports.web = {
+    #     port = 2000;
+    #     reverseProxy = {
+    #       enable = true;
+    #       hidden = true;
+    #       host = "haunt-muskie";
+    #       subdomain = "git";
+    #     };
+    #   };
+    # };
+    # nextcloud = {
+    #   enable = true;
+    #   ports.web = {
+    #     port = 80;
+    #     reverseProxy = {
+    #       enable = true;
+    #       host = "haunt-muskie";
+    #       subdomain = "cloud";
+    #       extraConfig = let
+    #         size = "999M";
+    #       in {
+    #         extraConfig = ''
+    #           client_max_body_size ${size};
+    #         '';
+    #       };
+    #     };
+    #   };
+    # };
+    # authelia = {
+    #   enable = false;
+    #   ports.web = {
+    #     port = 6000;
+    #     reverseProxy = {
+    #       enable = true;
+    #       host = "haunt-muskie";
+    #       subdomain = "auth";
+    #     };
+    #   };
+    # };
   };
 }

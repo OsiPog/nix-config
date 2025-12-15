@@ -3,7 +3,7 @@
   config,
   ...
 }: let
-  inherit (lib) mkEnableOption mkDefault mkIf mkOption;
+  inherit (lib) mkEnableOption mkIf mkOption;
 
   cfg = config.services.porkbunAcme;
 in {
@@ -22,7 +22,7 @@ in {
   };
 
   config = mkIf cfg.enable {
-    users.users.nginx.extraGroups = ["acme"];
+    users.users.nginx.extraGroups = mkIf (config.services.nginx.enable) ["acme"];
 
     sops.secrets."acme/porkbun" = {sopsFile = ./secrets.yaml;};
 
