@@ -47,7 +47,7 @@ in {
       ./lib
       ./importHosts.nix
     ]
-    ++ (importDir "${./.}/services");
+    ++ (importDir "${flake}/modules/nixos/shared/network/services");
 
   config = mkIf cfg.enable {
     # Add authorized keys from hosts that are allowed to connect
