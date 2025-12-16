@@ -17,7 +17,6 @@ in {
   home.packages = with pkgs; [
     bluetuith # bluetooth tui
     devenv # dev environments made easy
-    ncpamixer # Pulse Audio mixer utility
     restic
     nushell # a new and fancy type of shell
     spotify-player # player for spotify
