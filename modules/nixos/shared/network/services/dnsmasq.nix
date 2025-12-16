@@ -30,9 +30,10 @@ in {
   config = mkIf (networkCfg.enable && cfg.enable) {
     services.dnsmasq = {
       enable = true;
+      resolveLocalQueries = false;
       settings = {
         no-resolv = true;
-        server = ["100.100.100.100" "1.1.1.1" "8.8.8.8"];
+        server = ["1.1.1.1" "8.8.8.8"];
         conf-file = blocklistPath;
       };
     };
