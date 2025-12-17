@@ -20,7 +20,7 @@ This is the NixOS flake which defines the system on all of my devices running Ni
 
 - `dead-voxel` - Gaming PC
   - Hyprland
-  - Geforce RTX 3060 12GB with AMD Ryzen 3600
+  - AMD Radeon RX 9060 XT with AMD Ryzen 3600
 
 - `floating-trees` - Home Server
   - runs all services
