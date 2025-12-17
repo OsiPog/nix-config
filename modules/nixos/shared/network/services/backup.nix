@@ -6,10 +6,9 @@
   pkgs,
   ...
 }: let
-  inherit (builtins) filter attrValues length mapAttrs listToAttrs;
+  inherit (builtins) filter attrValues length mapAttrs foldl';
   inherit (lib) types mkIf mkOption mkEnableOption mkMerge pipe;
-  inherit (lib.attrsets) filterAttrs mapAttrs';
-  inherit (lib.lists) flatten;
+  inherit (lib.attrsets) filterAttrs attrsToList recursiveUpdate;
 
   inherit (flake.lib) mkServiceOptionsModule nixosHostNames;
 
@@ -91,27 +90,6 @@ in {
         ));
       relevantHosts = (filterAttrs (_: host: host.services.backup.enable && host.services.backup.settings.host == hostName)) networkCfg.hosts;
     in {
-      # mount all needed directories using sshfs
-      fileSystems =
-        mapAttrs' (hostName: _: {
-          name = "${backupMount}/${hostName}";
-          value = {
-            device = "root@${hostName}:/";
-            fsType = "sshfs";
-            options = [
-              "nodev"
-              "noatime"
-              "noauto"
-              "x-systemd.automount"
-              "_netdev"
-
-              "ServerAliveInterval=15"
-              "IdentityFile=/etc/ssh/id_ed25519"
-            ];
-          };
-        })
-        relevantHosts;
-
       services.restic.backups =
         (mapAttrs (hostName: host:
           commonBackupOptions
@@ -124,6 +102,7 @@ in {
                   else path
               )
               (backupPathsOf hostName);
+            extraBackupArgs = ["--host ${hostName}"];
           })
         relevantHosts)
         // {
@@ -150,31 +129,50 @@ in {
         };
 
       # Make services automatically restart when failed (hosts might be offline)
-      systemd.services = mkIf (hostName != cfg.settings.host) (
-        mapAttrs' (hostName: host: {
-          name = "restic-backups-${hostName}";
-          value = {
+      systemd.services = pipe relevantHosts [
+        attrsToList
+        # only remote hosts
+        (filter (host: host.name != hostName))
+        (map (host: {
+          # Service that mounts the remote host via SSHFS
+          "sshfs-${host.name}" = {
             path = with pkgs; [
-              openssh
               sshfs
-              umount
+              openssh
+            ];
+            script = ''
+              # 1. check connection is possible at all
+              ssh -o ConnectTimeout=3 -i /etc/ssh/id_ed25519 "root@${host.name}" echo "Connection succeeded!"
+              # 2. mount
+              sshfs root@${host.name}:/ ${backupMount}/${host.name} \
+                -o IdentityFile=/etc/ssh/id_ed25519 \
+                -o auto_unmount \
+                -o allow_root \
+                -f
+            '';
+          };
+          # Additional options to restic backup service
+          "restic-backups-${host.name}" = {
+            path = with pkgs; [
+              systemd
             ];
             preStart = ''
-              # check connection is possible at all
-              ssh -o ConnectTimeout=3 -i /etc/ssh/id_ed25519 "root@${hostName}" echo "Connection succeeded!"
+              systemctl start sshfs-${host.name}
+              sleep 5
             '';
             postStop = ''
               # After backup unmount sshfs
-              umount ${backupMount}/${hostName} --force
+              systemctl stop sshfs-${host.name}
             '';
             serviceConfig = {
               Restart = "on-failure";
               RestartSec = "15min";
             };
           };
-        })
-        relevantHosts
-      );
+        }))
+        # concat all these attrsets
+        (foldl' recursiveUpdate {})
+      ];
     }))
   ];
 }
