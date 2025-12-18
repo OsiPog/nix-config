@@ -11,11 +11,11 @@
   inherit (lib.attrsets) recursiveUpdate mapAttrsToList filterAttrs attrsToList;
   inherit (lib.strings) concatLines;
   inherit (lib.lists) range flatten;
+
   inherit (config.lib.network) toFullDomain allEnabledServicePorts;
-  inherit (flake.lib) mkServiceOptionsModule;
+  inherit (flake.lib) mkNetworkHostServiceModule;
 
   serviceName = "reverseProxy";
-
   networkCfg = config.network;
   hostCfg = networkCfg.hosts.${hostName};
   cfg = hostCfg.services.${serviceName};
@@ -40,17 +40,10 @@
 in {
   imports = [
     flake.nixosModules.porkbunAcme
-    (mkServiceOptionsModule serviceName {
-      settingsOptions = {
-        domain = mkOption {
-          type = types.str;
-          description = "The domain configured to connect to this host.";
-          default = "";
-        };
-      };
-    })
 
-    ../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
+    (mkNetworkHostServiceModule serviceName null)
+
+    # ../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     networking = {

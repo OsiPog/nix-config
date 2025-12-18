@@ -17,19 +17,19 @@
     #   serviceName: string
     #   serviceCfg: attrset
     # }
-    allEnabledServices = pipe cfg.hosts [
-      attrsToList
-      (map (host:
-        pipe host.value.services [
-          (filterAttrs (_: service: service.enable))
-          (mapAttrsToList (name: value: {
-            serviceName = name;
-            serviceCfg = value;
-            hostName = host.name;
-          }))
-        ]))
-      flatten
-    ];
+    # allEnabledServices = pipe cfg.hosts [
+    #   attrsToList
+    #   (map (host:
+    #     pipe host.value.services [
+    #       (filterAttrs (_: service: service.enable))
+    #       (mapAttrsToList (name: value: {
+    #         serviceName = name;
+    #         serviceCfg = value;
+    #         hostName = host.name;
+    #       }))
+    #     ]))
+    #   flatten
+    # ];
 
     # Flatten all enabled services across all hosts into a list of:
     # {
@@ -43,82 +43,73 @@
     #   portCfg: attrset;
     # }
     # For port configs that define ranges create a servicePort for each port in that range
-    allEnabledServicePorts = pipe allEnabledServices [
-      (map (s:
-        pipe s.serviceCfg.ports [
-          (mapAttrsToList (portName: portCfg:
-            # Create a servicePort for each port in a port range
-              pipe portCfg.portRange [
-                # For ports that do not have a range but a single one simulate a range of one
-                (
-                  portRange:
-                    if (portRange == null)
-                    then {
-                      from = portCfg.port;
-                      to = portCfg.port;
-                    }
-                    else portRange
-                )
-                # create list for all ports in the port range
-                (r: range r.from r.to)
-                # define the servicePort for each port in the range
-                (map (port: {
-                  inherit (s) serviceCfg serviceName hostName;
-                  inherit port portName portCfg;
-                }))
-              ]))
-        ]))
-      flatten
-    ];
-    toFullDomain = {
-      serviceName,
-      portName ? null,
-      hostName ? null,
+    # allEnabledServicePorts = pipe allEnabledServices [
+    #   (map (s:
+    #     pipe s.serviceCfg.ports [
+    #       (mapAttrsToList (portName: portCfg:
+    #         # Create a servicePort for each port in a port range
+    #           pipe portCfg.portRange [
+    #             # For ports that do not have a range but a single one simulate a range of one
+    #             (
+    #               portRange:
+    #                 if (portRange == null)
+    #                 then {
+    #                   from = portCfg.port;
+    #                   to = portCfg.port;
+    #                 }
+    #                 else portRange
+    #             )
+    #             # create list for all ports in the port range
+    #             (r: range r.from r.to)
+    #             # define the servicePort for each port in the range
+    #             (map (port: {
+    #               inherit (s) serviceCfg serviceName hostName;
+    #               inherit port portName portCfg;
+    #             }))
+    #           ]))
+    #     ]))
+    #   flatten
+    # ];
+
+    getAddress = {
+      portName,
+      hostName ? config.networking.hostName,
+      asIP ? false,
+      direct ? false,
+      protocol ? null,
     }: let
-      # Determine which host to use
-      selectedHostName =
-        if hostName != null
-        then hostName
-        else let
-          # Find hosts where this service is enabled
-          enabledHosts = pipe cfg.hosts [
-            attrNames
-            (filter (hostName: cfg.hosts.${hostName}.services.${serviceName}.enable or false))
-          ];
-          numHosts = length enabledHosts;
-        in
-          if numHosts == 0
-          then throw "Service '${serviceName}' is not enabled on any host"
-          else if numHosts > 1
-          then throw "Service '${serviceName}' is enabled on multiple hosts (${toString enabledHosts}). Please specify hostName explicitly."
-          else head enabledHosts;
-
-      serviceCfg = cfg.hosts.${selectedHostName}.services.${serviceName};
-
-      # Determine which port to use
-      selectedPortName =
-        if portName != null
-        then portName
-        else let
-          # Find ports with method "virtual-host"
-          virtualHostPorts = pipe serviceCfg.ports [
-            attrNames
-            (filter (p: serviceCfg.ports.${p}.reverseProxy.enable && serviceCfg.ports.${p}.reverseProxy.method == "virtual-host"))
-          ];
-          numPorts = length virtualHostPorts;
-        in
-          if numPorts == 0
-          then throw "Service '${serviceName}' on host '${selectedHostName}' has no ports with method 'virtual-host'"
-          else if numPorts > 1
-          then throw "Service '${serviceName}' on host '${selectedHostName}' has multiple ports with method 'virtual-host' (${toString virtualHostPorts}). Please specify portName explicitly."
-          else head virtualHostPorts;
-
-      portCfg = serviceCfg.ports.${selectedPortName};
-    in "${
-      if (portCfg.reverseProxy.subdomain != null)
-      then "${portCfg.reverseProxy.subdomain}."
-      else ""
-    }${cfg.hosts.${portCfg.reverseProxy.host}.services.reverseProxy.settings.domain}";
+      portCfg =
+        if !(cfg.hosts ? hostName)
+        then throw "getAddress: host ${hostName} is not defined"
+        else if !(cfg.hosts.${hostName}.ports ? portName)
+        then throw "getAddress: port ${portName} is not defined on host ${hostName}"
+        else cfg.hosts.${hostName}.ports.${portName};
+      portSuffix = ":" + (toString portCfg.port);
+    in
+      # optional protocol prefix
+      (
+        if protocol != null
+        then "${protocol}://"
+        else ""
+      )
+      + (
+        # use IP if required
+        if asIP
+        then cfg.hosts.${hostName}.vpn.ip + portSuffix
+        else
+          (
+            # Go with domain when port is reverse proxied
+            if portCfg.reverseProxy.enable && !direct
+            then portCfg.reverseProxy.domain
+            else
+              (
+                if hostName == config.networking.hostName
+                then "localhost"
+                else hostName
+              )
+              + portSuffix
+          )
+      );
   };
 in {
   config.lib.network = networkLib;
