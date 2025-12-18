@@ -269,6 +269,10 @@
           name = "sql";
           formatter.command = lib.getExe pkgs.sql-formatter;
         }
+        {
+          name = "markdown";
+          soft-wrap.enable = true;
+        }
       ];
     };
   };
