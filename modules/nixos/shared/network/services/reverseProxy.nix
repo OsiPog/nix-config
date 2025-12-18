@@ -73,7 +73,7 @@ in {
           (p: let
             proxyConf = p.portCfg.reverseProxy;
             virtualHostsConfig = {
-              useACMEHost = "default";
+              useACMEHost = cfg.settings.domain;
               forceSSL = true;
               locations."/" = {
                 proxyPass = "http://${ipAddrOf p.hostName}:${toString p.portCfg.port}";
@@ -100,7 +100,6 @@ in {
           }
           server {
             proxy_pass ${upstream};
-            proxy_timeout 20s;
             ${
             if proxyConf.udp
             then ''
@@ -128,6 +127,7 @@ in {
     };
 
     services.porkbunAcme.enable = true;
-    security.acme.certs.default.extraDomainNames = map (p: toFullDomain {inherit (p) serviceName portName hostName;}) relevantVirtualHostPorts;
+    users.users.nginx.extraGroups = ["acme"];
+    security.acme.certs."${cfg.settings.domain}".extraDomainNames = map (p: toFullDomain {inherit (p) serviceName portName hostName;}) relevantVirtualHostPorts;
   };
 }

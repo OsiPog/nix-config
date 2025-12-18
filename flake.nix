@@ -80,7 +80,8 @@
     devenv.url = "github:cachix/devenv";
     # Repo containing vscode extensions from marketplace and open vsx
     nix-vscode-extensions = {
-      url = "github:nix-community/nix-vscode-extensions";
+      # url = "github:nix-community/nix-vscode-extensions";
+      url = "github:dseum/nix-vscode-extensions";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # Repo containing firefox addons
