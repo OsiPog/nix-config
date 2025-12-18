@@ -5,6 +5,10 @@
     allowConnectionsFrom = ["biome-fest" "dead-voxel"];
   };
   services = {
+    backup = {
+      enable = true;
+      settings.host = "floating-trees";
+    };
     reverseProxy = {
       enable = true;
       settings.domain = "axelhax.net";
