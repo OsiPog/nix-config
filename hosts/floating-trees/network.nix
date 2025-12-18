@@ -23,28 +23,35 @@
     minecraft-server = {
       enable = true;
       ports = {
-        java = {
-          reverseProxy = {
-            enable = true;
-            host = "haunt-muskie";
-          };
+        java.reverseProxy = {
+          enable = true;
+          host = "haunt-muskie";
         };
-        bedrock = {
-          reverseProxy = {
-            enable = true;
-            host = "haunt-muskie";
-          };
+        bedrock.reverseProxy = {
+          enable = true;
+          host = "haunt-muskie";
         };
       };
     };
-    portunus = {
+    auth-server = {
       enable = true;
-      ports.web = {
-        reverseProxy = {
+      settings = {
+        domain = "axelhax.net";
+      };
+      ports = {
+        authelia.reverseProxy = {
           enable = true;
-          hidden = true;
+          host = "haunt-muskie";
+          subdomain = "auth";
+        };
+        portunus.reverseProxy = {
+          enable = true;
           host = "haunt-muskie";
           subdomain = "ldap";
+        };
+        ldaps.reverseProxy = {
+          enable = true;
+          host = "haunt-muskie";
         };
       };
     };
