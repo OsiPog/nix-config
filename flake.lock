@@ -306,15 +306,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1761221497,
-        "narHash": "sha256-AyLmehBiTnrw65hWgtAPyj5ErgIxRTXtJlNj8LI2/IE=",
-        "owner": "MayNiklas",
+        "lastModified": 1765974604,
+        "narHash": "sha256-zB4LmOV3o9EKsvyXILnqkSKlP11IHxqUi2cGf9RAMdY=",
+        "owner": "Kiyotoko",
         "repo": "eduroam-flake",
-        "rev": "c48e16dfe0692ca7bf75644dc3f7ba3d18baf5da",
+        "rev": "73deefaaa5487a0dbfd6a44ad612861ea9bff124",
         "type": "github"
       },
       "original": {
-        "owner": "MayNiklas",
+        "owner": "Kiyotoko",
         "repo": "eduroam-flake",
         "type": "github"
       }
@@ -931,11 +931,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1765338522,
-        "narHash": "sha256-nkkUf+HT1eB4ixBtopei0PTtB8x/HYPEBqsUYDVgBto=",
+        "lastModified": 1766721817,
+        "narHash": "sha256-tZKe4XoGddwZRD8BYm0gsnrc7Dh2miQteJ+cbeSqnAY=",
         "owner": "OsiPog",
         "repo": "nix-firefox-addons",
-        "rev": "689809a9f321da2ddd8795e835c788e23a6837a4",
+        "rev": "4980c5089b56530a038e64ec4206159e2b063d6b",
         "type": "github"
       },
       "original": {

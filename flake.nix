@@ -91,7 +91,8 @@
     };
     # Scripts to login into eduroam networks (university wifi)
     eduroam = {
-      url = "github:MayNiklas/eduroam-flake";
+      # url = "github:MayNiklas/eduroam-flake";
+      url = "github:Kiyotoko/eduroam-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # wayland idle inhibitor
