@@ -1,14 +1,10 @@
 {
   lib,
-  flake,
   config,
   hostName,
   ...
 }: let
-  inherit (builtins) attrNames readDir;
   inherit (lib) types mkOption mkEnableOption mkIf;
-
-  importDir = path: (map (e: "${path}/${e}") (attrNames (readDir path)));
 
   networkCfg = config.network;
   hostCfg = networkCfg.hosts.${hostName};
@@ -132,6 +128,7 @@ in {
                         };
                       };
                     }));
+                    default = {};
                   };
                 };
               }
