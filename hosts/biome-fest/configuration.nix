@@ -25,6 +25,7 @@
     tuigreet
     podman
     nix-access-tokens
+    gaming
 
     ../../users/osi
   ];
