@@ -17,7 +17,7 @@
   ports = hostCfg.ports;
 in {
   imports = [
-    (mkNetworkHostServiceModule serviceName ({cfg, ...}:
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}:
       mkIf (cfg.enable) {
         ports.${portName}.port = mkDefault 8081;
       }))
