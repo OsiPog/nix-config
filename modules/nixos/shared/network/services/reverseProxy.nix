@@ -37,7 +37,7 @@ in {
 
     (mkNetworkHostServiceModule {inherit serviceName;} null)
 
-    # ../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
+    ../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     networking.firewall = {
@@ -76,7 +76,7 @@ in {
       ];
       streamConfig = pipe relevantStreamPorts [
         (map (p: let
-          upstream = p.hostName + "-" + p.serviceName + "-" + p.portName;
+          upstream = p.hostName + "-" + p.portName;
           proxyConf = p.portCfg.reverseProxy;
           extraStreamConfig =
             if (typeOf proxyConf.extraConfig == "string")

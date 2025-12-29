@@ -23,7 +23,9 @@
   blocklistUrl = "https://big.oisd.nl/dnsmasq2"; # See https://oisd.nl/setup/dnsmasq
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} null)
+    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+      configEnable.stateDirs = [stateDir];
+    }))
 
     # ../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];

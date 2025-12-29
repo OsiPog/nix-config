@@ -17,13 +17,18 @@
     cfg
     ports
     ;
+
+  stateDir = "/var/lib/headscale"; # hardcoded in nixpkgs module
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
-      configEnable.ports.${portName}.port = mkDefault 8081;
+      configEnable = {
+        stateDirs = [stateDir];
+        ports.${portName}.port = mkDefault 8081;
+      };
     }))
 
-    # ../../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
+    ../../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
   config = mkMerge [
     (mkIf (networkCfg.enable && cfg.enable) {
@@ -69,6 +74,8 @@ in {
           "--login-server=${
             getAddress {
               inherit portName;
+              # TODO: this should not be hardcoded
+              hostName = "haunt-muskie";
               # Nginx uses tailscale to reverse proxy to other hosts on the tailnet. So the host that runs headscale must depend not on nginx.
               # thus, we directly connect to localhost
               direct = cfg.enable;

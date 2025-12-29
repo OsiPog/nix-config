@@ -19,18 +19,20 @@
     cfg
     ports
     ;
+
+  portunusStateDir = "/var/lib/portunus";
+  autheliaStateDir = "/var/lib/authelia-default";
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
-      optionsService = {
-        domain = mkOption {
-          type = lib.types.str;
-          description = "The ldap suffix of the LDAP server";
-          default = "example.com";
-        };
+      optionsService.domain = mkOption {
+        type = lib.types.str;
+        description = "The ldap suffix of the LDAP server";
+        default = "example.com";
       };
+
       configEnable = {
-        stateDir = "/var/lib/authelia-default";
+        stateDirs = [portunusStateDir autheliaStateDir];
         ports = {
           authelia.port = 9091;
           portunus.port = 6000;
@@ -87,7 +89,7 @@ in {
       settings = {
         server.address = "tcp://:${toString ports.authelia.port}";
         log.level = "info";
-        storage.local.path = "${cfg.stateDir}/db.sqlite3";
+        storage.local.path = "${autheliaStateDir}/db.sqlite3";
         session.cookies = [
           rec {
             domain = getAddress {
@@ -102,7 +104,7 @@ in {
         access_control.default_policy = "one_factor";
         authentication_backend.ldap = {
           implementation = "custom";
-          address = "ldaps://${cfg.settings.domain}";
+          address = "ldaps://${cfg.domain}";
           base_dn = config.services.portunus.ldap.suffix;
           user = "uid=technical-admin,ou=users,${config.services.portunus.ldap.suffix}";
           users_filter = "(&(objectclass=person)({username_attribute}={input}))";
@@ -116,8 +118,8 @@ in {
         };
         notifier.smtp = {
           # we assume that the mailserver is accessable on the domain
-          address = "smtp://${cfg.settings.domain}:25";
-          sender = "noreply@${cfg.settings.domain}";
+          address = "smtp://${cfg.domain}:25";
+          sender = "noreply@${cfg.domain}";
           username = "technical-admin";
         };
       };
@@ -126,9 +128,9 @@ in {
     # TLS
     services.porkbunAcme = {
       enable = true;
-      inherit (cfg.settings) domain;
+      inherit (cfg) domain;
     };
-    # security.acme.certs."${cfg.settings.domain}".extraDomainNames = [
+    # security.acme.certs."${cfg.domain}".extraDomainNames = [
     #   (toFullDomain {
     #     inherit serviceName hostName;
     #     portName = "portunus";
@@ -140,14 +142,14 @@ in {
     services.portunus = {
       enable = true;
       group = "auth";
-      # inherit (cfg) stateDir;
+      stateDir = portunusStateDir;
       domain = getAddress {
         portName = "portunus";
       };
       ldap = {
         tls = false; # we do it manually because limitations in nixpkgs module, see below in `environment`
         # build a valid RDN with only dc components of the reverse proxy domain
-        suffix = pipe cfg.settings.domain [
+        suffix = pipe cfg.domain [
           (splitString ".")
           (map (e: "dc=${e}"))
           (concatStringsSep ",")
@@ -172,7 +174,7 @@ in {
             login_name = "technical-admin";
             given_name = "Technical";
             family_name = "Administrator";
-            email = "noreply@${cfg.settings.domain}";
+            email = "noreply@${cfg.domain}";
             password = {
               from_command = ["cat" (config.getSopsFile "portunus/admin-pass")];
             };
@@ -187,11 +189,11 @@ in {
         PORTUNUS_SERVER_HTTP_LISTEN = lib.mkForce "0.0.0.0:${toString config.services.portunus.port}";
       }
       // (let
-        acmeDirectory = config.security.acme.certs."${cfg.settings.domain}".directory;
+        acmeDirectory = config.security.acme.certs."${cfg.domain}".directory;
       in {
         PORTUNUS_SLAPD_TLS_CA_CERTIFICATE = config.security.pki.caBundle;
         PORTUNUS_SLAPD_TLS_CERTIFICATE = "${acmeDirectory}/cert.pem";
-        PORTUNUS_SLAPD_TLS_DOMAIN_NAME = cfg.settings.domain;
+        PORTUNUS_SLAPD_TLS_DOMAIN_NAME = cfg.domain;
         PORTUNUS_SLAPD_TLS_PRIVATE_KEY = "${acmeDirectory}/key.pem";
       });
   };

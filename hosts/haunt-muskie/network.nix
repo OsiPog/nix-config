@@ -12,10 +12,10 @@
     };
   };
   services = {
-    # backup = {
-    #   enable = true;
-    #   settings.host = "floating-trees";
-    # };
+    backup = {
+      enable = true;
+      host = "floating-trees";
+    };
     reverseProxy.enable = true;
     # vsftpd = {
     #   enable = true;

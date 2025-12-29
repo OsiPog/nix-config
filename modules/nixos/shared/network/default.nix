@@ -51,6 +51,12 @@ in {
                   default = null;
                   description = "A domain with its DNS configured to resolve to the IP address of this host on *.domain.tld.";
                 };
+
+                stateDirs = mkOption {
+                  type = with types; listOf (pathWith {absolute = true;});
+                  default = [];
+                  description = "A list of directories where any kind of state is stored. Useful for the backup service to know what to backup.";
+                };
               };
             })
           ];
@@ -66,7 +72,11 @@ in {
 
     ./ports.nix
 
+    ./services/auth-server
+    ./services/backup.nix
+    ./services/dnsmasq.nix
     ./services/headscale
+    ./services/minecraft-server.nix
     ./services/reverseProxy.nix
   ];
 

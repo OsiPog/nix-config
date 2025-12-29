@@ -108,6 +108,7 @@
       hostCfg = networkCfg.hosts.${hostName};
       cfg = hostCfg.services.${serviceName};
       ports = hostCfg.ports;
+      stateDir = "/var/lib/${serviceName}";
     };
   };
 in {

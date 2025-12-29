@@ -15,7 +15,7 @@
   flake,
   ...
 }: let
-  inherit (builtins) hasAttr attrNames;
+  inherit (builtins) hasAttr attrNames attrValues;
   inherit (lib) mkIf pipe types mkOption mkDefault;
   inherit (lib.attrsets) mapAttrs mapAttrs' filterAttrs;
   inherit (lib.strings) hasPrefix splitString optionalString;
@@ -30,14 +30,19 @@
     networkCfg
     cfg
     ports
+    stateDir
     ;
 
   toMountPoint = path: "/mnt/sync/${path}";
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
       configEnable = {
-        ports.${portName}.port = mkDefault 8384;
+        stateDirs = [stateDir] ++ (attrValues cfg.sharedFolders);
+        ports = {
+          ${portName}.port = mkDefault 8384;
+          syncthing-share.port = 22000;
+        };
       };
       optionsService = {
         id = mkOption {
@@ -60,7 +65,7 @@ in {
     services.syncthing = {
       enable = true;
       openDefaultPorts = true;
-      dataDir = cfg.stateDir;
+      dataDir = stateDir;
       guiAddress = "127.0.0.1:${toString ports.${portName}.port}";
       settings = {
         devices = pipe networkCfg.hosts [
@@ -70,7 +75,7 @@ in {
             autoAcceptFolders = true;
             addresses = [
               # works for tailscale magicdns
-              "tcp://${name}:22000"
+              "tcp://${name}:${ports.syncthing-share.port}"
             ];
           }))
         ];

@@ -6,9 +6,11 @@
 }: let
   inherit (builtins) filter length listToAttrs;
   inherit (lib) mkIf pipe mkMerge;
-  inherit (lib.lists) unique;
+  inherit (lib.lists) unique findFirst;
+  inherit (lib.strings) hasSuffix;
+  inherit (lib.attrsets) attrsToList;
 
-  inherit (config.lib.network) allEnabledServices allEnabledServicePorts toFullDomain;
+  inherit (config.lib.network) allEnabledServices allPorts getAddress;
 
   networkCfg = config.network;
   headscaleCfg = networkCfg.hosts.${hostName}.services.headscale;
@@ -34,10 +36,10 @@ in
         deny all;
       '';
     in {
-      services.nginx.virtualHosts = pipe allEnabledServicePorts [
+      services.nginx.virtualHosts = pipe allPorts [
         (filter (p: p.portCfg.reverseProxy.enable && p.portCfg.reverseProxy.hidden && p.portCfg.reverseProxy.method == "virtual-host"))
         (map (p: {
-          name = toFullDomain {inherit (p) serviceName portName hostName;};
+          name = getAddress {inherit (p) portName hostName;};
           value.extraConfig = allowRule;
         }))
         listToAttrs
@@ -48,10 +50,13 @@ in
     # --- DNSMASQ
     # add extra entries that DNS directly through the tailnet so that nginx can allow the requests
     (mkIf (networkCfg.enable && dnsmasqCfg.enable) {
-      services.dnsmasq.settings.address = pipe allEnabledServicePorts [
+      services.dnsmasq.settings.address = pipe allPorts [
         (filter (p: p.portCfg.reverseProxy.enable))
         (map (
-          p: "/${toFullDomain {inherit (p) serviceName portName hostName;}}/${networkCfg.hosts.${p.portCfg.reverseProxy.host}.vpn.ip}"
+          p: let
+            domain = getAddress {inherit (p) portName hostName;};
+            reverseProxyIpAddr = (findFirst (host: host.value.domain != null && hasSuffix host.value.domain p.portCfg.reverseProxy.domain) (throw "Should not happen") (attrsToList config.network.hosts)).value.vpn.ip;
+          in "/${domain}/${reverseProxyIpAddr}"
         ))
         unique
       ];
