@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  hostName,
   ...
 }: let
   inherit (builtins) throw;
@@ -68,9 +69,9 @@
       protocol ? null,
     }: let
       portCfg =
-        if !(cfg.hosts ? hostName)
+        if (cfg.hosts.${hostName} or null) == null
         then throw "getAddress: host ${hostName} is not defined"
-        else if !(cfg.hosts.${hostName}.ports ? portName)
+        else if (cfg.hosts.${hostName}.ports.${portName} or null) == null
         then throw "getAddress: port ${portName} is not defined on host ${hostName}"
         else cfg.hosts.${hostName}.ports.${portName};
       portSuffix = ":" + (toString portCfg.port);
@@ -99,6 +100,15 @@
               + portSuffix
           )
       );
+
+    getVariables = serviceName: rec {
+      inherit serviceName;
+      portName = serviceName;
+      networkCfg = config.network;
+      hostCfg = networkCfg.hosts.${hostName};
+      cfg = hostCfg.services.${serviceName};
+      ports = hostCfg.ports;
+    };
   };
 in {
   config.lib.network = networkLib;

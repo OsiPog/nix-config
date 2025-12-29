@@ -2,21 +2,23 @@
   flake,
   lib,
   config,
-  hostName,
   ...
 }: let
   inherit (builtins) filter listToAttrs typeOf;
-  inherit (lib) mkIf mkOption pipe types;
+  inherit (lib) mkIf pipe;
   inherit (lib.attrsets) recursiveUpdate;
   inherit (lib.strings) concatLines hasSuffix;
 
-  inherit (config.lib.network) getAddress allPorts;
+  inherit (config.lib.network) getAddress allPorts getVariables;
   inherit (flake.lib) mkNetworkHostServiceModule;
 
-  serviceName = "reverseProxy";
-  networkCfg = config.network;
-  hostCfg = networkCfg.hosts.${hostName};
-  cfg = hostCfg.services.${serviceName};
+  inherit
+    (getVariables "reverseProxy")
+    serviceName
+    networkCfg
+    hostCfg
+    cfg
+    ;
 
   # Only the ports that should be reverse proxied by current host
   relevantPorts =

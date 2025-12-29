@@ -2,9 +2,11 @@
   lib,
   config,
   hostName,
+  flake,
   ...
 }: let
   inherit (lib) types mkOption mkEnableOption mkIf;
+  inherit (flake.lib) nixosHostNames;
 
   networkCfg = config.network;
   hostCfg = networkCfg.hosts.${hostName};

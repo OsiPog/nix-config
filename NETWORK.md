@@ -50,7 +50,9 @@ network = {
 
 Each host has a `network.nix` file in its directory that is used define its own section.
 
-## Service Definitions
+## Services
+
+### Service Definitions
 
 
 To make option definitions as easy as possible the implementation is similar to Home Manager. The `network.sharedModules` takes a list of modules for the network host namespace. For example:
@@ -71,7 +73,7 @@ To make option definitions as easy as possible the implementation is similar to 
 This will define the option `network.hosts.<name>.foo` and the declare the port `network.hosts.<name>.ports.foo` to be `1234`.
 
 
-### `mkNetworkHostServiceModule`
+#### `mkNetworkHostServiceModule`
 
 With the above we can already create service options that each host can turn on or off. But having multiple services definitions means a lot of duplicated code. Many places in the codebase assume each service to have an `enable` option or the services most likely want to declare a used port (its a network service after all).
 That's what `mkNetworkHostServiceModule` is for in the flake's lib. It takes an attrset with parameters needed for the service definition and a network module for additional configuration.
@@ -97,7 +99,7 @@ That's what `mkNetworkHostServiceModule` is for in the flake's lib. It takes an 
 }
 ```
 
-### Example Service
+#### Example Service
 
 All service definitions should be in the `modules/nixos/shared/network/services` directory. With the above function a service can be defined like this:
 
@@ -140,3 +142,36 @@ in {
 ```
 
 This makes it incredibly easy to define options for each host in `network.hosts` while still having the freedom of the NixOS module system.
+
+
+### Special Services
+
+#### Reverse Proxy
+
+A port (`network.hosts.<name>.ports.<name>`) can be reverse proxied by a host that has the `reverseProxy` service enabled.
+
+```nix
+network.hosts = {
+  foo = {
+    # ...
+    ports.gitea = {
+      port = 1234;
+      reverseProxy = {
+        enable = true;
+        domain = "git.example.com";
+      };
+    }
+  };
+
+  bar = {
+    domain = "example.com";
+    # ...
+    services.reverseProxy.enable = true;
+    # ...
+  };
+}
+```
+
+In this example the `bar` host will resolve `https://git.example.com` (the SSL certificate for TLS is created automatically) to `http://<ip address of foo>:1234`
+
+Alternatively the `foo` host can set `ports.gitea.reverseProxy.method` equal to `"stream"` and `ports.gitea.reverseProxy.domain` to `"example.com"` then the `bar` host will directly reverse proxy the port via the nginx stream module and the `gitea` port will be accessable through `http://example.com:1234` (Note that the `gitea` service will need to handle TLS in that case if needed).

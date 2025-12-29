@@ -23,7 +23,7 @@ in {
         "configEnable"
       ];
 
-      configIsRoot = filter (name: ! (elem name metaAttrNames)) (attrNames evaluated) == [];
+      configIsRoot = filter (name: ! (elem name metaAttrNames)) (attrNames evaluated) != [];
     in {
       imports =
         [

@@ -7,14 +7,16 @@
 }: let
   inherit (lib) mkIf mkDefault mkMerge mkForce;
   inherit (flake.lib) mkNetworkHostServiceModule;
-  inherit (config.lib.network) getAddress;
+  inherit (config.lib.network) getAddress getVariables;
 
-  serviceName = "headscale";
-  portName = serviceName;
-  networkCfg = config.network;
-  hostCfg = networkCfg.hosts.${hostName};
-  cfg = hostCfg.services.${serviceName};
-  ports = hostCfg.ports;
+  inherit
+    (getVariables "headscale")
+    serviceName
+    portName
+    networkCfg
+    cfg
+    ports
+    ;
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
