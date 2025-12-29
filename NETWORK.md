@@ -52,10 +52,52 @@ Each host has a `network.nix` file in its directory that is used define its own 
 
 ## Service Definitions
 
-In `modules/nixos/shared/network/services` are the services defined that can be used in `network.hosts.<name>.services`. As these are not normal NixOS options be need to be replicated among all hosts.
 
-For that the special lib function `mkNetworkHostModule`. A typical service definition looks like this
+To make option definitions as easy as possible the implementation is similar to Home Manager. The `network.sharedModules` takes a list of modules for the network host namespace. For example:
 
+```nix
+{...}: {
+  network.sharedModules = [({...}: {
+    options = {
+      foo = mkOption { /* ... */ };
+    };
+    config = {
+      ports.foo.port = 1234;
+    };
+  })];
+}
+```
+
+This will define the option `network.hosts.<name>.foo` and the declare the port `network.hosts.<name>.ports.foo` to be `1234`.
+
+
+### `mkNetworkHostServiceModule`
+
+With the above we can already create service options that each host can turn on or off. But having multiple services definitions means a lot of duplicated code. Many places in the codebase assume each service to have an `enable` option or the services most likely want to declare a used port (its a network service after all).
+That's what `mkNetworkHostServiceModule` is for in the flake's lib. It takes an attrset with parameters needed for the service definition and a network module for additional configuration.
+
+```nix
+{...}: {
+  imports = [(
+    mkNetworkHostServiceModule {
+      serviceName = "authelia";
+      # withEnable = true; # is true by default
+      # ...
+    }
+    ({
+      cfg, # extra special argument, its a shorthand for `config.${serviceName}`
+      ...
+    }: {
+      options = { /* define service specific options here */ };
+      config = { /* default values, force values, port definitions */ };
+    })
+  )]
+}
+```
+
+### Example Service
+
+All service definitions should be in the `modules/nixos/shared/network/services` directory. With the above function a service can be defined like this:
 
 ```nix
 {
@@ -65,9 +107,8 @@ For that the special lib function `mkNetworkHostModule`. A typical service defin
   hostName,
   ...
 }: let
-  inherit (lib) mkOption mkIf mkEnableOption;
-  inherit (flake.lib) mkServiceOptionsModule;
-  inherit (config.lib.network) toFullDomain;
+  inherit (lib) mkMerge mkIf mkDefault;
+  inherit (flake.lib) mkNetworkHostServiceModule;
 
   serviceName = "authelia";
   networkCfg = config.network;
@@ -76,35 +117,21 @@ For that the special lib function `mkNetworkHostModule`. A typical service defin
   ports = hostCfg.ports;
 in {
   imports = [
-    {
-      network.sharedModules = [({...}: let
-          cfg = config.services.${serviceName};
-        in {
-          options.services.${serviceName} = {
-            enable = mkEnableOption "the ${serviceName} network service on ${hostName}."
-            # ...
-          };
-          config = mkIf (cfg.enable) {
-            ports.${serviceName}.port = mkDefault 8000;
-            # ...
-          };
-        })]
-    }
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
+      config = mkIf (cfg.enable) {
+        ports.authelia.port = mkDefault 8080;
+      }
+    }))
   ];
 
-  
-  # Actual implementation of the service
-  # Use nixpkgs options here to define what the service does and where it defines what
-  config = mkIf (networkCfg.enable && cfg.enable) {
-
+  config = (mkIf (networkCfg.enable && cfg.enable) {
     services.authelia.instances.default = {
       enable = true;
       inherit (ports.${serviceName}) port;
       # ...
     };
-
-  };
-}
+  });
+};
 ```
 
 This makes it incredibly easy to define options for each host in `network.hosts` while still having the freedom of the NixOS module system.
