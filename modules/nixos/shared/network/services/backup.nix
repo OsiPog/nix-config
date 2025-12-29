@@ -124,6 +124,7 @@ in {
               # 1. check connection is possible at all
               ssh -o ConnectTimeout=3 -i /etc/ssh/id_ed25519 "root@${host.name}" echo "Connection succeeded!"
               # 2. mount
+              mkdir -p ${backupMount}/${host.name}
               sshfs root@${host.name}:/ ${backupMount}/${host.name} \
                 -o IdentityFile=/etc/ssh/id_ed25519 \
                 -o auto_unmount \
@@ -139,6 +140,7 @@ in {
             preStart = ''
               systemctl start sshfs-${host.name}
               sleep 5
+              systemctl is-active sshfs-${host.name}
             '';
             postStop = ''
               # After backup unmount sshfs
