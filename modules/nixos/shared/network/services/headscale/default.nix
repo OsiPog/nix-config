@@ -17,10 +17,9 @@
   ports = hostCfg.ports;
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}:
-      mkIf (cfg.enable) {
-        ports.${portName}.port = mkDefault 8081;
-      }))
+    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+      configEnable.ports.${portName}.port = mkDefault 8081;
+    }))
 
     # ../../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];

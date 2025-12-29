@@ -90,6 +90,8 @@ That's what `mkNetworkHostServiceModule` is for in the flake's lib. It takes an 
     }: {
       options = { /* define service specific options here */ };
       config = { /* default values, force values, port definitions */ };
+      optionsService = { /* ... */ }; # shorthand for options.services.${serviceName} = {}
+      configEnable = { /* ... */ }; # shorthand for config = mkIf (cfg.enable) {}
     })
   )]
 }
@@ -118,14 +120,17 @@ All service definitions should be in the `modules/nixos/shared/network/services`
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
-      config = mkIf (cfg.enable) {
+      optionsService = {
+        instanceName = mkOption { /* ... */ };
+      };
+      configEnable = {
         ports.authelia.port = mkDefault 8080;
       }
     }))
   ];
 
   config = (mkIf (networkCfg.enable && cfg.enable) {
-    services.authelia.instances.default = {
+    services.authelia.instances.${cfg.instanceName} = {
       enable = true;
       inherit (ports.${serviceName}) port;
       # ...
