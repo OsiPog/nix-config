@@ -5,16 +5,23 @@
   hostName,
   ...
 }: let
-  inherit (lib) mkIf;
-  inherit (flake.lib) mkServiceOptionsModule;
-  inherit (config.lib.network) toFullDomain;
+  inherit (lib) mkIf mkDefault;
+  inherit (flake.lib) mkNetworkHostServiceModule;
+  inherit (config.lib.network) getAddress getVariables;
 
-  serviceName = "forgejo";
-  networkCfg = config.network;
-  cfg = networkCfg.hosts.${hostName}.services.${serviceName};
+  inherit
+    (getVariables "forgejo")
+    serviceName
+    portName
+    networkCfg
+    cfg
+    ports
+    ;
 in {
   imports = [
-    (mkServiceOptionsModule serviceName {})
+    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+      configEnable.ports.${portName}.port = mkDefault 3000;
+    }))
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     services.forgejo = {
@@ -22,13 +29,11 @@ in {
       inherit (cfg) stateDir;
       settings = {
         server = {
-          ROOT_URL =
-            "https://"
-            + (toFullDomain {
-              inherit serviceName;
-              portName = "web";
-            });
-          HTTP_PORT = cfg.ports.web.port;
+          ROOT_URL = getAddress {
+            protocol = "https";
+            inherit portName;
+          };
+          HTTP_PORT = ports.${portName}.port;
         };
       };
     };

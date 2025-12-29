@@ -8,25 +8,31 @@
   ...
 }: let
   inherit (lib) mkIf mkMerge;
-  inherit (flake.lib) mkServiceOptionsModule;
+  inherit (flake.lib) mkNetworkHostServiceModule;
+  inherit (config.lib.network) getVariables;
 
-  serviceName = "mailserver";
-  networkCfg = config.network;
-  cfg = networkCfg.hosts.${hostName}.services.${serviceName};
+  inherit
+    (getVariables "mailserver")
+    serviceName
+    portName
+    networkCfg
+    cfg
+    ports
+    ;
 in {
   imports = [
     inputs.simple-nixos-mailserver.nixosModules.default
-    (mkServiceOptionsModule serviceName {
-      config = {...}: {
-        ports.smtp.port = 25;
+    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+      configEnable = {
+        ports.${portName}.port = 25;
       };
-    })
+    }))
   ];
 
   config = mkIf (networkCfg.enable && cfg.enable) {
     assertions = [
       {
-        assertion = !cfg.ports.smtp.reverseProxy.enable;
+        assertion = !ports.${portName}.reverseProxy.enable;
         message = "Due to mail protocol requirements, mailserver cannot be reverse proxied.";
       }
     ];

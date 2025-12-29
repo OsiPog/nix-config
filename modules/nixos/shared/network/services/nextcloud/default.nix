@@ -7,34 +7,34 @@
   ...
 }: let
   inherit (lib) mkIf mkMerge;
-  inherit (flake.lib) mkServiceOptionsModule;
-  inherit (config.lib.network) toFullDomain;
+  inherit (flake.lib) mkNetworkHostServiceModule;
+  inherit (config.lib.network) getAddress getVariables;
 
-  serviceName = "nextcloud";
-  networkCfg = config.network;
-  cfg = networkCfg.hosts.${hostName}.services.${serviceName};
+  inherit
+    (getVariables "nextcloud")
+    serviceName
+    portName
+    networkCfg
+    cfg
+    ports
+    ;
 in {
   imports = [
-    (mkServiceOptionsModule serviceName {})
+    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+      configEnable.ports.${portName}.port = 80;
+    }))
   ];
 
   config = mkMerge [
     (mkIf (networkCfg.enable && cfg.enable) {
-      assertions = [
-        {
-          assertion = cfg.ports.web.port == 80;
-          message = "The nextcloud port needs to be 80 as that cannot be configured.";
-        }
-      ];
       sops.secrets."nextcloud/adminpass" = {sopsFile = ./secrets.yaml;};
 
       services.nextcloud = {
         enable = true;
         package = pkgs.nextcloud31;
         home = cfg.stateDir;
-        hostName = toFullDomain {
-          inherit serviceName;
-          portName = "web";
+        hostName = getAddress {
+          inherit portName;
         };
         https = true;
         config = {

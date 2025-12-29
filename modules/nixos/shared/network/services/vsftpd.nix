@@ -6,16 +6,21 @@
   ...
 }: let
   inherit (lib) mkIf mkMerge;
-  inherit (flake.lib) mkServiceOptionsModule;
+  inherit (flake.lib) mkNetworkHostServiceModule;
+  inherit (config.lib.network) getVariables;
 
-  serviceName = "vsftpd";
-  networkCfg = config.network;
-  cfg = networkCfg.hosts.${hostName}.services.${serviceName};
+  inherit
+    (getVariables "vsftpd")
+    serviceName
+    networkCfg
+    cfg
+    ports
+    ;
 
   certCfg = config.security.acme.certs.default;
 in {
   imports = [
-    (mkServiceOptionsModule serviceName {})
+    (mkNetworkHostServiceModule {inherit serviceName;} null)
   ];
   config = mkMerge [
     {
@@ -45,15 +50,15 @@ in {
         extraConfig = ''
           ssl_enable=YES
           pasv_enable=YES
-          pasv_min_port=${toString cfg.ports.passive.portRange.from}
-          pasv_max_port=${toString cfg.ports.passive.portRange.to}
-          listen_port=${toString cfg.ports.control.port}
+          pasv_min_port=${toString ports.vsftpd-passive.portRange.from}
+          pasv_max_port=${toString ports.vsftpd-passive.portRange.to}
+          listen_port=${toString ports.vsftpd-control.port}
         '';
       };
 
       networking.firewall = {
-        allowedTCPPorts = [cfg.ports.control.port];
-        allowedTCPPortRanges = [cfg.ports.passive.portRange];
+        allowedTCPPorts = [ports.vsftpd-control.port];
+        allowedTCPPortRanges = [ports.vsftpd-passive.portRange];
       };
 
       # The FTP user

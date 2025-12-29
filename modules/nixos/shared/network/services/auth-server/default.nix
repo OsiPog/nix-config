@@ -9,23 +9,27 @@
   inherit (lib) mkIf pipe mkOption;
   inherit (lib.strings) splitString;
 
-  inherit (flake.lib) mkServiceOptionsModule;
-  inherit (config.lib.network) toFullDomain;
+  inherit (flake.lib) mkNetworkHostServiceModule;
+  inherit (config.lib.network) getAddress getVariables;
 
-  serviceName = "auth-server";
-  networkCfg = config.network;
-  cfg = networkCfg.hosts.${hostName}.services.${serviceName};
+  inherit
+    (getVariables "auth-server")
+    serviceName
+    networkCfg
+    cfg
+    ports
+    ;
 in {
   imports = [
-    (mkServiceOptionsModule serviceName {
-      settingsOptions = {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+      optionsService = {
         domain = mkOption {
           type = lib.types.str;
           description = "The ldap suffix of the LDAP server";
           default = "example.com";
         };
       };
-      config = {...}: {
+      configEnable = {
         stateDir = "/var/lib/authelia-default";
         ports = {
           authelia.port = 9091;
@@ -36,14 +40,14 @@ in {
           };
         };
       };
-    })
+    }))
 
     flake.nixosModules.porkbunAcme
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     assertions = [
       {
-        assertion = cfg.ports.authelia.reverseProxy.enable;
+        assertion = ports.authelia.reverseProxy.enable;
         message = "Authelia needs to be reverse proxied as https is required.";
       }
     ];
@@ -81,17 +85,18 @@ in {
         AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE = config.getSopsFile "portunus/admin-pass";
       };
       settings = {
-        server.address = "tcp://:${toString cfg.ports.authelia.port}";
+        server.address = "tcp://:${toString ports.authelia.port}";
         log.level = "info";
         storage.local.path = "${cfg.stateDir}/db.sqlite3";
         session.cookies = [
           rec {
-            domain = toFullDomain {
-              inherit serviceName hostName;
+            domain = getAddress {
               portName = "authelia";
             };
-            authelia_url =
-              "https://" + domain;
+            authelia_url = getAddress {
+              protocol = "https";
+              portName = "authelia";
+            };
           }
         ];
         access_control.default_policy = "one_factor";
@@ -136,8 +141,7 @@ in {
       enable = true;
       group = "auth";
       # inherit (cfg) stateDir;
-      domain = toFullDomain {
-        inherit serviceName hostName;
+      domain = getAddress {
         portName = "portunus";
       };
       ldap = {
@@ -149,7 +153,7 @@ in {
           (concatStringsSep ",")
         ];
       };
-      port = cfg.ports.portunus.port;
+      port = ports.portunus.port;
       seedSettings = {
         groups = [
           {

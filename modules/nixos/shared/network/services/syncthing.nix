@@ -20,22 +20,26 @@
   inherit (lib.attrsets) mapAttrs mapAttrs' filterAttrs;
   inherit (lib.strings) hasPrefix splitString optionalString;
   inherit (lib.lists) elemAt;
-  inherit (flake.lib) mkServiceOptionsModule;
+  inherit (flake.lib) mkNetworkHostServiceModule;
+  inherit (config.lib.network) getVariables;
 
-  serviceName = "syncthing";
-  networkCfg = config.network;
-  cfg = networkCfg.hosts.${hostName}.services.${serviceName};
+  inherit
+    (getVariables "syncthing")
+    serviceName
+    portName
+    networkCfg
+    cfg
+    ports
+    ;
 
   toMountPoint = path: "/mnt/sync/${path}";
 in {
   imports = [
-    (mkServiceOptionsModule serviceName {
-      config = {...}: {
-        ports = {
-          web.port = mkDefault 8384;
-        };
+    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+      configEnable = {
+        ports.${portName}.port = mkDefault 8384;
       };
-      settingsOptions = {
+      optionsService = {
         id = mkOption {
           type = types.str;
           description = "The syncthing device ID for this host.";
@@ -49,7 +53,7 @@ in {
           '';
         };
       };
-    })
+    }))
   ];
 
   config = mkIf (networkCfg.enable && cfg.enable) {
@@ -57,12 +61,12 @@ in {
       enable = true;
       openDefaultPorts = true;
       dataDir = cfg.stateDir;
-      guiAddress = "127.0.0.1:${toString cfg.ports.web.port}";
+      guiAddress = "127.0.0.1:${toString ports.${portName}.port}";
       settings = {
         devices = pipe networkCfg.hosts [
           (filterAttrs (name: host: host.services.${serviceName}.enable && name != hostName))
           (mapAttrs (name: host: {
-            id = host.services.${serviceName}.settings.id;
+            id = host.services.${serviceName}.id;
             autoAcceptFolders = true;
             addresses = [
               # works for tailscale magicdns
@@ -70,14 +74,14 @@ in {
             ];
           }))
         ];
-        folders = pipe cfg.settings.sharedFolders [
+        folders = pipe cfg.sharedFolders [
           (mapAttrs (folderName: folder: {
             path = toMountPoint folder;
             devices = pipe networkCfg.hosts [
               (filterAttrs (
                 name: host:
                   host.services.${serviceName}.enable
-                  && (hasAttr folderName host.services.${serviceName}.settings.sharedFolders)
+                  && (hasAttr folderName host.services.${serviceName}.sharedFolders)
                   && name != hostName
               ))
               attrNames
@@ -101,6 +105,6 @@ in {
           ]);
         };
       })
-      cfg.settings.sharedFolders;
+      cfg.sharedFolders;
   };
 }

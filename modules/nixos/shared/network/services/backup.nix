@@ -10,15 +10,19 @@
   inherit (lib) types mkIf mkOption mkEnableOption mkMerge pipe;
   inherit (lib.attrsets) filterAttrs attrsToList recursiveUpdate;
 
-  inherit (flake.lib) mkServiceOptionsModule nixosHostNames;
+  inherit (flake.lib) mkNetworkHostServiceModule nixosHostNames;
+  inherit (config.lib.network) getVariables;
 
-  serviceName = "backup";
-  networkCfg = config.network;
-  cfg = networkCfg.hosts.${hostName}.services.${serviceName};
+  inherit
+    (getVariables "backup")
+    serviceName
+    networkCfg
+    cfg
+    ;
 in {
   imports = [
-    (mkServiceOptionsModule serviceName {
-      settingsOptions = {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+      optionsService = {
         paths = mkOption {
           type = with types; listOf (pathWith {absolute = true;});
           description = "The paths that should be backed up";
@@ -46,7 +50,7 @@ in {
           };
         };
       };
-    })
+    }))
   ];
   config = mkMerge [
     # config for clients

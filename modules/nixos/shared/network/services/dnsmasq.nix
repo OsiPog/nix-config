@@ -7,11 +7,15 @@
   ...
 }: let
   inherit (lib) mkIf;
-  inherit (flake.lib) mkServiceOptionsModule;
+  inherit (flake.lib) mkNetworkHostServiceModule;
+  inherit (config.lib.network) getVariables;
 
-  serviceName = "dnsmasq";
-  networkCfg = config.network;
-  cfg = networkCfg.hosts.${hostName}.services.${serviceName};
+  inherit
+    (getVariables "dnsmasq")
+    serviceName
+    networkCfg
+    cfg
+    ;
 
   stateDir = "/var/lib/dnsmasq"; # hardcoded in nixpkgs module definition
 
@@ -19,13 +23,9 @@
   blocklistUrl = "https://big.oisd.nl/dnsmasq2"; # See https://oisd.nl/setup/dnsmasq
 in {
   imports = [
-    (mkServiceOptionsModule serviceName {
-      config = {...}: {
-        inherit stateDir;
-      };
-    })
+    (mkNetworkHostServiceModule {inherit serviceName;} null)
 
-    ../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
+    # ../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     services.dnsmasq = {

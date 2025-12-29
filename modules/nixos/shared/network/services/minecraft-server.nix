@@ -8,23 +8,28 @@
   ...
 }: let
   inherit (lib) mkIf mkDefault;
-  inherit (flake.lib) mkServiceOptionsModule;
+  inherit (flake.lib) mkNetworkHostServiceModule;
+  inherit (config.lib.network) getVariables;
   inherit (pkgs) fetchurl;
 
-  serviceName = "minecraft-server";
-  networkCfg = config.network;
-  cfg = networkCfg.hosts.${hostName}.services.${serviceName};
+  inherit
+    (getVariables "minecraft-server")
+    serviceName
+    networkCfg
+    cfg
+    ports
+    ;
 in {
   imports = [
-    (mkServiceOptionsModule serviceName {
-      config = {...}: {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+      configEnable = {
         ports = {
-          java = {
+          minecraft-java = {
             port = mkDefault 25565;
             reverseProxy.method = "stream";
           };
-          bedrock = {
-            port = mkDefault 19132;
+          minecraft-bedrock = {
+            port = 19132;
             reverseProxy = {
               method = "stream";
               udp = true;
@@ -32,7 +37,7 @@ in {
           };
         };
       };
-    })
+    }))
     inputs.nix-minecraft.nixosModules.minecraft-servers
   ];
 
@@ -52,7 +57,7 @@ in {
       servers.default = {
         enable = true;
         serverProperties = {
-          server-port = cfg.ports.java.port;
+          server-port = ports.minecraft-java.port;
           white-list = true;
           spawn-protection = 0;
           enforce-secure-profile = false;
