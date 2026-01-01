@@ -74,8 +74,6 @@ in {
           "--login-server=${
             getAddress {
               inherit portName;
-              # TODO: this should not be hardcoded
-              hostName = "haunt-muskie";
               # Nginx uses tailscale to reverse proxy to other hosts on the tailnet. So the host that runs headscale must depend not on nginx.
               # thus, we directly connect to localhost
               direct = cfg.enable;

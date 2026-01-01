@@ -4,14 +4,14 @@
   hostName,
   ...
 }: let
-  inherit (builtins) throw;
+  inherit (builtins) throw length filter head concatStringsSep;
   inherit (lib) pipe;
   inherit (lib.attrsets) attrsToList filterAttrs mapAttrsToList;
   inherit (lib.lists) flatten range;
 
   cfg = config.network;
 
-  networkLib = {
+  networkLib = rec {
     # Flatten all enabled services across all hosts into list of:
     # {
     #   hostName: string
@@ -63,17 +63,30 @@
 
     getAddress = {
       portName,
-      hostName ? config.networking.hostName,
+      hostName ? null,
       asIP ? false,
       direct ? false,
       protocol ? null,
     }: let
+      host =
+        if hostName != null
+        then hostName
+        else
+          pipe allPorts [
+            (filter (e: e.portName == portName))
+            (ports:
+              if length ports == 0
+              then throw "getAddress: port ${portName} cannot be found on any host."
+              else if length ports >= 2
+              then throw "getAddress: port ${portName} is defined on multiple hosts (${concatStringsSep ", " (map (e: e.hostName) ports)}). Please provide a hostName or enable the associated service on only one host."
+              else (head ports).hostName)
+          ];
       portCfg =
-        if (cfg.hosts.${hostName} or null) == null
-        then throw "getAddress: host ${hostName} is not defined"
-        else if (cfg.hosts.${hostName}.ports.${portName} or null) == null
-        then throw "getAddress: port ${portName} is not defined on host ${hostName}"
-        else cfg.hosts.${hostName}.ports.${portName};
+        if (cfg.hosts.${host} or null) == null
+        then throw "getAddress: host ${host} is not defined"
+        else if (cfg.hosts.${host}.ports.${portName} or null) == null
+        then throw "getAddress: port ${portName} is not defined on host ${host}"
+        else cfg.hosts.${host}.ports.${portName};
       portSuffix = ":" + (toString portCfg.port);
     in
       # optional protocol prefix
@@ -85,7 +98,7 @@
       + (
         # use IP if required
         if asIP
-        then cfg.hosts.${hostName}.vpn.ip + portSuffix
+        then cfg.hosts.${host}.vpn.ip + portSuffix
         else
           (
             # Go with domain when port is reverse proxied
@@ -93,9 +106,9 @@
             then portCfg.reverseProxy.domain
             else
               (
-                if hostName == config.networking.hostName
+                if host == config.networking.hostName
                 then "localhost"
-                else hostName
+                else host
               )
               + portSuffix
           )
