@@ -5,7 +5,7 @@
   pkgs,
   ...
 }: let
-  inherit (lib) mkMerge mkIf mkOption mkEnableOption foldl';
+  inherit (lib) mkMerge mkIf mkOption mkEnableOption foldl' mkDefault;
   inherit (lib.lists) findFirst;
   inherit (lib.attrsets) genAttrs;
   inherit (config.lib.network) getAddress allPorts;
@@ -17,20 +17,6 @@
   integratedServices = ["mailserver" "authelia"];
 
   integratedServiceEnable = foldl' (acc: elem: acc || hostCfg.services.${elem}.enable) false integratedServices;
-
-  ldapsAddress = getAddress {
-    protocol = "ldaps";
-    portName = "ldaps";
-  };
-
-  searchUserDN = baseDN: "uid=search-user,ou=users,${baseDN}";
-
-  usersFilter = baseDN: attr: placeholder: group: "(&(objectclass=person)(${attr}=${placeholder})${
-    if group != null
-    then groupsFilter baseDN group
-    else ""
-  })";
-  groupsFilter = baseDN: placeholder: "(isMemberOf=cn=${placeholder},ou=groups,${baseDN})";
 in
   mkMerge [
     {
@@ -39,21 +25,59 @@ in
           options.services = genAttrs integratedServices (_: {
             integrations.ldaps = mkOption {
               description = "ldaps server integration";
-              type = lib.types.submodule (integrationModule: {
+              type = lib.types.submodule (integrationModule: let
+                defaultHost = (findFirst (p: p.portName == "ldaps") (throw "LDAPS Integration: ldaps port it not defined on any host.") allPorts).hostName;
+
+                portunusCfg = networkCfg.hosts.${integrationModule.config.host}.services.portunus;
+
+                inherit (portunusCfg.ldap) baseDN;
+
+                getGroupsFilter = placeholder: "(isMemberOf=cn=${placeholder},ou=groups,${baseDN})";
+                getUsersFilter = attr: placeholder: group: "(&(objectclass=person)(${attr}=${placeholder})${
+                  if group != null
+                  then getGroupsFilter group
+                  else ""
+                })";
+                address = getAddress {
+                  portName = "ldaps";
+                  protocol = "ldaps";
+                  hostName = integrationModule.config.host;
+                };
+              in {
                 options = {
                   enable = mkEnableOption "ldaps server integration";
                   host = mkOption {
                     description = "The host the ldaps server is running on.";
-                    type = with lib.types; nullOr str;
+                    type = lib.types.str;
                   };
-                  portunusCfg = mkOption {
-                    description = "Portunus configuration options set on the ldaps host.";
+                  baseDN = mkOption {
+                    description = "Read only option of the base dn of the ldap server.";
                     readOnly = true;
-                    default = networkCfg.hosts.${integrationModule.config.host}.services.portunus;
+                    default = baseDN;
+                  };
+                  searchUserDN = mkOption {
+                    description = "dn of the search user";
+                    readOnly = true;
+                    default = "uid=search-user,ou=users,${baseDN}";
+                  };
+                  address = mkOption {
+                    description = "Read only option of the ldap address";
+                    readOnly = true;
+                    default = address;
+                  };
+                  getUsersFilter = mkOption {
+                    description = "Read only option that contains a function that returns a users filter with an optional group filter";
+                    readOnly = true;
+                    default = getUsersFilter;
+                  };
+                  getGroupsFilter = mkOption {
+                    description = "Read only option that contains a function that returns a group filter";
+                    readOnly = true;
+                    default = getGroupsFilter;
                   };
                 };
                 config = mkIf integrationModule.config.enable {
-                  host = (findFirst (p: p.portName == "ldaps") (throw "LDAPS Integration: ldaps port it not defined on any host.") allPorts).hostName;
+                  host = mkDefault defaultHost;
                 };
               });
               default = {};
@@ -113,20 +137,22 @@ in
     # LDAP CLIENTS
 
     # --- AUTHELIA
-    (mkIf (networkCfg.enable && hostSrvs.authelia.enable && hostSrvs.authelia.integrations.ldaps.enable) {
+    (mkIf (networkCfg.enable && hostSrvs.authelia.enable && hostSrvs.authelia.integrations.ldaps.enable) (let
+      inherit (hostSrvs.authelia.integrations) ldaps;
+    in {
       users.users.${config.services.authelia.instances.default.user}.extraGroups = ["portunus-search"];
       services.authelia.instances.default = {
         environmentVariables = {
           AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = config.getSopsFile "portunus/search-pass";
         };
         settings = {
-          authentication_backend.ldap = rec {
+          authentication_backend.ldap = {
             implementation = "custom";
-            address = ldapsAddress;
-            base_dn = hostSrvs.authelia.integrations.ldaps.portunusCfg.ldap.baseDN;
-            user = searchUserDN base_dn;
-            users_filter = usersFilter base_dn "{username_attribute}" "{input}" null;
-            groups_filter = groupsFilter base_dn "{dn}";
+            address = ldaps.address;
+            base_dn = ldaps.baseDN;
+            user = ldaps.searchUserDN;
+            users_filter = ldaps.getUsersFilter "{username_attribute}" "{input}" null;
+            groups_filter = ldaps.getGroupsFilter "{dn}";
             attributes = {
               username = "uid";
               display_name = "cn";
@@ -136,26 +162,28 @@ in
           };
         };
       };
-    })
+    }))
 
     # --- MAILSERVER
-    (mkIf (networkCfg.enable && hostSrvs.mailserver.enable && hostSrvs.mailserver.integrations.ldaps.enable) {
+    (mkIf (networkCfg.enable && hostSrvs.mailserver.enable && hostSrvs.mailserver.integrations.ldaps.enable) (let
+      inherit (hostSrvs.mailserver.integrations) ldaps;
+    in {
       users.users.${config.services.postfix.user}.extraGroups = ["portunus-search"];
 
-      mailserver.ldap = rec {
+      mailserver.ldap = {
         enable = true;
-        searchBase = hostSrvs.mailserver.integrations.ldaps.portunusCfg.ldap.baseDN;
-        uris = [ldapsAddress];
+        searchBase = ldaps.baseDN;
+        uris = [ldaps.address];
         bind = {
-          dn = searchUserDN searchBase;
+          dn = ldaps.searchUserDN;
           passwordFile = config.getSopsFile "portunus/search-pass";
         };
         postfix = {
-          filter = usersFilter searchBase "mail" "%s" "email";
+          filter = ldaps.getUsersFilter "mail" "%s" "email";
           uidAttribute = "uid";
           mailAttribute = "mail";
         };
-        dovecot.passFilter = usersFilter searchBase "mail" "%{user}" "email";
+        dovecot.passFilter = ldaps.getUsersFilter "mail" "%{user}" "email";
       };
-    })
+    }))
   ]
