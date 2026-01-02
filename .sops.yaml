@@ -64,7 +64,12 @@ creation_rules:
   - age:
     - *floating-trees
     - *haunt-muskie
-- path_regex: modules/nixos/shared/network/services/auth-server/secrets.yaml$
+- path_regex: modules/nixos/shared/network/integrations/ldaps/secrets.yaml$
+  key_groups:
+  - age:
+    - *floating-trees
+    - *haunt-muskie
+- path_regex: modules/nixos/shared/network/services/authelia/secrets.yaml$
   key_groups:
   - age:
     - *floating-trees
@@ -77,10 +82,10 @@ creation_rules:
     - *floating-trees
     - *haunt-muskie
     - *wet-hands
-- path_regex: modules/nixos/shared/network/services/mailserver/secrets.yaml$
+- path_regex: modules/nixos/shared/network/services/portunus/secrets.yaml$
   key_groups:
   - age:
-    - *haunt-muskie
+    - *floating-trees
 - path_regex: modules/nixos/uni-vpn/secrets.yaml$
   key_groups:
   - age:

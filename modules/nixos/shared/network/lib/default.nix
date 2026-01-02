@@ -67,6 +67,7 @@
       asIP ? false,
       direct ? false,
       protocol ? null,
+      appendPort ? true,
     }: let
       host =
         if hostName != null
@@ -87,7 +88,6 @@
         else if (cfg.hosts.${host}.ports.${portName} or null) == null
         then throw "getAddress: port ${portName} is not defined on host ${host}"
         else cfg.hosts.${host}.ports.${portName};
-      portSuffix = ":" + (toString portCfg.port);
     in
       # optional protocol prefix
       (
@@ -98,20 +98,31 @@
       + (
         # use IP if required
         if asIP
-        then cfg.hosts.${host}.vpn.ip + portSuffix
+        then cfg.hosts.${host}.vpn.ip
         else
           (
             # Go with domain when port is reverse proxied
             if portCfg.reverseProxy.enable && !direct
             then portCfg.reverseProxy.domain
+            else if cfg.hosts.${host}.domain != null && !direct
+            then cfg.hosts.${host}.domain
             else
               (
                 if host == config.networking.hostName
                 then "localhost"
                 else host
               )
-              + portSuffix
           )
+      )
+      + (
+        if appendPort
+        then
+          (
+            if (portCfg.reverseProxy.enable && portCfg.reverseProxy.method == "virtual-host" && !direct && !asIP)
+            then ""
+            else ":" + (toString portCfg.port)
+          )
+        else ""
       );
 
     getVariables = serviceName: rec {

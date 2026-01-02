@@ -97,6 +97,7 @@ in {
               listen ${toString p.portCfg.port} udp;
               proxy_requests 8640000;
               proxy_responses 0;
+              proxy_protocol on;
             ''
             else ''
               listen ${toString p.portCfg.port};

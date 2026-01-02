@@ -72,12 +72,17 @@ in {
 
     ./ports.nix
 
-    ./services/auth-server
+    ./services/authelia
     ./services/backup.nix
     ./services/dnsmasq.nix
     ./services/headscale
+    ./services/mailserver
     ./services/minecraft-server.nix
+    ./services/portunus
     ./services/reverseProxy.nix
+
+    ./integrations/ldaps
+    ./integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
 
   config = mkIf networkCfg.enable {

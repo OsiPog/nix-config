@@ -27,7 +27,12 @@
     #     };
     #   };
     # };
-    # mailserver.enable = true;
+
+    mailserver = {
+      enable = true;
+      integrations.ldaps.enable = true;
+    };
+
     headscale.enable = true;
   };
 }

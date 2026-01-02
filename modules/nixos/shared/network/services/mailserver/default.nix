@@ -14,7 +14,6 @@
   inherit
     (getVariables "mailserver")
     serviceName
-    portName
     networkCfg
     cfg
     ports
@@ -26,7 +25,7 @@ in {
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
       configEnable = {
         stateDirs = [stateDir];
-        ports.${portName}.port = 25;
+        ports.smtp.port = 25;
       };
     }))
   ];
@@ -34,12 +33,10 @@ in {
   config = mkIf (networkCfg.enable && cfg.enable) {
     assertions = [
       {
-        assertion = !ports.${portName}.reverseProxy.enable;
+        assertion = !ports.smtp.reverseProxy.enable;
         message = "Due to mail protocol requirements, mailserver cannot be reverse proxied.";
       }
     ];
-
-    sops.secrets."mailserver/pass-hashes/admin" = {sopsFile = ./secrets.yaml;};
 
     mailserver = {
       enable = true;
@@ -48,16 +45,16 @@ in {
       fqdn = "mail.${config.networking.domain}";
       domains = [config.networking.domain];
 
-      # A list of all login accounts. To create the password hashes, use
-      # nix-shell -p mkpasswd --run 'mkpasswd -sm bcrypt'
-      loginAccounts = {
-        "admin@${config.networking.domain}" = {
-          hashedPasswordFile = config.getSopsFile "mailserver/pass-hashes/admin";
-        };
-      };
+      # # A list of all login accounts. To create the password hashes, use
+      # # nix-shell -p mkpasswd --run 'mkpasswd -sm bcrypt'
+      # loginAccounts = {
+      #   "admin@${config.networking.domain}" = {
+      #     hashedPasswordFile = config.getSopsFile "mailserver/pass-hashes/admin";
+      #   };
+      # };
 
       certificateScheme = "acme";
-      acmeCertificateName = "default";
+      acmeCertificateName = config.networking.domain;
     };
   };
 }

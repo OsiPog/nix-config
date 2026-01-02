@@ -25,10 +25,12 @@
     portunus.reverseProxy = {
       enable = true;
       domain = "users.axelhax.net";
+      # hidden = true; # TODO: currently broken
     };
     ldaps.reverseProxy = {
       enable = true;
-      domain = "axelhax.net";
+      domain = "ldap.axelhax.net";
+      # hidden = true; # TODO: currently broken
     };
   };
   services = {
@@ -41,9 +43,10 @@
       };
     };
     minecraft-server.enable = true;
-    auth-server = {
+    authelia = {
       enable = true;
-      domain = "axelhax.net";
+      integrations.ldaps.enable = true;
     };
+    portunus.enable = true;
   };
 }
