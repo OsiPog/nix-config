@@ -109,7 +109,6 @@ in {
             login_name = "technical-admin";
             given_name = "Technical";
             family_name = "Administrator";
-            email = "noreply@${ldapsDomain}";
             password = {
               from_command = ["cat" (config.getSopsFile "portunus/admin-pass")];
             };

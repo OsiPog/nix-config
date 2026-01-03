@@ -30,7 +30,7 @@
 
     mailserver = {
       enable = true;
-      integrations.ldaps.enable = true;
+      integrations.ldap.enable = true;
     };
 
     headscale.enable = true;

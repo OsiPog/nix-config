@@ -81,7 +81,8 @@ in {
     ./services/portunus
     ./services/reverseProxy.nix
 
-    ./integrations/ldaps
+    ./integrations/ldap
+    ./integrations/mail
     ./integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
 

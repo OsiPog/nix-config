@@ -45,8 +45,20 @@
     minecraft-server.enable = true;
     authelia = {
       enable = true;
-      integrations.ldaps.enable = true;
+      integrations = {
+        ldap.enable = true;
+        smtp = {
+          enable = true;
+          host = "haunt-muskie";
+        };
+      };
     };
-    portunus.enable = true;
+    portunus = {
+      enable = true;
+      integrations.smtp = {
+        enable = true;
+        host = "haunt-muskie";
+      };
+    };
   };
 }

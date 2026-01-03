@@ -16,17 +16,17 @@
 
   integratedServices = ["mailserver" "authelia"];
 
-  integratedServiceEnable = foldl' (acc: elem: acc || hostCfg.services.${elem}.enable) false integratedServices;
+  integratedServiceEnable = foldl' (acc: elem: acc || (hostCfg.services.${elem}.enable && hostCfg.services.${elem}.integrations.ldap.enable)) false integratedServices;
 in
   mkMerge [
     {
       network.sharedModules = [
         ({...}: {
           options.services = genAttrs integratedServices (_: {
-            integrations.ldaps = mkOption {
-              description = "ldaps server integration";
+            integrations.ldap = mkOption {
+              description = "ldap server integration";
               type = lib.types.submodule (integrationModule: let
-                defaultHost = (findFirst (p: p.portName == "ldaps") (throw "LDAPS Integration: ldaps port it not defined on any host.") allPorts).hostName;
+                defaultHost = (findFirst (p: p.portName == "ldaps") (throw "LDAP Integration: ldaps port it not defined on any host.") allPorts).hostName;
 
                 portunusCfg = networkCfg.hosts.${integrationModule.config.host}.services.portunus;
 
@@ -45,9 +45,9 @@ in
                 };
               in {
                 options = {
-                  enable = mkEnableOption "ldaps server integration";
+                  enable = mkEnableOption "ldap server integration";
                   host = mkOption {
-                    description = "The host the ldaps server is running on.";
+                    description = "The host the ldap server is running on.";
                     type = lib.types.str;
                   };
                   baseDN = mkOption {
@@ -116,12 +116,6 @@ in
             members = ["search-user"];
             permissions.ldap.can_read = true;
           }
-          # only people in the email group may login with email servers
-          {
-            name = "email";
-            long_name = "Email";
-            members = [];
-          }
         ];
         users = [
           {
@@ -137,8 +131,8 @@ in
     # LDAP CLIENTS
 
     # --- AUTHELIA
-    (mkIf (networkCfg.enable && hostSrvs.authelia.enable && hostSrvs.authelia.integrations.ldaps.enable) (let
-      inherit (hostSrvs.authelia.integrations) ldaps;
+    (mkIf (networkCfg.enable && hostSrvs.authelia.enable && hostSrvs.authelia.integrations.ldap.enable) (let
+      inherit (hostSrvs.authelia.integrations) ldap;
     in {
       users.users.${config.services.authelia.instances.default.user}.extraGroups = ["portunus-search"];
       services.authelia.instances.default = {
@@ -148,11 +142,11 @@ in
         settings = {
           authentication_backend.ldap = {
             implementation = "custom";
-            address = ldaps.address;
-            base_dn = ldaps.baseDN;
-            user = ldaps.searchUserDN;
-            users_filter = ldaps.getUsersFilter "{username_attribute}" "{input}" null;
-            groups_filter = ldaps.getGroupsFilter "{dn}";
+            address = ldap.address;
+            base_dn = ldap.baseDN;
+            user = ldap.searchUserDN;
+            users_filter = ldap.getUsersFilter "{username_attribute}" "{input}" null;
+            groups_filter = ldap.getGroupsFilter "{dn}";
             attributes = {
               username = "uid";
               display_name = "cn";
@@ -165,25 +159,25 @@ in
     }))
 
     # --- MAILSERVER
-    (mkIf (networkCfg.enable && hostSrvs.mailserver.enable && hostSrvs.mailserver.integrations.ldaps.enable) (let
-      inherit (hostSrvs.mailserver.integrations) ldaps;
+    (mkIf (networkCfg.enable && hostSrvs.mailserver.enable && hostSrvs.mailserver.integrations.ldap.enable) (let
+      inherit (hostSrvs.mailserver.integrations) ldap;
     in {
       users.users.${config.services.postfix.user}.extraGroups = ["portunus-search"];
 
       mailserver.ldap = {
         enable = true;
-        searchBase = ldaps.baseDN;
-        uris = [ldaps.address];
+        searchBase = ldap.baseDN;
+        uris = [ldap.address];
         bind = {
-          dn = ldaps.searchUserDN;
+          dn = ldap.searchUserDN;
           passwordFile = config.getSopsFile "portunus/search-pass";
         };
         postfix = {
-          filter = ldaps.getUsersFilter "mail" "%s" "email";
+          filter = ldap.getUsersFilter "mail" "%s" "email";
           uidAttribute = "uid";
           mailAttribute = "mail";
         };
-        dovecot.passFilter = ldaps.getUsersFilter "mail" "%{user}" "email";
+        dovecot.passFilter = ldap.getUsersFilter "mail" "%{user}" "email";
       };
     }))
   ]

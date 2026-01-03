@@ -64,7 +64,7 @@ creation_rules:
   - age:
     - *floating-trees
     - *haunt-muskie
-- path_regex: modules/nixos/shared/network/integrations/ldaps/secrets.yaml$
+- path_regex: modules/nixos/shared/network/integrations/ldap/secrets.yaml$
   key_groups:
   - age:
     - *floating-trees
