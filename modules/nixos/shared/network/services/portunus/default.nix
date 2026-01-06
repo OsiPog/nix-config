@@ -101,7 +101,6 @@ in {
               portunus.is_admin = true;
               ldap.can_read = true;
             };
-            posix_gid = 101;
           }
         ];
         users = [

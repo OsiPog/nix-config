@@ -17,8 +17,9 @@
     networkCfg
     cfg
     ports
-    stateDir
     ;
+
+  stateDir = "/var/lib/authelia-default"; # hardcoded in nixpkgs
 
   domain = getAddress {inherit portName;};
 in {
@@ -63,9 +64,6 @@ in {
         jwtSecretFile = config.getSopsFile "authelia/jwtSecret";
         storageEncryptionKeyFile = config.getSopsFile "authelia/storageEncryptionKey";
       };
-      environmentVariables = {
-        # AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE = config.getSopsFile "portunus/admin-pass";
-      };
       settings = {
         server.address = "tcp://:${toString ports.${portName}.port}";
         log.level = "info";
@@ -82,16 +80,6 @@ in {
           }
         ];
         access_control.default_policy = "one_factor";
-        notifier.smtp = {
-          # we assume that the mailserver is accessable on the domain
-          address = getAddress {
-            protocol = "smtp";
-            portName = "smtp";
-            hostName = cfg.mailHost;
-          };
-          sender = "noreply@${domain}";
-          username = "technical-admin";
-        };
       };
     };
   };
