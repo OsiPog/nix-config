@@ -140,18 +140,24 @@ in
           AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = config.getSopsFile "portunus/search-pass";
         };
         settings = {
-          authentication_backend.ldap = {
-            implementation = "custom";
-            address = ldap.address;
-            base_dn = ldap.baseDN;
-            user = ldap.searchUserDN;
-            users_filter = ldap.getUsersFilter "{username_attribute}" "{input}" null;
-            groups_filter = ldap.getGroupsFilter "{dn}";
-            attributes = {
-              username = "uid";
-              display_name = "cn";
-              mail = "mail";
-              group_name = "isMemberOf";
+          authentication_backend = {
+            # password reset and change does not work with portunus ldap, search user can only have read perms
+            password_reset.disable = true;
+            password_change.disable = true;
+
+            ldap = {
+              implementation = "custom";
+              address = ldap.address;
+              base_dn = ldap.baseDN;
+              user = ldap.searchUserDN;
+              users_filter = ldap.getUsersFilter "{username_attribute}" "{input}" null;
+              groups_filter = ldap.getGroupsFilter "{dn}";
+              attributes = {
+                username = "uid";
+                display_name = "cn";
+                mail = "mail";
+                group_name = "isMemberOf";
+              };
             };
           };
         };
