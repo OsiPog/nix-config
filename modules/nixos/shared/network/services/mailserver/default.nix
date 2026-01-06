@@ -25,7 +25,7 @@ in {
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
       configEnable = {
         stateDirs = [stateDir];
-        ports.smtp.port = 25;
+        ports.submissions.port = 465;
       };
     }))
   ];
@@ -33,7 +33,7 @@ in {
   config = mkIf (networkCfg.enable && cfg.enable) {
     assertions = [
       {
-        assertion = !ports.smtp.reverseProxy.enable;
+        assertion = !ports.submissions.reverseProxy.enable;
         message = "Due to mail protocol requirements, mailserver cannot be reverse proxied.";
       }
     ];
@@ -44,6 +44,7 @@ in {
       mailDirectory = stateDir;
       fqdn = "mail.${config.networking.domain}";
       domains = [config.networking.domain];
+      enableSubmissionSsl = true;
 
       # # A list of all login accounts. To create the password hashes, use
       # # nix-shell -p mkpasswd --run 'mkpasswd -sm bcrypt'
