@@ -76,6 +76,7 @@ in {
     ./services/backup.nix
     ./services/dnsmasq.nix
     ./services/headscale
+    ./services/lldap
     ./services/mailserver
     ./services/minecraft-server.nix
     ./services/portunus
