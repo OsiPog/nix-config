@@ -4,11 +4,7 @@
   inputs,
   ...
 }: {
-  home = rec {
-    username = "osi";
-    homeDirectory = "/home/${username}";
-    stateVersion = lib.mkDefault "25.11";
-  };
+  home.stateVersion = lib.mkDefault "25.11";
 
   imports = with flake.homeModules;
     [
@@ -57,5 +53,10 @@
       trust = 5;
       source = ./0x675D2CB5013E8731.pub;
     }
+  ];
+
+  wayland.windowManager.hyprland.settings.monitor = [
+    "desc:ViewSonic Corporation VA3209-QHD WYM241340384, 2560x1440@59.95100, 4000x560, 1.00"
+    "desc:LG Electronics LG HDR 4K 0x0002912D, 2560x1440@59.95100, 2560x0, 1.00, transform, 3"
   ];
 }

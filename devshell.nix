@@ -11,6 +11,8 @@ pkgs.mkShell {
     manage-hosts
     # tool to prefetch minecraft things from modrinth
     nix-modrinth-prefetch
+    # convert current monitor configuration to conf options
+    get-hypr-monitors-conf
   ];
 
   shellHook = ''

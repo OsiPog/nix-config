@@ -18,7 +18,6 @@
     allow-some-unfree
     fingerprint
     laptop
-    monitors
     obs-studio
     printing
     sound

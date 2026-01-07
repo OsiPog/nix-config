@@ -15,7 +15,6 @@
     # )
 
     allow-some-unfree
-    monitors
     obs-studio
     printing
     sound
@@ -62,6 +61,8 @@
     base16Scheme = "${pkgs.base16-schemes}/share/themes/oceanicnext.yaml";
     image = ../../modules/nixos/theme-prismarine/nms.jpg;
   };
+
+  hardware.bluetooth.enable = true;
 
   # Swapfile needed because low raw
   swapDevices = [
