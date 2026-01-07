@@ -64,6 +64,7 @@ in {
     }))
 
     flake.nixosModules.porkbunAcme
+    flake.nixosModules.lldapBootstrap
   ];
 
   config = mkIf (networkCfg.enable && cfg.enable) {
@@ -80,10 +81,6 @@ in {
 
     sops.secrets = {
       "lldap/admin-pass" = {
-        owner = "lldap";
-        sopsFile = ./secrets.yaml;
-      };
-      "lldap/jwt-secret" = {
         owner = "lldap";
         sopsFile = ./secrets.yaml;
       };
@@ -113,10 +110,8 @@ in {
         ldap_base_dn = cfg.ldap.baseDN;
         ldap_user_dn = cfg.ldap.userDN;
         ldap_user_pass_file = config.getSopsFile "lldap/admin-pass";
-        jwt_secret_file = config.getSopsFile "lldap/jwt-secret";
         database_url = "sqlite://${stateDir}/users.db?mode=rwc";
         force_ldap_user_pass_reset = "always";
-
         ldaps_options = let
           acmeDirectory = config.security.acme.certs.${ldapsDomain}.directory;
         in {
@@ -124,6 +119,31 @@ in {
           port = ports.ldaps.port;
           cert_file = "${acmeDirectory}/cert.pem";
           key_file = "${acmeDirectory}/key.pem";
+        };
+      };
+      bootstrap = {
+        enable = true;
+        users = {
+          schema = {
+            extra-user-field = {
+              attributeType = "INTEGER";
+              isEditable = true;
+              isList = false;
+              isVisible = true;
+            };
+          };
+          configs = {
+            test = {
+              email = "test@test.com";
+              password_file = config.getSopsFile "lldap/admin-pass";
+              groups = [
+                "test-group"
+              ];
+            };
+          };
+        };
+        groups.configs = {
+          test-group = {};
         };
       };
     };
