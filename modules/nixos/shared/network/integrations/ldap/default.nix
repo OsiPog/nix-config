@@ -3,12 +3,14 @@
   hostName,
   lib,
   pkgs,
+  flake,
   ...
 }: let
+  inherit (builtins) filter;
   inherit (lib) mkMerge mkIf mkOption mkEnableOption foldl' mkDefault;
   inherit (lib.lists) findFirst;
   inherit (lib.attrsets) genAttrs;
-  inherit (config.lib.network) getAddress allPorts;
+  inherit (config.lib.network) getAddress allPorts allEnabledServices;
 
   networkCfg = config.network;
   hostCfg = networkCfg.hosts.${hostName};
@@ -17,8 +19,15 @@
   integratedServices = ["mailserver" "authelia"];
 
   integratedServiceEnable = foldl' (acc: elem: acc || (hostCfg.services.${elem}.enable && hostCfg.services.${elem}.integrations.ldap.enable)) false integratedServices;
-in
-  mkMerge [
+
+  serviceWithIntegrationEnable = serviceName: hostSrvs.${serviceName}.enable && hostSrvs.${serviceName}.integrations.ldap.enable;
+
+  serviceEnabledAnywhere = serviceName: (filter (e: e.serviceName == serviceName) allEnabledServices) != [];
+in {
+  imports = [
+    flake.nixosModules.lldapBootstrap
+  ];
+  config = mkIf networkCfg.enable (mkMerge [
     {
       network.sharedModules = [
         ({...}: {
@@ -28,16 +37,8 @@ in
               type = lib.types.submodule (integrationModule: let
                 defaultHost = (findFirst (p: p.portName == "ldaps") (throw "LDAP Integration: ldaps port it not defined on any host.") allPorts).hostName;
 
-                portunusCfg = networkCfg.hosts.${integrationModule.config.host}.services.portunus;
+                inherit (networkCfg.hosts.${integrationModule.config.host}.services.lldap.ldap) baseDN;
 
-                inherit (portunusCfg.ldap) baseDN;
-
-                getGroupsFilter = placeholder: "(isMemberOf=cn=${placeholder},ou=groups,${baseDN})";
-                getUsersFilter = attr: placeholder: group: "(&(objectclass=person)(${attr}=${placeholder})${
-                  if group != null
-                  then getGroupsFilter group
-                  else ""
-                })";
                 address = getAddress {
                   portName = "ldaps";
                   protocol = "ldaps";
@@ -58,22 +59,12 @@ in
                   searchUserDN = mkOption {
                     description = "dn of the search user";
                     readOnly = true;
-                    default = "uid=search-user,ou=users,${baseDN}";
+                    default = "uid=search-user,ou=people,${baseDN}";
                   };
                   address = mkOption {
                     description = "Read only option of the ldap address";
                     readOnly = true;
                     default = address;
-                  };
-                  getUsersFilter = mkOption {
-                    description = "Read only option that contains a function that returns a users filter with an optional group filter";
-                    readOnly = true;
-                    default = getUsersFilter;
-                  };
-                  getGroupsFilter = mkOption {
-                    description = "Read only option that contains a function that returns a group filter";
-                    readOnly = true;
-                    default = getGroupsFilter;
                   };
                 };
                 config = mkIf integrationModule.config.enable {
@@ -89,75 +80,53 @@ in
 
     # --- SHARED
     # define the search users secret file so that all services that need it have access to it
-    (mkIf (networkCfg.enable && (hostSrvs.portunus.enable || integratedServiceEnable)) {
-      sops.secrets."portunus/search-pass" = {
+    (mkIf (hostSrvs.lldap.enable || integratedServiceEnable) {
+      sops.secrets."ldap/search-user-pass" = {
         sopsFile = ./secrets.yaml;
-        group = "portunus-search";
+        group = "ldap-search";
         mode = "0440";
       };
 
-      users.groups.portunus-search = {};
+      users.groups.ldap-search = {};
     })
 
     # LDAP SERVER
     #
-    # --- PORTUNUS
+    # --- LLDAP
     # Add the search user to the seeded users
-    (mkIf (networkCfg.enable && hostSrvs.portunus.enable) {
-      # TODO: for some reason the portunus user cannot read the secret even though the group an permissions are correct
-      sops.secrets."portunus/search-pass".owner = config.services.portunus.user;
-
-      users.users.${config.services.portunus.user}.extraGroups = ["portunus-search"];
-      services.portunus.seedSettings = {
-        groups = [
-          {
-            name = "search-team";
-            long_name = "Search Users";
-            members = ["search-user"];
-            permissions.ldap.can_read = true;
-          }
-        ];
-        users = [
-          {
-            login_name = "search-user";
-            given_name = "Search";
-            family_name = "User";
-            password.from_command = ["cat" (config.getSopsFile "portunus/search-pass")];
-          }
-        ];
+    (mkIf hostSrvs.lldap.enable {
+      users.users.lldap.extraGroups = ["ldap-search"];
+      services.lldap.bootstrap = {
+        enable = true;
+        users.configs.search-user = {
+          email = "search-user@example.com";
+          password_file = config.getSopsFile "ldap/search-user-pass";
+          groups = [
+            "lldap_password_manager" # has rw permissions on users
+          ];
+        };
       };
     })
 
     # LDAP CLIENTS
 
     # --- AUTHELIA
-    (mkIf (networkCfg.enable && hostSrvs.authelia.enable && hostSrvs.authelia.integrations.ldap.enable) (let
+    (mkIf (serviceWithIntegrationEnable "authelia") (let
       inherit (hostSrvs.authelia.integrations) ldap;
     in {
-      users.users.${config.services.authelia.instances.default.user}.extraGroups = ["portunus-search"];
+      users.users.${config.services.authelia.instances.default.user}.extraGroups = ["ldap-search"];
       services.authelia.instances.default = {
         environmentVariables = {
-          AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = config.getSopsFile "portunus/search-pass";
+          AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = config.getSopsFile "ldap/search-user-pass";
         };
         settings = {
           authentication_backend = {
-            # password reset and change does not work with portunus ldap, search user can only have read perms
-            password_reset.disable = true;
-            password_change.disable = true;
-
+            refresh_interval = mkDefault "1m"; # interval to query for user data changes
             ldap = {
-              implementation = "custom";
+              implementation = "lldap";
               address = ldap.address;
               base_dn = ldap.baseDN;
               user = ldap.searchUserDN;
-              users_filter = ldap.getUsersFilter "{username_attribute}" "{input}" null;
-              groups_filter = ldap.getGroupsFilter "{dn}";
-              attributes = {
-                username = "uid";
-                display_name = "cn";
-                mail = "mail";
-                group_name = "isMemberOf";
-              };
             };
           };
         };
@@ -165,10 +134,28 @@ in
     }))
 
     # --- MAILSERVER
-    (mkIf (networkCfg.enable && hostSrvs.mailserver.enable && hostSrvs.mailserver.integrations.ldap.enable) (let
+    # Create a group to only allow certain users to access mailserver. Also, add a read-only attribute for mail aliases
+    (mkIf (hostSrvs.lldap.enable && (serviceEnabledAnywhere "mailserver")) {
+      services.lldap.bootstrap = {
+        enable = true;
+        groups.configs.email = {};
+        users = {
+          schema.mail-aliases = {
+            attributeType = "STRING";
+            isEditable = false;
+            isList = true;
+            isVisible = true;
+          };
+        };
+      };
+    })
+    # Configure the mailserver to use ldap
+    (mkIf (serviceWithIntegrationEnable "mailserver") (let
       inherit (hostSrvs.mailserver.integrations) ldap;
+
+      usersFilter = placeholder: "(&(mail=${placeholder})(memberof=cn=email,ou=groups,${ldap.baseDN}))";
     in {
-      users.users.${config.services.postfix.user}.extraGroups = ["portunus-search"];
+      users.users.${config.services.postfix.user}.extraGroups = ["ldap-search"];
 
       mailserver.ldap = {
         enable = true;
@@ -176,14 +163,15 @@ in
         uris = [ldap.address];
         bind = {
           dn = ldap.searchUserDN;
-          passwordFile = config.getSopsFile "portunus/search-pass";
+          passwordFile = config.getSopsFile "ldap/search-user-pass";
         };
         postfix = {
-          filter = ldap.getUsersFilter "mail" "%s" "email";
+          filter = usersFilter "%s";
           uidAttribute = "uid";
           mailAttribute = "mail";
         };
-        dovecot.passFilter = ldap.getUsersFilter "mail" "%{user}" "email";
+        dovecot.passFilter = usersFilter "%{user}";
       };
     }))
-  ]
+  ]);
+}

@@ -8,13 +8,14 @@
   inherit (lib) mkMerge mkIf mkOption mkEnableOption mkDefault foldl';
   inherit (lib.lists) findFirst;
   inherit (lib.attrsets) genAttrs;
+  inherit (lib.strings) toUpper splitString;
   inherit (config.lib.network) getAddress allPorts;
 
   networkCfg = config.network;
   hostCfg = networkCfg.hosts.${hostName};
   hostSrvs = hostCfg.services;
 
-  integratedServices = ["portunus" "authelia"];
+  integratedServices = ["lldap" "authelia"];
   integratedServiceEnable = foldl' (acc: elem: acc || (hostCfg.services.${elem}.enable && hostCfg.services.${elem}.integrations.mail.enable)) false integratedServices;
 in
   mkMerge [
@@ -53,6 +54,11 @@ in
                     readOnly = true;
                     default = "noreply@${mailDomain}";
                   };
+                  displayName = mkOption {
+                    description = "Display name of the mail sender";
+                    default = mailDomain;
+                    readOnly = true;
+                  };
                 };
                 config = mkIf integrationModule.config.enable {
                   host = mkDefault defaultHost;
@@ -68,49 +74,38 @@ in
     # --- SHARED
     # Define the mail notifier secret so all services that need it have access
     (mkIf (networkCfg.enable && integratedServiceEnable) {
-      sops.secrets."portunus/notifier-pass" = {
+      sops.secrets."ldap/notifier-pass" = {
         sopsFile = ./secrets.yaml;
         group = "mail-notifier";
         mode = "0440";
       };
 
-      users.groups.${config.sops.secrets."portunus/notifier-pass".group} = {};
+      users.groups.${config.sops.secrets."ldap/notifier-pass".group} = {};
     })
 
     # SMTP SERVER
     #
     # --- MAILSERVER
-    # no configuration necessary account is being created in portunus
+    # no configuration necessary account is being created in lldap
 
     # SMTP CLIENTS
     #
-    # --- PORTUNUS
+    # --- LLDAP
     # Create the mail account
-    (mkIf (networkCfg.enable && hostSrvs.portunus.enable && hostSrvs.portunus.integrations.mail.enable) (let
-      inherit (hostSrvs.portunus.integrations) mail;
+    (mkIf (networkCfg.enable && hostSrvs.lldap.enable && hostSrvs.lldap.integrations.mail.enable) (let
+      inherit (hostSrvs.lldap.integrations) mail;
     in {
-      # TODO: for some reason the portunus user cannot read the secret even though the group an permissions are correct
-      sops.secrets."portunus/notifier-pass".owner = config.services.portunus.user;
-
-      users.users.${config.services.portunus.user}.extraGroups = [config.sops.secrets."portunus/notifier-pass".group];
-      services.portunus.seedSettings = {
-        groups = [
-          # only people in the email group may login with email servers
-          {
-            name = "email";
-            long_name = "Email";
-            members = ["notifier"];
-          }
-        ];
-        users = [
-          {
-            login_name = "notifier";
-            given_name = "Mail";
-            family_name = "Notifier";
-            email = mail.notifierMail;
-            password.from_command = ["cat" (config.getSopsFile "portunus/notifier-pass")];
-          }
-        ];
+      users.users.lldap.extraGroups = [config.sops.secrets."ldap/notifier-pass".group];
+      services.lldap.bootstrap = {
+        enable = true;
+        users.configs.notifier = {
+          email = mail.notifierMail;
+          inherit (mail) displayName;
+          password_file = config.getSopsFile "ldap/notifier-pass";
+          groups = [
+            "email" # needs to be in email group to send mail
+          ];
+        };
       };
     }))
 
@@ -119,16 +114,16 @@ in
     (mkIf (networkCfg.enable && hostSrvs.authelia.enable && hostSrvs.authelia.integrations.mail.enable) (let
       inherit (hostSrvs.authelia.integrations) mail;
     in {
-      users.users.${config.services.authelia.instances.default.user}.extraGroups = [config.sops.secrets."portunus/notifier-pass".group];
+      users.users.${config.services.authelia.instances.default.user}.extraGroups = [config.sops.secrets."ldap/notifier-pass".group];
 
       services.authelia.instances.default = {
         environmentVariables = {
-          AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE = config.getSopsFile "portunus/notifier-pass";
+          AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE = config.getSopsFile "ldap/notifier-pass";
         };
         settings = {
           notifier.smtp = {
             address = mail.address;
-            sender = mail.notifierMail;
+            sender = "${mail.displayName} <${mail.notifierMail}>";
             username = mail.notifierMail;
           };
         };

@@ -18,10 +18,10 @@
       enable = true;
       domain = "axelhax.net";
     };
-    # authelia.reverseProxy = {
-    #   enable = true;
-    #   domain = "auth.axelhax.net";
-    # };
+    authelia.reverseProxy = {
+      enable = true;
+      domain = "auth.axelhax.net";
+    };
     # portunus.reverseProxy = {
     #   enable = true;
     #   domain = "users.axelhax.net";
@@ -47,23 +47,22 @@
       };
     };
     minecraft-server.enable = true;
-    # authelia = {
-    #   enable = true;
-    #   integrations = {
-    #     ldap.enable = true;
-    #     mail = {
-    #       enable = true;
-    #       host = "haunt-muskie";
-    #     };
-    #   };
-    # };
-    # portunus = {
-    #   enable = true;
-    #   integrations.mail = {
-    #     enable = true;
-    #     host = "haunt-muskie";
-    #   };
-    # };
-    lldap.enable = true;
+    authelia = {
+      enable = true;
+      integrations = {
+        ldap.enable = true;
+        mail = {
+          enable = true;
+          host = "haunt-muskie";
+        };
+      };
+    };
+    lldap = {
+      enable = true;
+      integrations.mail = {
+        enable = true;
+        host = "haunt-muskie";
+      };
+    };
   };
 }

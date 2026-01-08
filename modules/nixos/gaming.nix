@@ -47,7 +47,7 @@
       xdg.desktopEntries.steam-gamescope = {
         icon = "steam";
         name = "Steam Gamescope";
-        exec = "gamescope -w 1920 -h 1080 --xwayland-count 2 --steam -- steam -tenfoot";
+        exec = "gamescope -w 1920 -h 1080 --xwayland-count 2 --force-grab-cursor --steam -- steam -tenfoot";
       };
     })
   ];

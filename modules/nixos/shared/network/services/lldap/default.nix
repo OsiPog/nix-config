@@ -105,6 +105,7 @@ in {
     services.lldap = {
       enable = true;
       settings = {
+        verbose = true;
         http_host = "0.0.0.0";
         http_port = ports.lldap.port;
         ldap_base_dn = cfg.ldap.baseDN;
@@ -123,27 +124,10 @@ in {
       };
       bootstrap = {
         enable = true;
-        users = {
-          schema = {
-            extra-user-field = {
-              attributeType = "INTEGER";
-              isEditable = true;
-              isList = false;
-              isVisible = true;
-            };
-          };
-          configs = {
-            test = {
-              email = "test@test.com";
-              password_file = config.getSopsFile "lldap/admin-pass";
-              groups = [
-                "test-group"
-              ];
-            };
-          };
-        };
-        groups.configs = {
-          test-group = {};
+        cleanup = {
+          enable = true;
+          keepUsers = true;
+          keepGroupMembership = true;
         };
       };
     };
