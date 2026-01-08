@@ -24,4 +24,5 @@ in {
     xkb.options = "grp:win_space_toggle";
   };
   console.keyMap = "colemak";
+  environment.variables.XKB_DEFAULT_LAYOUT = "us(colemak)";
 }
