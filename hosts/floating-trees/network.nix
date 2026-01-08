@@ -6,53 +6,62 @@
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDYdr33vJvtTnrSDiEhCUkc0fL7GyrZG9UEL8zjaKJpU root@floating-trees";
     allowConnectionsFrom = ["dead-voxel" "biome-fest"];
   };
+  stateDirs = [
+    "/mnt/husk"
+  ];
+  ports = {
+    minecraft-java.reverseProxy = {
+      enable = true;
+      domain = "axelhax.net";
+    };
+    minecraft-bedrock.reverseProxy = {
+      enable = true;
+      domain = "axelhax.net";
+    };
+    authelia.reverseProxy = {
+      enable = true;
+      domain = "auth.axelhax.net";
+    };
+    # portunus.reverseProxy = {
+    #   enable = true;
+    #   domain = "users.axelhax.net";
+    #   # hidden = true; # TODO: currently broken
+    # };
+    ldaps.reverseProxy = {
+      enable = true;
+      domain = "ldap.axelhax.net";
+      # hidden = true; # TODO: currently broken
+    };
+    lldap.reverseProxy = {
+      enable = true;
+      domain = "users.axelhax.net";
+    };
+  };
   services = {
     dnsmasq.enable = true;
     backup = {
       enable = true;
-      settings = {
-        paths = [
-          "/mnt/husk" # big drive
-        ];
-        server = {
-          enable = true;
-          repository = "/mnt/blaze";
-        };
+      server = {
+        enable = true;
+        repository = "/mnt/blaze";
       };
     };
-    minecraft-server = {
+    minecraft-server.enable = true;
+    authelia = {
       enable = true;
-      ports = {
-        java.reverseProxy = {
-          enable = true;
-          host = "haunt-muskie";
-        };
-        bedrock.reverseProxy = {
+      integrations = {
+        ldap.enable = true;
+        mail = {
           enable = true;
           host = "haunt-muskie";
         };
       };
     };
-    auth-server = {
+    lldap = {
       enable = true;
-      settings = {
-        domain = "axelhax.net";
-      };
-      ports = {
-        authelia.reverseProxy = {
-          enable = true;
-          host = "haunt-muskie";
-          subdomain = "auth";
-        };
-        portunus.reverseProxy = {
-          enable = true;
-          host = "haunt-muskie";
-          subdomain = "ldap";
-        };
-        ldaps.reverseProxy = {
-          enable = true;
-          host = "haunt-muskie";
-        };
+      integrations.mail = {
+        enable = true;
+        host = "haunt-muskie";
       };
     };
   };

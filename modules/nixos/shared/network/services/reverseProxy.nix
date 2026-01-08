@@ -2,63 +2,47 @@
   flake,
   lib,
   config,
-  hostName,
-  pkgs,
   ...
 }: let
   inherit (builtins) filter listToAttrs typeOf;
-  inherit (lib) mkIf mkOption pipe types;
-  inherit (lib.attrsets) recursiveUpdate mapAttrsToList filterAttrs attrsToList;
-  inherit (lib.strings) concatLines;
-  inherit (lib.lists) range flatten;
-  inherit (config.lib.network) toFullDomain allEnabledServicePorts;
-  inherit (flake.lib) mkServiceOptionsModule;
+  inherit (lib) mkIf pipe;
+  inherit (lib.attrsets) recursiveUpdate;
+  inherit (lib.strings) concatLines hasSuffix;
 
-  serviceName = "reverseProxy";
+  inherit (config.lib.network) getAddress allPorts getVariables;
+  inherit (flake.lib) mkNetworkHostServiceModule;
 
-  networkCfg = config.network;
-  hostCfg = networkCfg.hosts.${hostName};
-  cfg = hostCfg.services.${serviceName};
+  inherit
+    (getVariables "reverseProxy")
+    serviceName
+    networkCfg
+    hostCfg
+    cfg
+    ;
 
   # Only the ports that should be reverse proxied by current host
   relevantPorts =
     filter (
       p:
         p.portCfg.reverseProxy.enable
-        && p.portCfg.reverseProxy.host == hostName
+        && hasSuffix hostCfg.domain p.portCfg.reverseProxy.domain
     )
-    allEnabledServicePorts;
+    allPorts;
 
   relevantVirtualHostPorts = filter (e: e.portCfg.reverseProxy.method == "virtual-host") relevantPorts;
   relevantStreamPorts = filter (e: e.portCfg.reverseProxy.method == "stream") relevantPorts;
-
-  ipAddrOf = serviceHost:
-    if serviceHost == hostName
-    then "127.0.0.1"
-    # this will only work when both are in the same Tailscale network with magic dns
-    else serviceHost;
 in {
   imports = [
     flake.nixosModules.porkbunAcme
-    (mkServiceOptionsModule serviceName {
-      settingsOptions = {
-        domain = mkOption {
-          type = types.str;
-          description = "The domain configured to connect to this host.";
-          default = "";
-        };
-      };
-    })
+
+    (mkNetworkHostServiceModule {inherit serviceName;} null)
 
     ../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
-    networking = {
-      inherit (cfg.settings) domain;
-      firewall = {
-        allowedTCPPorts = [443] ++ (map (p: p.port) (filter (p: !p.portCfg.reverseProxy.udp && !p.portCfg.reverseProxy.hidden) relevantStreamPorts));
-        allowedUDPPorts = map (p: p.port) (filter (p: p.portCfg.reverseProxy.udp) relevantStreamPorts);
-      };
+    networking.firewall = {
+      allowedTCPPorts = [443] ++ (map (p: p.port) (filter (p: !p.portCfg.reverseProxy.udp && !p.portCfg.reverseProxy.hidden) relevantStreamPorts));
+      allowedUDPPorts = map (p: p.port) (filter (p: p.portCfg.reverseProxy.udp) relevantStreamPorts);
     };
 
     # If the current host is the service exposer expose the services to the domain
@@ -73,22 +57,26 @@ in {
           (p: let
             proxyConf = p.portCfg.reverseProxy;
             virtualHostsConfig = {
-              useACMEHost = cfg.settings.domain;
+              useACMEHost = hostCfg.domain;
               forceSSL = true;
               locations."/" = {
-                proxyPass = "http://${ipAddrOf p.hostName}:${toString p.portCfg.port}";
+                proxyPass = getAddress {
+                  inherit (p) portName hostName;
+                  protocol = "http";
+                  direct = true;
+                };
                 proxyWebsockets = true;
               };
             };
           in {
-            name = toFullDomain {inherit (p) serviceName portName hostName;};
+            name = proxyConf.domain;
             value = recursiveUpdate virtualHostsConfig proxyConf.extraConfig;
           }))
         listToAttrs
       ];
       streamConfig = pipe relevantStreamPorts [
         (map (p: let
-          upstream = p.hostName + "-" + p.serviceName + "-" + p.portName;
+          upstream = p.hostName + "-" + p.portName;
           proxyConf = p.portCfg.reverseProxy;
           extraStreamConfig =
             if (typeOf proxyConf.extraConfig == "string")
@@ -96,7 +84,10 @@ in {
             else "";
         in ''
           upstream ${upstream} {
-            server ${ipAddrOf p.hostName}:${toString p.portCfg.port};
+            server ${getAddress {
+            inherit (p) portName hostName;
+            direct = true;
+          }};
           }
           server {
             proxy_pass ${upstream};
@@ -106,6 +97,7 @@ in {
               listen ${toString p.portCfg.port} udp;
               proxy_requests 8640000;
               proxy_responses 0;
+              proxy_protocol on;
             ''
             else ''
               listen ${toString p.portCfg.port};
@@ -128,6 +120,6 @@ in {
 
     services.porkbunAcme.enable = true;
     users.users.nginx.extraGroups = ["acme"];
-    security.acme.certs."${cfg.settings.domain}".extraDomainNames = map (p: toFullDomain {inherit (p) serviceName portName hostName;}) relevantVirtualHostPorts;
+    security.acme.certs."${hostCfg.domain}".extraDomainNames = map (p: getAddress {inherit (p) portName hostName;}) relevantVirtualHostPorts;
   };
 }

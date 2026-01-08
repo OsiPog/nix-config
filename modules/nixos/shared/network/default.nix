@@ -1,58 +1,98 @@
 {
   lib,
-  flake,
   config,
   hostName,
+  flake,
   ...
 }: let
-  inherit (builtins) attrNames readDir pathExists;
-  inherit (lib) types mkOption mkEnableOption mkIf mkOptionDefault;
-  inherit (lib.attrsets) genAttrs;
+  inherit (lib) types mkOption mkEnableOption mkIf;
+  inherit (flake.lib) nixosHostNames;
 
-  importDir = path: (map (e: "${path}/${e}") (attrNames (readDir path)));
-
-  hostnames = flake.lib.nixosHostNames;
-  # Define the available hostnames as an enum based on /hosts folder names
-  hostnameEnum = types.enum hostnames;
-
-  cfg = config.network;
-  hostCfg = cfg.hosts.${hostName};
+  networkCfg = config.network;
+  hostCfg = networkCfg.hosts.${hostName};
 in {
   options.network = {
     enable = (mkEnableOption "network module") // {default = true;};
 
-    hosts = genAttrs hostnames (hostname: {
-      vpn.ip = mkOption {
-        type = types.str;
-        description = "VPN IP address for the host";
-      };
-      ssh = {
-        publicKey = mkOption {
-          type = types.str;
-          description = "SSH public key for the host";
-        };
-        allowConnectionsFrom = mkOption {
-          type = types.listOf hostnameEnum;
-          default = [];
-          description = "List of host names that are allowed to connect to this host via SSH";
-        };
-      };
-      # Is populated by `mkServiceOptionsModule`
-      services = {};
-    });
+    sharedModules = mkOption {
+      type = with types; listOf raw;
+      default = [];
+      description = "Extra modules added to all hosts.";
+    };
+
+    hosts = mkOption {
+      type = with types;
+        attrsOf (submoduleWith {
+          class = "networkHost";
+          # specialArgs.osConfig = config; # currently not needed
+
+          modules = [
+            ({...}: {
+              imports = networkCfg.sharedModules;
+
+              options = {
+                vpn.ip = mkOption {
+                  type = types.str;
+                  description = "VPN IP address for the host";
+                };
+                ssh = {
+                  publicKey = mkOption {
+                    type = types.str;
+                    description = "SSH public key for the host";
+                  };
+                  allowConnectionsFrom = mkOption {
+                    type = with types; listOf (enum nixosHostNames);
+                    default = [];
+                    description = "List of host names that are allowed to connect to this host via SSH";
+                  };
+                };
+                domain = mkOption {
+                  type = with types; nullOr str;
+                  default = null;
+                  description = "A domain with its DNS configured to resolve to the IP address of this host on *.domain.tld.";
+                };
+
+                stateDirs = mkOption {
+                  type = with types; listOf (pathWith {absolute = true;});
+                  default = [];
+                  description = "A list of directories where any kind of state is stored. Useful for the backup service to know what to backup.";
+                };
+              };
+            })
+          ];
+        });
+      default = {};
+      description = "Per host network config";
+    };
   };
 
-  imports =
-    [
-      ./lib
-      ./importHosts.nix
-    ]
-    ++ (importDir "${flake}/modules/nixos/shared/network/services");
+  imports = [
+    ./lib
+    ./importHosts.nix
 
-  config = mkIf cfg.enable {
+    ./ports.nix
+
+    ./services/authelia
+    ./services/backup.nix
+    ./services/dnsmasq.nix
+    ./services/headscale
+    ./services/lldap
+    ./services/mailserver
+    ./services/minecraft-server.nix
+    ./services/portunus
+    ./services/reverseProxy.nix
+
+    ./integrations/ldap
+    ./integrations/mail
+    ./integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
+  ];
+
+  config = mkIf networkCfg.enable {
     # Add authorized keys from hosts that are allowed to connect
     users.users.leaf.openssh.authorizedKeys.keys = map (
-      other: cfg.hosts.${other}.ssh.publicKey
+      other: networkCfg.hosts.${other}.ssh.publicKey
     ) (hostCfg.ssh.allowConnectionsFrom);
+
+    networking.domain = hostCfg.domain;
   };
 }

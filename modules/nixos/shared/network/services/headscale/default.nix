@@ -6,19 +6,27 @@
   ...
 }: let
   inherit (lib) mkIf mkDefault mkMerge mkForce;
-  inherit (flake.lib) mkServiceOptionsModule;
-  inherit (config.lib.network) toFullDomain;
+  inherit (flake.lib) mkNetworkHostServiceModule;
+  inherit (config.lib.network) getAddress getVariables;
 
-  serviceName = "headscale";
-  networkCfg = config.network;
-  cfg = networkCfg.hosts.${hostName}.services.${serviceName};
+  inherit
+    (getVariables "headscale")
+    serviceName
+    portName
+    networkCfg
+    cfg
+    ports
+    ;
+
+  stateDir = "/var/lib/headscale"; # hardcoded in nixpkgs module
 in {
   imports = [
-    (mkServiceOptionsModule serviceName {
-      config = {...}: {
-        stateDir = "/var/lib/headscale"; # this is hardcoded in the nixos module
+    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+      configEnable = {
+        stateDirs = [stateDir];
+        ports.${portName}.port = mkDefault 8081;
       };
-    })
+    }))
 
     ../../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
@@ -27,14 +35,12 @@ in {
       services.headscale = {
         enable = true;
         address = "0.0.0.0";
-        port = cfg.ports.http.port;
+        port = ports.${serviceName}.port;
         settings = {
-          server_url =
-            "https://"
-            + (toFullDomain {
-              inherit serviceName;
-              portName = "http";
-            });
+          server_url = getAddress {
+            protocol = "https";
+            inherit portName;
+          };
           dns = {
             override_local_dns = true;
             # can be overriden ;)
@@ -46,12 +52,7 @@ in {
             ];
             # Magic DNS
             magic_dns = true;
-            base_domain =
-              "dns."
-              + (toFullDomain {
-                inherit serviceName;
-                portName = "http";
-              });
+            base_domain = "dns." + (getAddress {inherit portName;});
           };
         };
       };
@@ -70,15 +71,13 @@ in {
         useRoutingFeatures = "both";
         authKeyFile = config.getSopsFile "tailscale/auth-key";
         extraUpFlags = [
-          # Nginx uses tailscale to reverse proxy to other hosts on the tailnet. So the host that runs headscale must depend on nginx.
-          # thus, we directly connect to localhost
           "--login-server=${
-            if (cfg.enable)
-            then "http://localhost:${toString cfg.ports.http.port}"
-            else "https://${toFullDomain {
-              inherit serviceName;
-              portName = "http";
-            }}"
+            getAddress {
+              inherit portName;
+              # Nginx uses tailscale to reverse proxy to other hosts on the tailnet. So the host that runs headscale must depend not on nginx.
+              # thus, we directly connect to localhost
+              direct = cfg.enable;
+            }
           }"
           "--hostname=${hostName}"
         ];

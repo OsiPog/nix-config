@@ -1,4 +1,4 @@
-_module @ {
+{
   flake,
   lib,
   ...
@@ -13,7 +13,7 @@ in {
         hostConfigFile = "${flake}/hosts/${hostName}/network.nix";
       in
         if (pathExists hostConfigFile)
-        then (import hostConfigFile _module)
+        then (import hostConfigFile)
         else {}
     );
   };

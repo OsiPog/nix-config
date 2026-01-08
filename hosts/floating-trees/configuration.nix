@@ -19,15 +19,6 @@
     path = [pkgs.beep];
     wantedBy = ["basic.target"];
     script = ''
-      G4=392
-      F4S=370
-      E4B=311
-      A3=220
-      G3S=208
-      E4=330
-      A4S=466
-      C5=523
-
       G5=784
       F5S=740
       D5S=622

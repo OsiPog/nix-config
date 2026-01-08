@@ -10,25 +10,19 @@
   inherit (lib) types mkIf mkOption mkEnableOption mkMerge pipe;
   inherit (lib.attrsets) filterAttrs attrsToList recursiveUpdate;
 
-  inherit (flake.lib) mkServiceOptionsModule nixosHostNames;
+  inherit (flake.lib) mkNetworkHostServiceModule nixosHostNames;
+  inherit (config.lib.network) getVariables;
 
-  serviceName = "backup";
-  networkCfg = config.network;
-  cfg = networkCfg.hosts.${hostName}.services.${serviceName};
+  inherit
+    (getVariables "backup")
+    serviceName
+    networkCfg
+    cfg
+    ;
 in {
   imports = [
-    (mkServiceOptionsModule serviceName {
-      settingsOptions = {
-        paths = mkOption {
-          type = with types; listOf (pathWith {absolute = true;});
-          description = "The paths that should be backed up";
-          default = [];
-        };
-        serviceBackup = mkOption {
-          description = "Whether to backup the stateDir of every enabled service on this host.";
-          default = true;
-          type = types.bool;
-        };
+    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+      optionsService = {
         exclude = mkOption {
           type = with types; listOf str;
           description = "Patterns of files to exclude";
@@ -46,7 +40,7 @@ in {
           };
         };
       };
-    })
+    }))
   ];
   config = mkMerge [
     # config for clients
@@ -54,18 +48,18 @@ in {
       # Allow all backup servers access to current host
       users.users.root.openssh.authorizedKeys.keys = pipe networkCfg.hosts [
         attrValues
-        (filter (host: host.services.backup.enable && host.services.backup.settings.host == hostName))
+        (filter (host: host.services.backup.enable && host.services.backup.host == hostName))
         (map (host: host.ssh.publicKey))
       ];
     })
     # config for backup server
-    (mkIf (networkCfg.enable && cfg.settings.server.enable) (let
+    (mkIf (networkCfg.enable && cfg.server.enable) (let
       backupMount = "/mnt/backup";
 
       commonBackupOptions = {
-        inherit (cfg.settings.server) repository;
+        inherit (cfg.server) repository;
         # we assume that the password sits in the repo
-        passwordFile = "${cfg.settings.server.repository}/password";
+        passwordFile = "${cfg.server.repository}/password";
         inhibitsSleep = true;
         timerConfig = {
           OnCalendar = "15:05";
@@ -74,21 +68,7 @@ in {
         };
       };
 
-      backupPathsOf = hostName: let
-        host = networkCfg.hosts.${hostName};
-      in (host.services.backup.settings.paths
-        ++ (
-          if host.services.backup.settings.serviceBackup
-          then
-            pipe host.services [
-              (filterAttrs (serviceName: _: serviceName != "backup"))
-              attrValues
-              (filter (e: e.enable))
-              (map (e: e.stateDir))
-            ]
-          else []
-        ));
-      relevantHosts = (filterAttrs (_: host: host.services.backup.enable && host.services.backup.settings.host == hostName)) networkCfg.hosts;
+      relevantHosts = (filterAttrs (_: host: host.services.backup.enable && host.services.backup.host == hostName)) networkCfg.hosts;
     in {
       services.restic.backups =
         (mapAttrs (hostName: host:
@@ -97,11 +77,11 @@ in {
             paths =
               map (
                 path:
-                  if hostName != host.services.backup.settings.host
+                  if hostName != host.services.backup.host
                   then "${backupMount}/${hostName}${path}"
                   else path
               )
-              (backupPathsOf hostName);
+              (networkCfg.hosts.${hostName}.stateDirs);
             extraBackupArgs = ["--host ${hostName}"];
           })
         relevantHosts)
@@ -144,6 +124,7 @@ in {
               # 1. check connection is possible at all
               ssh -o ConnectTimeout=3 -i /etc/ssh/id_ed25519 "root@${host.name}" echo "Connection succeeded!"
               # 2. mount
+              mkdir -p ${backupMount}/${host.name}
               sshfs root@${host.name}:/ ${backupMount}/${host.name} \
                 -o IdentityFile=/etc/ssh/id_ed25519 \
                 -o auto_unmount \
@@ -159,6 +140,7 @@ in {
             preStart = ''
               systemctl start sshfs-${host.name}
               sleep 5
+              systemctl is-active sshfs-${host.name}
             '';
             postStop = ''
               # After backup unmount sshfs
