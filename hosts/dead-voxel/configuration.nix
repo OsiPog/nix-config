@@ -21,6 +21,7 @@
     gaming
     podman
     nix-access-tokens
+    tuigreet
 
     ../../users/osi
   ];
@@ -40,21 +41,6 @@
       tpm2.enable = false;
     };
     luks.fido2Support = false;
-  };
-
-  services.displayManager.sddm = {
-    enable = true;
-    wayland = {
-      compositor = "kwin";
-      enable = true;
-    };
-    settings = {
-      Users = {
-        HideUsers = "leaf";
-        RememberLastUser = true;
-        RememberLastSession = true;
-      };
-    };
   };
 
   stylix = {
@@ -78,6 +64,15 @@
     AllowHybridSleep=no
     AllowSuspendThenHibernate=no
   '';
+  hardware.amdgpu = {
+    initrd.enable = true;
+    opencl.enable = true;
+  };
+
+  boot.kernelParams = lib.mkBefore [
+    "video=HDMI-A-1:2560x1440"
+    "video=HDMI-A-2:1600x900,panel_orientation=right_side_up"
+  ];
 
   # Don't change, will break things!
   system.stateVersion = "25.11";
