@@ -153,7 +153,7 @@ in {
     (mkIf (serviceWithIntegrationEnable "mailserver") (let
       inherit (hostSrvs.mailserver.integrations) ldap;
 
-      usersFilter = placeholder: "(&(mail=${placeholder})(memberof=cn=email,ou=groups,${ldap.baseDN}))";
+      usersFilter = placeholder: "(&(|(mail=${placeholder})(mail-aliases=${placeholder}))(memberof=cn=email,ou=groups,${ldap.baseDN}))";
     in {
       users.users.${config.services.postfix.user}.extraGroups = ["ldap-search"];
 
