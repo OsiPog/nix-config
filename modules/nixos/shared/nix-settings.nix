@@ -1,4 +1,4 @@
-{...}: {
+{pkgs, ...}: {
   imports = [
     # inputs.determinate.nixosModules.default
   ];
@@ -27,6 +27,7 @@
       # For AOSP building
       sandbox-paths = [
         "/var/cache/ccache"
+        "/bin/sh=${pkgs.busybox-sandbox-shell.out}/bin/busybox"
       ];
     };
     # Automatic garbage collection
