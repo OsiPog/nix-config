@@ -19,7 +19,6 @@
     networkCfg
     cfg
     ports
-    stateDir
     ;
 
   ldapsDomain = getAddress {
@@ -52,7 +51,6 @@ in {
         };
       };
       configEnable = {
-        stateDirs = [stateDir];
         ports = {
           lldap.port = 17170;
           ldaps = {
@@ -111,7 +109,7 @@ in {
         ldap_base_dn = cfg.ldap.baseDN;
         ldap_user_dn = cfg.ldap.userDN;
         ldap_user_pass_file = config.getSopsFile "lldap/admin-pass";
-        database_url = "sqlite://${stateDir}/users.db?mode=rwc";
+        database_url = "sqlite://${cfg.stateDir}/users.db?mode=rwc";
         force_ldap_user_pass_reset = "always";
         ldaps_options = let
           acmeDirectory = config.security.acme.certs.${ldapsDomain}.directory;
@@ -134,7 +132,7 @@ in {
 
     # Ensure state directory is owned by lldap
     systemd.tmpfiles.rules = [
-      "d ${stateDir} 0750 lldap lldap -"
+      "d ${cfg.stateDir} 0750 lldap lldap -"
     ];
   };
 }

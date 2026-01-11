@@ -19,7 +19,6 @@
     networkCfg
     cfg
     ports
-    stateDir
     ;
 
   ldapsDomain = getAddress {
@@ -44,7 +43,6 @@ in {
         };
       };
       configEnable = {
-        stateDirs = [stateDir];
         ports = {
           portunus.port = 6000;
           ldaps = {
@@ -82,7 +80,7 @@ in {
     # Portunus service configuration
     services.portunus = {
       enable = true;
-      stateDir = stateDir;
+      stateDir = cfg.stateDir;
       domain = getAddress {
         portName = "portunus";
       };

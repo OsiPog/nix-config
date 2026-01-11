@@ -17,14 +17,12 @@
     cfg
     ;
 
-  stateDir = "/var/lib/dnsmasq"; # hardcoded in nixpkgs module definition
-
-  blocklistPath = stateDir + "/blocklist.txt";
+  blocklistPath = cfg.stateDir + "/blocklist.txt";
   blocklistUrl = "https://big.oisd.nl/dnsmasq2"; # See https://oisd.nl/setup/dnsmasq
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
-      configEnable.stateDirs = [stateDir];
+      configService.stateDir = "/var/lib/dnsmasq"; # hardcoded in nixpkgs module definition
     }))
 
     # ../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix

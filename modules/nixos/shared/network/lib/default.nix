@@ -134,6 +134,13 @@
       ports = hostCfg.ports;
       stateDir = "/var/lib/${serviceName}";
     };
+
+    # Variables useful to network modules
+    variables = rec {
+      networkCfg = config.network;
+      hostCfg = networkCfg.hosts.${hostName};
+      ports = hostCfg.ports;
+    };
   };
 in {
   config.lib.network = networkLib;

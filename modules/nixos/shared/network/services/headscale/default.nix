@@ -17,15 +17,13 @@
     cfg
     ports
     ;
-
-  stateDir = "/var/lib/headscale"; # hardcoded in nixpkgs module
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
       configEnable = {
-        stateDirs = [stateDir];
         ports.${portName}.port = mkDefault 8081;
       };
+      configService.stateDir = "/var/lib/headscale"; # hardcoded in nixpkgs module
     }))
 
     ../../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix

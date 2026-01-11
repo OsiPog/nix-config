@@ -84,7 +84,7 @@ That's what `mkNetworkHostServiceModule` is for in the flake's lib. It takes an 
     mkNetworkHostServiceModule {
       serviceName = "authelia";
       # withEnable = true; # is true by default
-      # ...
+      # withStateDir = true; # by default on, adds cfg.stateDir and cfg.extraStateDirs options.
     }
     ({
       cfg, # extra special argument, its a shorthand for `config.${serviceName}`
@@ -92,8 +92,9 @@ That's what `mkNetworkHostServiceModule` is for in the flake's lib. It takes an 
     }: {
       options = { /* define service specific options here */ };
       config = { /* default values, force values, port definitions */ };
-      optionsService = { /* ... */ }; # shorthand for options.services.${serviceName} = {}
+      optionsService = { /* ... */ }; # shorthand for options.services.${serviceName} = {...}
       configEnable = { /* ... */ }; # shorthand for config = mkIf (cfg.enable) {}
+      configService = { /* ... */ }; # shorthand for config.services.${serviceName} = {...}
     })
   )]
 }
@@ -113,12 +114,22 @@ All service definitions should be in the `modules/nixos/shared/network/services`
 }: let
   inherit (lib) mkMerge mkIf mkDefault;
   inherit (flake.lib) mkNetworkHostServiceModule;
+  inherit (config.lib.network) getServiceVariables;
 
-  serviceName = "authelia";
-  networkCfg = config.network;
-  hostCfg = networkCfg.hosts.${hostName};
-  cfg = hostCfg.services.${serviceName};
-  ports = hostCfg.ports;
+  # shorthand for:
+  # serviceName = "authelia";
+  # networkCfg = config.network;
+  # hostCfg = networkCfg.hosts.${hostName};
+  # cfg = hostCfg.services.${serviceName};
+  # ports = hostCfg.ports;
+  inherit
+    (getServiceVariables "authelia")
+    serviceName
+    portName
+    networkCfg
+    cfg
+    ports
+    ;
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {

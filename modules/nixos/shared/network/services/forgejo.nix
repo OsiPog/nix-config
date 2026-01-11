@@ -16,13 +16,11 @@
     networkCfg
     cfg
     ports
-    stateDir
     ;
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
       configEnable = {
-        stateDirs = [stateDir];
         ports.${portName}.port = mkDefault 3000;
       };
     }))
@@ -30,7 +28,7 @@ in {
   config = mkIf (networkCfg.enable && cfg.enable) {
     services.forgejo = {
       enable = true;
-      inherit stateDir;
+      inherit (cfg) stateDir;
       settings = {
         server = {
           ROOT_URL = getAddress {

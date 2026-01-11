@@ -30,7 +30,6 @@
     networkCfg
     cfg
     ports
-    stateDir
     ;
 
   toMountPoint = path: "/mnt/sync/${path}";
@@ -38,7 +37,7 @@ in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
       configEnable = {
-        stateDirs = [stateDir] ++ (attrValues cfg.sharedFolders);
+        stateDirs = attrValues cfg.sharedFolders;
         ports = {
           ${portName}.port = mkDefault 8384;
           syncthing-share.port = 22000;
@@ -65,7 +64,7 @@ in {
     services.syncthing = {
       enable = true;
       openDefaultPorts = true;
-      dataDir = stateDir;
+      dataDir = cfg.stateDir;
       guiAddress = "127.0.0.1:${toString ports.${portName}.port}";
       settings = {
         devices = pipe networkCfg.hosts [

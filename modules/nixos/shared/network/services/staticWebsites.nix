@@ -10,11 +10,10 @@
   inherit (lib.lists) findFirstIndex;
   inherit (lib.strings) concatLines;
   inherit (flake.lib) mkNetworkHostServiceModule;
-  inherit (config.lib.network) getVariables;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
-    (getVariables "staticWebsites")
-    stateDir
+    (getServiceVariables "staticWebsites")
     serviceName
     portName
     networkCfg
@@ -32,7 +31,6 @@ in {
         };
       };
       configEnable = {
-        stateDirs = [stateDir];
         ports = listToAttrs (map (name: {
             name = portName + "-" + name;
             value = {
@@ -52,7 +50,7 @@ in {
             listen ${toString ports.${portName + "-" + name}.port};
             server_name 0.0.0.0;
             location / {
-              root ${stateDir}/${name};
+              root ${cfg.stateDir}/${name};
             }
           }
         '')
@@ -60,7 +58,7 @@ in {
     };
 
     systemd.tmpfiles.rules =
-      map (name: "d ${stateDir}/${name} 0750 ${config.services.nginx.user} ${config.services.nginx.group} -")
+      map (name: "d ${cfg.stateDir}/${name} 0750 ${config.services.nginx.user} ${config.services.nginx.group} -")
       cfg.sites;
   };
 }

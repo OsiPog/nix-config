@@ -17,14 +17,12 @@
     networkCfg
     cfg
     ports
-    stateDir
     ;
 in {
   imports = [
     inputs.simple-nixos-mailserver.nixosModules.default
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
       configEnable = {
-        stateDirs = [stateDir];
         ports.submissions.port = 465;
       };
     }))
@@ -41,7 +39,7 @@ in {
     mailserver = {
       enable = true;
       stateVersion = 3;
-      mailDirectory = stateDir;
+      mailDirectory = cfg.stateDir;
       fqdn = "mail.${config.networking.domain}";
       domains = [config.networking.domain];
       enableSubmissionSsl = true;

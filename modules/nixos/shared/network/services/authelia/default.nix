@@ -18,10 +18,6 @@
     cfg
     ports
     ;
-
-  stateDir = "/var/lib/authelia-default"; # hardcoded in nixpkgs
-
-  domain = getAddress {inherit portName;};
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
@@ -31,9 +27,9 @@ in {
         default = null;
       };
       configEnable = {
-        stateDirs = [stateDir];
         ports.${portName}.port = 9091;
       };
+      configService.stateDir = "/var/lib/authelia-default"; # hardcoded in nixpkgs
     }))
   ];
 
@@ -67,7 +63,7 @@ in {
       settings = {
         server.address = "tcp://:${toString ports.${portName}.port}";
         log.level = "info";
-        storage.local.path = "${stateDir}/db.sqlite3";
+        storage.local.path = "${cfg.stateDir}/db.sqlite3";
         session.cookies = [
           {
             domain = getAddress {

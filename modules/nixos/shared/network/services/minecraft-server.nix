@@ -18,13 +18,11 @@
     networkCfg
     cfg
     ports
-    stateDir
     ;
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
       configEnable = {
-        stateDirs = [stateDir];
         ports = {
           minecraft-java = {
             port = mkDefault 25565;
@@ -55,7 +53,7 @@ in {
     services.minecraft-servers = {
       enable = true;
       eula = true;
-      dataDir = stateDir;
+      dataDir = cfg.stateDir;
       servers.default = {
         enable = true;
         serverProperties = {
