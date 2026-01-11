@@ -73,6 +73,10 @@ creation_rules:
   key_groups:
   - age:
     - *floating-trees
+- path_regex: modules/nixos/shared/network/integrations/oidc/headscale.yaml$
+  key_groups:
+  - age:
+    - *haunt-muskie
 - path_regex: modules/nixos/shared/network/services/authelia/secrets.yaml$
   key_groups:
   - age:

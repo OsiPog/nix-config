@@ -5,34 +5,29 @@
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAcSqngrHbdtiCGzPmt6peImIQfYek/WLcaXIwrhN5oS root@haunt-muskie";
     allowConnectionsFrom = ["biome-fest" "dead-voxel"];
   };
-  ports = {
-    headscale.reverseProxy = {
-      enable = true;
-      domain = "vpn.axelhax.net";
-    };
+
+  # --- RESTIC BACKUP
+  services.backup = {
+    enable = true;
+    host = "floating-trees";
   };
-  services = {
-    backup = {
-      enable = true;
-      host = "floating-trees";
-    };
-    reverseProxy.enable = true;
-    # vsftpd = {
-    #   enable = true;
-    #   ports = {
-    #     control.port = 21;
-    #     passive.portRange = {
-    #       from = 40000;
-    #       to = 40100;
-    #     };
-    #   };
-    # };
 
-    mailserver = {
-      enable = true;
-      integrations.ldap.enable = true;
-    };
+  # --- NGINX REVERSE PROXY
+  services.reverseProxy.enable = true;
 
-    headscale.enable = true;
+  # --- MAIL
+  services.mailserver = {
+    enable = true;
+    integrations.ldap.enable = true;
+  };
+
+  # --- HEADSCALE VPN
+  services.headscale = {
+    enable = true;
+    integrations.oidc.enable = true;
+  };
+  ports.headscale.reverseProxy = {
+    enable = true;
+    domain = "vpn.axelhax.net";
   };
 }

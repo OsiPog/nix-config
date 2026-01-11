@@ -51,6 +51,10 @@ in {
         owner = config.services.authelia.instances.default.user;
         sopsFile = ./secrets.yaml;
       };
+      "authelia/oidcIssuerPrivateKeyFile" = {
+        owner = config.services.authelia.instances.default.user;
+        sopsFile = ./secrets.yaml;
+      };
     };
 
     # Authelia service configuration
@@ -59,6 +63,7 @@ in {
       secrets = {
         jwtSecretFile = config.getSopsFile "authelia/jwtSecret";
         storageEncryptionKeyFile = config.getSopsFile "authelia/storageEncryptionKey";
+        oidcIssuerPrivateKeyFile = config.getSopsFile "authelia/oidcIssuerPrivateKeyFile";
       };
       settings = {
         server.address = "tcp://:${toString ports.${portName}.port}";
@@ -75,7 +80,7 @@ in {
             };
           }
         ];
-        access_control.default_policy = "one_factor";
+        access_control.default_policy = "two_factor";
       };
     };
   };

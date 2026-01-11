@@ -128,6 +128,7 @@
 
     # Variables useful to network modules
     variables = rec {
+      hostSrvs = variables.hostCfg.services;
       networkCfg = config.network;
       hostCfg = networkCfg.hosts.${hostName};
       ports = hostCfg.ports;
@@ -145,20 +146,29 @@
       variables
       // rec {
         inherit integrationName integratedServices;
-        hostSrvs = variables.hostCfg.services;
         integratedServiceEnable =
           foldl'
           (
             acc: elem:
               acc
-              || (hostSrvs.${elem}.enable
-                && hostSrvs.${elem}.integrations.${integrationName}.enable)
+              || (variables.hostSrvs.${elem}.enable
+                && variables.hostSrvs.${elem}.integrations.${integrationName}.enable)
           )
           false
           integratedServices;
         serviceWithIntegrationEnable = serviceName:
-          hostSrvs.${serviceName}.enable
-          && hostSrvs.${serviceName}.integrations.${integrationName}.enable;
+          variables.hostSrvs.${serviceName}.enable
+          && variables.hostSrvs.${serviceName}.integrations.${integrationName}.enable;
+        serviceWithIntegrationEnabledAnywhere = serviceName:
+          (
+            filter (
+              e:
+                (e.serviceName == serviceName)
+                && e.serviceCfg.integrations.${integrationName}.enable
+            )
+            allEnabledServices
+          )
+          != [];
       };
   };
 in {

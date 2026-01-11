@@ -85,6 +85,7 @@ in {
 
     ./integrations/ldap
     ./integrations/mail
+    ./integrations/oidc
     ./integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
 
