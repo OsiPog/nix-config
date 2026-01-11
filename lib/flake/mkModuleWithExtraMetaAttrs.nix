@@ -16,24 +16,30 @@ flake: {
     "config"
   ];
 
-  configIsRoot = elem "config" (attrNames evaluated);
-in
-  if configIsRoot
-  then evaluated
-  else
+  usingMetaAttrs =
     foldl' (
-      acc: {
+      acc: name:
+        acc
+        || elem name metaAttrs
+        || (mapExtraMetaAttr name {}) != null
+    )
+    false (attrNames evaluated);
+in
+  if ! usingMetaAttrs
+  then evaluated
+  else {
+    imports = map (
+      {
         name,
         value,
       }:
-        recursiveUpdate acc (
-          if elem name metaAttrs
-          then {${name} = value;}
-          else let
-            mapped = mapExtraMetaAttr name value;
-          in
-            if mapped != null
-            then mapped
-            else throw "mkModuleWithExtraMetaAttrs: got unexpected meta attribute name: '${name}'"
-        )
-    ) {} (attrsToList evaluated)
+        if elem name metaAttrs
+        then {${name} = value;}
+        else let
+          mapped = mapExtraMetaAttr name value;
+        in
+          if mapped != null
+          then mapped
+          else throw "mkModuleWithExtraMetaAttrs: got unexpected meta attribute name: '${name}'"
+    ) (attrsToList evaluated);
+  }
