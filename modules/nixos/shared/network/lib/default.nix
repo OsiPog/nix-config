@@ -4,7 +4,7 @@
   hostName,
   ...
 }: let
-  inherit (builtins) throw length filter head concatStringsSep;
+  inherit (builtins) throw length filter head concatStringsSep foldl';
   inherit (lib) pipe;
   inherit (lib.attrsets) attrsToList filterAttrs mapAttrsToList;
   inherit (lib.lists) flatten range;
@@ -124,6 +124,14 @@
           )
         else ""
       );
+    serviceEnabledAnywhere = serviceName: (filter (e: e.serviceName == serviceName) allEnabledServices) != [];
+
+    # Variables useful to network modules
+    variables = rec {
+      networkCfg = config.network;
+      hostCfg = networkCfg.hosts.${hostName};
+      ports = hostCfg.ports;
+    };
 
     getServiceVariables = serviceName:
       variables
@@ -133,12 +141,25 @@
         cfg = variables.hostCfg.services.${serviceName};
       };
 
-    # Variables useful to network modules
-    variables = rec {
-      networkCfg = config.network;
-      hostCfg = networkCfg.hosts.${hostName};
-      ports = hostCfg.ports;
-    };
+    getIntegrationVariables = integrationName: integratedServices:
+      variables
+      // rec {
+        inherit integrationName integratedServices;
+        hostSrvs = variables.hostCfg.services;
+        integratedServiceEnable =
+          foldl'
+          (
+            acc: elem:
+              acc
+              || (hostSrvs.${elem}.enable
+                && hostSrvs.${elem}.integrations.${integrationName}.enable)
+          )
+          false
+          integratedServices;
+        serviceWithIntegrationEnable = serviceName:
+          hostSrvs.${serviceName}.enable
+          && hostSrvs.${serviceName}.integrations.ldap.enable;
+      };
   };
 in {
   config.lib.network = networkLib;

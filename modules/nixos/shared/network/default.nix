@@ -24,7 +24,7 @@ in {
       type = with types;
         attrsOf (submoduleWith {
           class = "networkHost";
-          # specialArgs.osConfig = config; # currently not needed
+          specialArgs.nixosConfig = config;
 
           modules = [
             ({...}: {
