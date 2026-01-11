@@ -22,6 +22,7 @@ in {
     spotify-player # player for spotify
     # Tools
     wl-clipboard-rs # copy to clipboard from terminal
+    serpl # global find and replace as tui
     # Scripts
     heygptWrapper # terminal gpt integration
   ];
