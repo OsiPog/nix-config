@@ -21,7 +21,9 @@
       enable = true;
       user = "steam";
       autoStart = true;
-      desktopSession = "gamescope-wayland";
+      desktopSession = "plasma";
     };
   };
+
+  services.desktopManager.plasma6.enable = true;
 }
