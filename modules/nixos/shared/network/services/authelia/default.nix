@@ -8,10 +8,10 @@
   inherit (lib) mkIf mkOption;
 
   inherit (flake.lib) mkNetworkHostServiceModule;
-  inherit (config.lib.network) getAddress getVariables;
+  inherit (config.lib.network) getAddress getServiceVariables;
 
   inherit
-    (getVariables "authelia")
+    (getServiceVariables "authelia")
     serviceName
     portName
     networkCfg

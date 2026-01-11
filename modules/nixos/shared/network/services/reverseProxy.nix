@@ -9,11 +9,11 @@
   inherit (lib.attrsets) recursiveUpdate;
   inherit (lib.strings) concatLines hasSuffix;
 
-  inherit (config.lib.network) getAddress allPorts getVariables;
+  inherit (config.lib.network) getAddress allPorts getServiceVariables;
   inherit (flake.lib) mkNetworkHostServiceModule;
 
   inherit
-    (getVariables "reverseProxy")
+    (getServiceVariables "reverseProxy")
     serviceName
     networkCfg
     hostCfg

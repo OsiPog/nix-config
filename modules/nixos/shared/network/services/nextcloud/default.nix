@@ -8,10 +8,10 @@
 }: let
   inherit (lib) mkIf mkMerge;
   inherit (flake.lib) mkNetworkHostServiceModule;
-  inherit (config.lib.network) getAddress getVariables;
+  inherit (config.lib.network) getAddress getServiceVariables;
 
   inherit
-    (getVariables "nextcloud")
+    (getServiceVariables "nextcloud")
     serviceName
     portName
     networkCfg

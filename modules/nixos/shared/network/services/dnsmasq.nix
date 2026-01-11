@@ -8,10 +8,10 @@
 }: let
   inherit (lib) mkIf;
   inherit (flake.lib) mkNetworkHostServiceModule;
-  inherit (config.lib.network) getVariables;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
-    (getVariables "dnsmasq")
+    (getServiceVariables "dnsmasq")
     serviceName
     networkCfg
     cfg

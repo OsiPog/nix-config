@@ -21,10 +21,10 @@
   inherit (lib.strings) hasPrefix splitString optionalString;
   inherit (lib.lists) elemAt;
   inherit (flake.lib) mkNetworkHostServiceModule;
-  inherit (config.lib.network) getVariables;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
-    (getVariables "syncthing")
+    (getServiceVariables "syncthing")
     serviceName
     portName
     networkCfg

@@ -7,10 +7,10 @@
 }: let
   inherit (lib) mkIf mkDefault mkMerge mkForce;
   inherit (flake.lib) mkNetworkHostServiceModule;
-  inherit (config.lib.network) getAddress getVariables;
+  inherit (config.lib.network) getAddress getServiceVariables;
 
   inherit
-    (getVariables "headscale")
+    (getServiceVariables "headscale")
     serviceName
     portName
     networkCfg

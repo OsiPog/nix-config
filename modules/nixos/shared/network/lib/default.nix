@@ -125,7 +125,7 @@
         else ""
       );
 
-    getVariables = serviceName: rec {
+    getServiceVariables = serviceName: rec {
       inherit serviceName;
       portName = serviceName;
       networkCfg = config.network;

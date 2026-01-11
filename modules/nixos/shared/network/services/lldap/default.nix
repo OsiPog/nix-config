@@ -11,10 +11,10 @@
   inherit (lib.strings) splitString;
 
   inherit (flake.lib) mkNetworkHostServiceModule;
-  inherit (config.lib.network) getAddress getVariables;
+  inherit (config.lib.network) getAddress getServiceVariables;
 
   inherit
-    (getVariables "lldap")
+    (getServiceVariables "lldap")
     serviceName
     networkCfg
     cfg

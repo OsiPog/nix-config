@@ -11,10 +11,10 @@
   inherit (lib.attrsets) filterAttrs attrsToList recursiveUpdate;
 
   inherit (flake.lib) mkNetworkHostServiceModule nixosHostNames;
-  inherit (config.lib.network) getVariables;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
-    (getVariables "backup")
+    (getServiceVariables "backup")
     serviceName
     networkCfg
     cfg

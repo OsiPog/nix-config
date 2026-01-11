@@ -9,10 +9,10 @@
 }: let
   inherit (lib) mkIf mkMerge;
   inherit (flake.lib) mkNetworkHostServiceModule;
-  inherit (config.lib.network) getVariables;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
-    (getVariables "mailserver")
+    (getServiceVariables "mailserver")
     serviceName
     networkCfg
     cfg

@@ -9,11 +9,11 @@
 }: let
   inherit (lib) mkIf mkDefault;
   inherit (flake.lib) mkNetworkHostServiceModule;
-  inherit (config.lib.network) getVariables;
+  inherit (config.lib.network) getServiceVariables;
   inherit (pkgs) fetchurl;
 
   inherit
-    (getVariables "minecraft-server")
+    (getServiceVariables "minecraft-server")
     serviceName
     networkCfg
     cfg

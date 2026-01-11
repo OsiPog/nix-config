@@ -7,10 +7,10 @@
 }: let
   inherit (lib) mkIf mkMerge;
   inherit (flake.lib) mkNetworkHostServiceModule;
-  inherit (config.lib.network) getVariables;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
-    (getVariables "vsftpd")
+    (getServiceVariables "vsftpd")
     serviceName
     networkCfg
     cfg
