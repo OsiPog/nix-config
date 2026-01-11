@@ -5,6 +5,7 @@
   flake,
   ...
 }: let
+  inherit (builtins) toFile toJSON;
   inherit (lib) mkIf mkDefault mkMerge mkForce;
   inherit (flake.lib) mkNetworkHostServiceModule;
   inherit (config.lib.network) getAddress getServiceVariables;
@@ -35,6 +36,8 @@ in {
         address = "0.0.0.0";
         port = ports.${serviceName}.port;
         settings = {
+          # allow all policy
+          policy.path = toFile "file.json" (toJSON {});
           server_url = getAddress {
             protocol = "https";
             inherit portName;
