@@ -21,7 +21,7 @@
     devices.steamdeck.enable = true;
   };
 
-  # stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/macintosh.yaml";
+  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/evenok-dark.yaml";
 
   system.stateVersion = "25.11";
 }
