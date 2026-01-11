@@ -6,78 +6,44 @@
   flake,
   ...
 }: let
-  inherit (builtins) filter;
-  inherit (lib) mkMerge mkIf mkOption mkEnableOption foldl' mkDefault;
-  inherit (lib.lists) findFirst;
-  inherit (lib.attrsets) genAttrs;
-  inherit (config.lib.network) getAddress allPorts allEnabledServices;
+  inherit (lib) mkMerge mkIf mkOption mkDefault;
+  inherit (config.lib.network) getIntegrationVariables serviceEnabledAnywhere;
+  inherit (flake.lib) mkNetworkHostServiceIntegrationModule;
 
-  networkCfg = config.network;
-  hostCfg = networkCfg.hosts.${hostName};
-  hostSrvs = hostCfg.services;
-
-  integratedServices = ["mailserver" "authelia"];
-
-  integratedServiceEnable = foldl' (acc: elem: acc || (hostCfg.services.${elem}.enable && hostCfg.services.${elem}.integrations.ldap.enable)) false integratedServices;
-
-  serviceWithIntegrationEnable = serviceName: hostSrvs.${serviceName}.enable && hostSrvs.${serviceName}.integrations.ldap.enable;
-
-  serviceEnabledAnywhere = serviceName: (filter (e: e.serviceName == serviceName) allEnabledServices) != [];
+  inherit
+    (getIntegrationVariables "ldap" ["mailserver" "authelia"])
+    integrationName
+    integratedServices
+    networkCfg
+    hostSrvs
+    serviceWithIntegrationEnable
+    integratedServiceEnable
+    ;
 in {
   imports = [
+    (mkNetworkHostServiceIntegrationModule {
+        inherit integratedServices integrationName;
+        serviceName = "lldap";
+        portName = "ldaps";
+        protocol = "ldaps";
+      } ({cfg, ...}: {
+        optionsIntegration = {
+          baseDN = mkOption {
+            description = "Read only option of the base dn of the ldap server.";
+            readOnly = true;
+            default = networkCfg.hosts.${cfg.host}.services.lldap.ldap.baseDN;
+          };
+          searchUserDN = mkOption {
+            description = "dn of the search user";
+            readOnly = true;
+            default = "uid=search-user,ou=people,${cfg.baseDN}";
+          };
+        };
+      }))
     flake.nixosModules.lldapBootstrap
   ];
+
   config = mkIf networkCfg.enable (mkMerge [
-    {
-      network.sharedModules = [
-        ({...}: {
-          options.services = genAttrs integratedServices (_: {
-            integrations.ldap = mkOption {
-              description = "ldap server integration";
-              type = lib.types.submodule (integrationModule: let
-                defaultHost = (findFirst (p: p.portName == "ldaps") (throw "LDAP Integration: ldaps port it not defined on any host.") allPorts).hostName;
-
-                inherit (networkCfg.hosts.${integrationModule.config.host}.services.lldap.ldap) baseDN;
-
-                address = getAddress {
-                  portName = "ldaps";
-                  protocol = "ldaps";
-                  hostName = integrationModule.config.host;
-                };
-              in {
-                options = {
-                  enable = mkEnableOption "ldap server integration";
-                  host = mkOption {
-                    description = "The host the ldap server is running on.";
-                    type = lib.types.str;
-                  };
-                  baseDN = mkOption {
-                    description = "Read only option of the base dn of the ldap server.";
-                    readOnly = true;
-                    default = baseDN;
-                  };
-                  searchUserDN = mkOption {
-                    description = "dn of the search user";
-                    readOnly = true;
-                    default = "uid=search-user,ou=people,${baseDN}";
-                  };
-                  address = mkOption {
-                    description = "Read only option of the ldap address";
-                    readOnly = true;
-                    default = address;
-                  };
-                };
-                config = mkIf integrationModule.config.enable {
-                  host = mkDefault defaultHost;
-                };
-              });
-              default = {};
-            };
-          });
-        })
-      ];
-    }
-
     # --- SHARED
     # define the search users secret file so that all services that need it have access to it
     (mkIf (hostSrvs.lldap.enable || integratedServiceEnable) {
