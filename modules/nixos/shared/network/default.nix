@@ -81,6 +81,7 @@ in {
     ./services/minecraft-server.nix
     ./services/portunus
     ./services/reverseProxy.nix
+    ./services/staticWebsites.nix
 
     ./integrations/ldap
     ./integrations/mail

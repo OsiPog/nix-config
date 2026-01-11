@@ -9,60 +9,71 @@
   stateDirs = [
     "/mnt/husk"
   ];
-  ports = {
-    minecraft-java.reverseProxy = {
+
+  # --- DNSMASQ
+  services.dnsmasq.enable = true;
+
+  # --- RESTIC
+  services.backup = {
+    enable = true;
+    server = {
       enable = true;
-      domain = "axelhax.net";
-    };
-    minecraft-bedrock.reverseProxy = {
-      enable = true;
-      domain = "axelhax.net";
-    };
-    authelia.reverseProxy = {
-      enable = true;
-      domain = "auth.axelhax.net";
-    };
-    # portunus.reverseProxy = {
-    #   enable = true;
-    #   domain = "users.axelhax.net";
-    #   # hidden = true; # TODO: currently broken
-    # };
-    ldaps.reverseProxy = {
-      enable = true;
-      domain = "ldap.axelhax.net";
-      # hidden = true; # TODO: currently broken
-    };
-    lldap.reverseProxy = {
-      enable = true;
-      domain = "users.axelhax.net";
+      repository = "/mnt/blaze";
     };
   };
-  services = {
-    dnsmasq.enable = true;
-    backup = {
-      enable = true;
-      server = {
-        enable = true;
-        repository = "/mnt/blaze";
-      };
-    };
-    minecraft-server.enable = true;
-    authelia = {
-      enable = true;
-      integrations = {
-        ldap.enable = true;
-        mail = {
-          enable = true;
-          host = "haunt-muskie";
-        };
-      };
-    };
-    lldap = {
-      enable = true;
-      integrations.mail = {
+
+  # --- MINECRAFT
+  services.minecraft-server.enable = true;
+  ports.minecraft-java.reverseProxy = {
+    enable = true;
+    domain = "axelhax.net";
+  };
+  ports.minecraft-bedrock.reverseProxy = {
+    enable = true;
+    domain = "axelhax.net";
+  };
+
+  # --- AUTHELIA
+  services.authelia = {
+    enable = true;
+    integrations = {
+      ldap.enable = true;
+      mail = {
         enable = true;
         host = "haunt-muskie";
       };
     };
+  };
+  ports.authelia.reverseProxy = {
+    enable = true;
+    domain = "auth.axelhax.net";
+  };
+
+  # --- LLDAP
+  services.lldap = {
+    enable = true;
+    integrations.mail = {
+      enable = true;
+      host = "haunt-muskie";
+    };
+  };
+  ports.ldaps.reverseProxy = {
+    enable = true;
+    domain = "ldap.axelhax.net";
+    # hidden = true; # TODO: currently broken
+  };
+  ports.lldap.reverseProxy = {
+    enable = true;
+    domain = "users.axelhax.net";
+  };
+
+  # --- NGINX HTTP
+  services.staticWebsites = {
+    enable = true;
+    sites = ["axelhax"];
+  };
+  ports.staticWebsites-axelhax.reverseProxy = {
+    enable = true;
+    domain = "axelhax.net";
   };
 }

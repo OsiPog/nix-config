@@ -1,6 +1,7 @@
 {
   flake,
   pkgs,
+  config,
   ...
 }: {
   imports = with flake.nixosModules; [
@@ -40,6 +41,12 @@
       beep -f $C6 -l $(($SPEED * 2))
     '';
     serviceConfig.Type = "oneshot";
+  };
+
+  users.users.nginx = {
+    # for transferring website data
+    openssh.authorizedKeys = {inherit (config.users.users.leaf.openssh.authorizedKeys) keys;};
+    useDefaultShell = true;
   };
 
   # Don't change, will break things!
