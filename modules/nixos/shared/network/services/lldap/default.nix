@@ -7,7 +7,7 @@
   ...
 }: let
   inherit (builtins) concatStringsSep;
-  inherit (lib) mkIf pipe mkOption mkDefault;
+  inherit (lib) mkIf pipe mkOption mkForce;
   inherit (lib.strings) splitString;
 
   inherit (flake.lib) mkNetworkHostServiceModule;
@@ -130,9 +130,12 @@ in {
       };
     };
 
-    # Ensure state directory is owned by lldap
-    systemd.tmpfiles.rules = [
-      "d ${cfg.stateDir} 0750 lldap lldap -"
-    ];
+    systemd = {
+      services.lldap.serviceConfig.DynamicUser = mkForce false;
+      # Ensure state directory is owned by lldap
+      tmpfiles.rules = [
+        "d ${cfg.stateDir} 0750 lldap lldap -"
+      ];
+    };
   };
 }
