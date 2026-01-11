@@ -125,15 +125,13 @@
         else ""
       );
 
-    getServiceVariables = serviceName: rec {
-      inherit serviceName;
-      portName = serviceName;
-      networkCfg = config.network;
-      hostCfg = networkCfg.hosts.${hostName};
-      cfg = hostCfg.services.${serviceName};
-      ports = hostCfg.ports;
-      stateDir = "/var/lib/${serviceName}";
-    };
+    getServiceVariables = serviceName:
+      variables
+      // rec {
+        inherit serviceName;
+        portName = serviceName;
+        cfg = variables.hostCfg.services.${serviceName};
+      };
 
     # Variables useful to network modules
     variables = rec {
