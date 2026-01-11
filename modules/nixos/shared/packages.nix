@@ -12,10 +12,11 @@
     bat # Better cat
     jq # tool to parse json
     usbutils # for lsusb and such
-    busybox
+    busybox # basic commands
     ripgrep
     gitMinimal
     helix
+    btop
   ];
 
   environment.variables.EDITOR = lib.mkOverride 900 "hx";
