@@ -37,6 +37,7 @@ in {
     arduino-ide
     transmission_4-gtk
     bottles
+    thunderbird
   ];
 
   # Default apps
