@@ -1,86 +1,69 @@
 {
   config,
-  hostName,
   lib,
-  pkgs,
+  flake,
   ...
 }: let
-  inherit (lib) mkMerge mkIf mkOption mkEnableOption mkDefault foldl';
-  inherit (lib.lists) findFirst;
-  inherit (lib.attrsets) genAttrs;
-  inherit (lib.strings) toUpper splitString;
-  inherit (config.lib.network) getAddress allPorts;
+  inherit (lib) mkMerge mkIf mkOption;
+  inherit (config.lib.network) getIntegrationVariables getAddress;
+  inherit (flake.lib) mkNetworkHostServiceIntegrationModule;
 
-  networkCfg = config.network;
-  hostCfg = networkCfg.hosts.${hostName};
-  hostSrvs = hostCfg.services;
+  inherit
+    (getIntegrationVariables "mail" ["lldap" "authelia"])
+    integrationName
+    integratedServices
+    networkCfg
+    hostSrvs
+    serviceWithIntegrationEnable
+    integratedServiceEnable
+    ;
+in {
+  imports = [
+    (mkNetworkHostServiceIntegrationModule {
+        inherit integratedServices integrationName;
+        serviceName = "mailserver";
+        portName = "submissions";
+        protocol = "submissions";
+      } ({cfg, ...}: {
+        optionsIntegration = {
+          notifierMail = mkOption {
+            description = "Mail address of the notifier mail account";
+            readOnly = true;
+            default = let
+              mailDomain = getAddress {
+                portName = "submissions";
+                hostName = cfg.host;
+                appendPort = false;
+              };
+            in "noreply@${mailDomain}";
+          };
+          displayName = mkOption {
+            description = "Display name of the mail sender";
+            readOnly = true;
+            default = let
+              mailDomain = getAddress {
+                portName = "submissions";
+                hostName = cfg.host;
+                appendPort = false;
+              };
+            in
+              mailDomain;
+          };
+        };
+      }))
+  ];
 
-  integratedServices = ["lldap" "authelia"];
-  integratedServiceEnable = foldl' (acc: elem: acc || (hostCfg.services.${elem}.enable && hostCfg.services.${elem}.integrations.mail.enable)) false integratedServices;
-in
-  mkMerge [
-    {
-      network.sharedModules = [
-        ({...}: {
-          options.services = genAttrs integratedServices (_: {
-            integrations.mail = mkOption {
-              description = "mail server integration";
-              type = lib.types.submodule (integrationModule: let
-                defaultHost = (findFirst (p: p.portName == "submissions") (throw "Mail Integration: submissions port it not defined on any host.") allPorts).hostName;
-                address = getAddress {
-                  portName = "submissions";
-                  protocol = "submissions";
-                  hostName = integrationModule.config.host;
-                };
-                mailDomain = getAddress {
-                  portName = "submissions";
-                  hostName = integrationModule.config.host;
-                  appendPort = false;
-                };
-              in {
-                options = {
-                  enable = mkEnableOption "mail server integration";
-                  host = mkOption {
-                    description = "The host the mail server is running on.";
-                    type = lib.types.str;
-                  };
-                  address = mkOption {
-                    description = "Read only option of the submission address";
-                    readOnly = true;
-                    default = address;
-                  };
-                  notifierMail = mkOption {
-                    description = "Mail address of the notifier mail account";
-                    readOnly = true;
-                    default = "noreply@${mailDomain}";
-                  };
-                  displayName = mkOption {
-                    description = "Display name of the mail sender";
-                    default = mailDomain;
-                    readOnly = true;
-                  };
-                };
-                config = mkIf integrationModule.config.enable {
-                  host = mkDefault defaultHost;
-                };
-              });
-              default = {};
-            };
-          });
-        })
-      ];
-    }
-
+  config = mkIf networkCfg.enable (mkMerge [
     # --- SHARED
     # Define the mail notifier secret so all services that need it have access
-    (mkIf (networkCfg.enable && integratedServiceEnable) {
+    (mkIf integratedServiceEnable {
       sops.secrets."ldap/notifier-pass" = {
         sopsFile = ./secrets.yaml;
         group = "mail-notifier";
         mode = "0440";
       };
 
-      users.groups.${config.sops.secrets."ldap/notifier-pass".group} = {};
+      users.groups.mail-notifier = {};
     })
 
     # SMTP SERVER
@@ -92,10 +75,10 @@ in
     #
     # --- LLDAP
     # Create the mail account
-    (mkIf (networkCfg.enable && hostSrvs.lldap.enable && hostSrvs.lldap.integrations.mail.enable) (let
+    (mkIf (serviceWithIntegrationEnable "lldap") (let
       inherit (hostSrvs.lldap.integrations) mail;
     in {
-      users.users.lldap.extraGroups = [config.sops.secrets."ldap/notifier-pass".group];
+      users.users.lldap.extraGroups = ["mail-notifier"];
       services.lldap.bootstrap = {
         enable = true;
         users.configs.notifier = {
@@ -111,10 +94,10 @@ in
 
     # --- AUTHELIA
     # Configure Authelia to use the mail notifier account
-    (mkIf (networkCfg.enable && hostSrvs.authelia.enable && hostSrvs.authelia.integrations.mail.enable) (let
+    (mkIf (serviceWithIntegrationEnable "authelia") (let
       inherit (hostSrvs.authelia.integrations) mail;
     in {
-      users.users.${config.services.authelia.instances.default.user}.extraGroups = [config.sops.secrets."ldap/notifier-pass".group];
+      users.users.${config.services.authelia.instances.default.user}.extraGroups = ["mail-notifier"];
 
       services.authelia.instances.default = {
         environmentVariables = {
@@ -129,4 +112,5 @@ in
         };
       };
     }))
-  ]
+  ]);
+}

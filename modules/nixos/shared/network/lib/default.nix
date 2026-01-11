@@ -158,7 +158,7 @@
           integratedServices;
         serviceWithIntegrationEnable = serviceName:
           hostSrvs.${serviceName}.enable
-          && hostSrvs.${serviceName}.integrations.ldap.enable;
+          && hostSrvs.${serviceName}.integrations.${integrationName}.enable;
       };
   };
 in {
