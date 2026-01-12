@@ -11,6 +11,7 @@ in {
   # Make firefox default
   xdg.mimeApps.defaultApplications = lib.attrsets.genAttrs [
     # Open links in firefox
+    "text/html"
     "x-scheme-handler/http"
     "x-scheme-handler/https"
     "x-scheme-handler/about"
@@ -18,7 +19,7 @@ in {
 
     # Open PDF Files with firefox
     "application/pdf"
-  ] (type: "${packageName}.desktop");
+  ] (type: ["${packageName}.desktop"]);
   home.sessionVariables.DEFAULT_BROWSER = lib.getExe config.programs.firefox.package;
 
   # Install firefox.

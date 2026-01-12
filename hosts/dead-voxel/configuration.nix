@@ -74,6 +74,10 @@
     "video=HDMI-A-2:1600x900,panel_orientation=right_side_up"
   ];
 
+  # virtualisation.waydroid.enable = true;
+
+  services.flatpak.enable = true;
+
   # Don't change, will break things!
   system.stateVersion = "25.11";
 }
