@@ -127,6 +127,29 @@
         "type": "github"
       }
     },
+    "blueprint_2": {
+      "inputs": {
+        "nixpkgs": [
+          "nix-hytale-server",
+          "nixpkgs"
+        ],
+        "systems": "systems_4"
+      },
+      "locked": {
+        "lastModified": 1768344359,
+        "narHash": "sha256-N9CKwK9YPholuZHyAHyE61KrTiA0hwrxsGlLKqrZYq4=",
+        "owner": "osipog",
+        "repo": "blueprint",
+        "rev": "6a803c8b39050b028dcc4e02a838448ec0ad9a68",
+        "type": "github"
+      },
+      "original": {
+        "owner": "osipog",
+        "ref": "feat/allow-nixpkgs-package-definitions",
+        "repo": "blueprint",
+        "type": "github"
+      }
+    },
     "cachix": {
       "inputs": {
         "devenv": [
@@ -573,7 +596,7 @@
     },
     "flake-utils_3": {
       "inputs": {
-        "systems": "systems_4"
+        "systems": "systems_5"
       },
       "locked": {
         "lastModified": 1731533236,
@@ -591,7 +614,7 @@
     },
     "flake-utils_4": {
       "inputs": {
-        "systems": "systems_6"
+        "systems": "systems_7"
       },
       "locked": {
         "lastModified": 1731533236,
@@ -966,6 +989,24 @@
         "type": "github"
       }
     },
+    "nix-hytale-server": {
+      "inputs": {
+        "blueprint": "blueprint_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1768357840,
+        "narHash": "sha256-h6fVyYU9kYkz/jHgdRRa83wIHVTLsP/XTwY0/5Q18HQ=",
+        "path": "/home/osi/repositories/github.com/osipog/nix-hytale-servers",
+        "type": "path"
+      },
+      "original": {
+        "path": "/home/osi/repositories/github.com/osipog/nix-hytale-servers",
+        "type": "path"
+      }
+    },
     "nix-minecraft": {
       "inputs": {
         "flake-compat": "flake-compat_3",
@@ -1254,7 +1295,7 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "systems": "systems_5"
+        "systems": "systems_6"
       },
       "locked": {
         "lastModified": 1765119282,
@@ -1306,6 +1347,7 @@
         "matcha": "matcha",
         "nix-config-private": "nix-config-private",
         "nix-firefox-addons": "nix-firefox-addons",
+        "nix-hytale-server": "nix-hytale-server",
         "nix-minecraft": "nix-minecraft",
         "nix-vscode-extensions": "nix-vscode-extensions",
         "nixos-facter-modules": "nixos-facter-modules",
@@ -1374,7 +1416,7 @@
           "nixpkgs"
         ],
         "nur": "nur",
-        "systems": "systems_7",
+        "systems": "systems_8",
         "tinted-foot": "tinted-foot",
         "tinted-kitty": "tinted-kitty",
         "tinted-schemes": "tinted-schemes",
@@ -1486,6 +1528,21 @@
       }
     },
     "systems_7": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_8": {
       "locked": {
         "lastModified": 1681028828,
         "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",

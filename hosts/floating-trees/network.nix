@@ -33,6 +33,13 @@
     domain = "axelhax.net";
   };
 
+  # --- HYTALE
+  services.hytale-server.enable = true;
+  ports.hytale.reverseProxy = {
+    enable = true;
+    domain = "axelhax.net";
+  };
+
   # --- AUTHELIA
   services.authelia = {
     enable = true;

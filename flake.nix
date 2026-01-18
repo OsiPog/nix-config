@@ -74,6 +74,11 @@
       url = "github:Infinidoge/nix-minecraft";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # hytale server
+    nix-hytale-server = {
+      url = "/home/osi/repositories/github.com/osipog/nix-hytale-servers";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # --- Packages
     # Development environments the easy nix way
