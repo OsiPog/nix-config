@@ -23,15 +23,15 @@
   };
 
   # --- MINECRAFT
-  services.minecraft-server.enable = true;
-  ports.minecraft-java.reverseProxy = {
-    enable = true;
-    domain = "axelhax.net";
-  };
-  ports.minecraft-bedrock.reverseProxy = {
-    enable = true;
-    domain = "axelhax.net";
-  };
+  # services.minecraft-server.enable = true;
+  # ports.minecraft-java.reverseProxy = {
+  #   enable = true;
+  #   domain = "axelhax.net";
+  # };
+  # ports.minecraft-bedrock.reverseProxy = {
+  #   enable = true;
+  #   domain = "axelhax.net";
+  # };
 
   # --- HYTALE
   services.hytale-server.enable = true;
