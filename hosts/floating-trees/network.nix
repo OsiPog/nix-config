@@ -83,4 +83,14 @@
     enable = true;
     domain = "axelhax.net";
   };
+
+  # --- OPENCLOUD
+  services.opencloud = {
+    enable = true;
+    integrations.ldap.enable = true;
+  };
+  ports.opencloud.reverseProxy = {
+    enable = true;
+    domain = "cloud.axelhax.net";
+  };
 }

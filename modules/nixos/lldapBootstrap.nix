@@ -171,6 +171,7 @@ in {
       '';
 
       serviceConfig = {
+        Type = "oneshot";
         StateDirectory = "lldap";
         StateDirectoryMode = "0750";
         WorkingDirectory = "%S/lldap";
