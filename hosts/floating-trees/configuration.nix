@@ -12,6 +12,8 @@
 
     drive-blaze-husk
     pcspkr
+
+    ./opencloud-husk.nix
   ];
 
   disko.devices.disk.disk1.device = "/dev/disk/by-id/ata-EDILOCA_ES106_1TB_AA000000000000050186";
