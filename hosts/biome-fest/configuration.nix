@@ -60,6 +60,8 @@
     }
   ];
 
+  services.flatpak.enable = true;
+
   # Don't change, will break things.
   system.stateVersion = "23.11"; # Did you read the comment?
 }
