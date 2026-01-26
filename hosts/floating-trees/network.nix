@@ -93,4 +93,11 @@
     enable = true;
     domain = "cloud.axelhax.net";
   };
+
+  # --- JELLYFIN
+  services.jellyfin.enable = true;
+  ports.jellyfin.reverseProxy = {
+    enable = true;
+    domain = "media.axelhax.net";
+  };
 }

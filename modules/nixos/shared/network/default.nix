@@ -77,6 +77,7 @@ in {
     ./services/dnsmasq.nix
     ./services/headscale
     ./services/hytale-server.nix
+    ./services/jellyfin.nix
     ./services/lldap
     ./services/mailserver
     ./services/minecraft-server.nix
