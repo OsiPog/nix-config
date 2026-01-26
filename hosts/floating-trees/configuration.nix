@@ -12,8 +12,6 @@
 
     drive-blaze-husk
     pcspkr
-
-    ./opencloud-husk.nix
   ];
 
   disko.devices.disk.disk1.device = "/dev/disk/by-id/ata-EDILOCA_ES106_1TB_AA000000000000050186";
@@ -49,6 +47,15 @@
     # for transferring website data
     openssh.authorizedKeys = {inherit (config.users.users.leaf.openssh.authorizedKeys) keys;};
     useDefaultShell = true;
+  };
+
+  # Allow opencloud to read the husk drive
+  users.groups.husk = {};
+  users.users.opencloud.extraGroups = ["husk"];
+  # Mount the husk drive as folder of the admin user
+  fileSystems."${config.services.opencloud.stateDir}/storage/users/users/${config.services.lldap.settings.ldap_user_dn}/husk" = {
+    device = "/mnt/husk";
+    options = ["bind"];
   };
 
   # Don't change, will break things!
