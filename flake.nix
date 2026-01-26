@@ -76,7 +76,8 @@
     };
     # hytale server
     nix-hytale-server = {
-      url = "/home/osi/repositories/github.com/osipog/nix-hytale-servers";
+      # url = "/home/osi/repositories/github.com/osipog/nix-hytale-servers";
+      url = "github:osipog/nix-hytale-server";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
