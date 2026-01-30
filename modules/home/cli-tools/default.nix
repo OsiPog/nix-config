@@ -117,4 +117,19 @@ in {
       apiKeyHelper = "cat " + (config.getSopsFile "api-keys/anthropic");
     };
   };
+
+  programs.opencode = {
+    enable = true;
+    settings = {
+      "$schema" = "https://opencode.ai/config.json";
+      model = "anthropic/claude-sonnet-4-5";
+      autoupdate = false;
+      theme = lib.mkForce " f";
+      provider.anthropic.options.apiKey = "{file:${config.getSopsFile "api-keys/anthropic"}}";
+      permission = {
+        edit = "ask";
+        bash = "ask";
+      };
+    };
+  };
 }
