@@ -26,8 +26,6 @@ in {
   users.extraGroups.podman.members = [username];
   users.extraGroups.dialout.members = [username];
 
-  programs.adb.enable = true;
-
   users.users.${username} = {
     # Enable sudo for user
     extraGroups = ["wheel" "adbusers" "ydotool"];

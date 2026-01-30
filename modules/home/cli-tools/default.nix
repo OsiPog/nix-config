@@ -25,6 +25,7 @@ in {
     serpl # global find and replace as tui
     # Scripts
     heygptWrapper # terminal gpt integration
+    android-tools
   ];
 
   sops.secrets = {
