@@ -95,7 +95,10 @@
   };
 
   # --- JELLYFIN
-  services.jellyfin.enable = true;
+  services.jellyfin = {
+    enable = true;
+    integrations.ldap.enable = true;
+  };
   ports.jellyfin.reverseProxy = {
     enable = true;
     domain = "media.axelhax.net";

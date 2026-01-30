@@ -80,6 +80,11 @@
       url = "github:osipog/nix-hytale-server";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # service that configures jellyfin
+    jellarr = {
+      url = "github:venkyr77/jellarr";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # --- Packages
     # Development environments the easy nix way

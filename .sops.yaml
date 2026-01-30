@@ -90,6 +90,10 @@ creation_rules:
     - *floating-trees
     - *haunt-muskie
     - *wet-hands
+- path_regex: modules/nixos/shared/network/services/jellyfin/secrets.yaml$
+  key_groups:
+  - age:
+    - *floating-trees
 - path_regex: modules/nixos/shared/network/services/lldap/secrets.yaml$
   key_groups:
   - age:

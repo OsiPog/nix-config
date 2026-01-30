@@ -8,11 +8,11 @@
 }: let
   inherit (builtins) toFile;
   inherit (lib) mkMerge mkIf mkOption mkDefault;
-  inherit (config.lib.network) getIntegrationVariables serviceEnabledAnywhere;
+  inherit (config.lib.network) getIntegrationVariables serviceEnabledAnywhere getAddress;
   inherit (flake.lib) mkNetworkHostServiceIntegrationModule;
 
   inherit
-    (getIntegrationVariables "ldap" ["mailserver" "authelia" "opencloud"])
+    (getIntegrationVariables "ldap" ["mailserver" "authelia" "opencloud" "jellyfin"])
     integrationName
     integratedServices
     networkCfg
@@ -47,6 +47,7 @@ in {
         };
       }))
     flake.nixosModules.lldapBootstrap
+    flake.inputs.jellarr.nixosModules.default
   ];
 
   config = mkIf networkCfg.enable (mkMerge [
@@ -196,6 +197,86 @@ in {
             echo "OC_LDAP_BIND_PASSWORD=$(cat ${config.getSopsFile "ldap/search-user-pass"})" > ${envFilePath}
           '';
         };
+      };
+    }))
+
+    # --- JELLYFIN
+    # create a group
+    (mkIf (hostSrvs.lldap.enable && serviceEnabledAnywhere "jellyfin") {
+      services.lldap.bootstrap = {
+        enable = true;
+        groups.configs.media = {};
+      };
+    })
+
+    # configure jellyfin through jellar
+    (mkIf (serviceWithIntegrationEnable "jellyfin") (let
+      inherit (hostSrvs.jellyfin.integrations) ldap;
+    in {
+      users.users.${config.services.jellyfin.user}.extraGroups = ["ldap-search"];
+
+      services.jellarr.config = {
+        system.pluginRepositories = [
+          {
+            name = "Jellyfin Official";
+            url = "https://repo.jellyfin.org/releases/plugin/manifest.json";
+            enabled = true;
+          }
+        ];
+        plugins = [
+          {
+            name = "LDAP Authentication";
+            configuration = {
+              LdapServer = getAddress {
+                portName = "ldaps";
+                appendPort = false;
+              };
+              LdapPort = 6360;
+
+              LdapAdminBaseDn = ldap.baseDN;
+              LdapAdminFilter = "(uid=${ldap.adminUser})";
+
+              LdapBaseDn = ldap.baseDN;
+              # LdapBindPassword = "password"; # is set below via the service
+              LdapBindUser = ldap.searchUserDN;
+              LdapPasswordAttribute = "password";
+              LdapProfileImageAttribute = "jpegphoto";
+              LdapProfileImageFormat = "Default";
+              LdapSearchAttributes = "uid,cn,mail,displayName";
+              LdapSearchFilter = "(|(memberof=cn=media,ou=groups,${ldap.baseDN})(uid=${ldap.adminUser}))";
+              LdapUidAttribute = "uid";
+              LdapUsernameAttribute = "cn";
+
+              # LdapClientCertPath = "";
+              # LdapClientKeyPath = "";
+              # LdapRootCaPath = "";
+              # SkipSslVerify = false;
+              UseSsl = true;
+              # UseStartTls = false;
+
+              AllowPassChange = false;
+              CreateUsersFromLdap = true;
+              # EnableAllFolders = false;
+              # EnableLdapAdminFilterMemberUid = false;
+              EnableLdapProfileImageSync = true;
+              # RemoveImagesNotInLdap = false;
+            };
+          }
+        ];
+      };
+
+      systemd.services.jellarr-set-ldap-bind-password = {
+        after = ["jellarr.service" "jellyfin.service"];
+        wantedBy = ["multi-user.target"];
+        path = [pkgs.curl];
+        serviceConfig.Type = "oneshot";
+        script = ''
+          curl ${config.services.jellarr.config.base_url}/Plugins/958aad6637844d2ab89aa7b6fab6e25c/Configuration \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "X-Emby-Token: $(cat ${config.services.jellarr.bootstrap.apiKeyFile})" \
+            --data "{\"LdapBindPassword\": \"$(cat ${config.getSopsFile "ldap/search-user-pass"})\"}"
+        '';
       };
     }))
   ]);
