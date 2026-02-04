@@ -6,8 +6,7 @@
 # All hosts that have the same syncthing folder names configured are matched together and these folders are automatically
 # shared between them via syncthing. Each host will sync its local folder path with all other hosts that have declared the same folder name.
 #
-# For each shared folder, a bind mount is created using fuse.bindfs to allow the syncthing service to access the folder.
-# For folders under /home, the bind mount maps the folder owner to the syncthing user, ensuring proper permissions.
+# Make sure that the shared folders are owned by the group "syncthing" and setguid is set.
 {
   lib,
   config,
@@ -17,9 +16,7 @@
 }: let
   inherit (builtins) hasAttr attrNames attrValues;
   inherit (lib) mkIf pipe types mkOption mkDefault;
-  inherit (lib.attrsets) mapAttrs mapAttrs' filterAttrs;
-  inherit (lib.strings) hasPrefix splitString optionalString;
-  inherit (lib.lists) elemAt;
+  inherit (lib.attrsets) mapAttrs filterAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule;
   inherit (config.lib.network) getServiceVariables;
 
@@ -31,8 +28,6 @@
     cfg
     ports
     ;
-
-  toMountPoint = path: "/mnt/sync/${path}";
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
@@ -80,7 +75,7 @@ in {
         ];
         folders = pipe cfg.sharedFolders [
           (mapAttrs (folderName: folder: {
-            path = toMountPoint folder;
+            path = folder;
             devices = pipe networkCfg.hosts [
               (filterAttrs (
                 name: host:
@@ -94,21 +89,5 @@ in {
         ];
       };
     };
-
-    fileSystems =
-      mapAttrs' (folderName: folder: {
-        name = toMountPoint folder;
-        value = {
-          device = folder;
-          fsType = "fuse.bindfs";
-          options = optionalString (hasPrefix "/home" folder) (let
-            folderOwner = elemAt (splitString "/" folder) 2;
-            syncthingUser = config.services.syncthing.user;
-          in [
-            "map=${folderOwner}/${syncthingUser}"
-          ]);
-        };
-      })
-      cfg.sharedFolders;
   };
 }
