@@ -6,22 +6,23 @@
 }: {
   imports = [
     inputs.home-manager.nixosModules.default
+    inputs.nix-flatpak.nixosModules.nix-flatpak
   ];
 
   environment.systemPackages = with pkgs; [
     wine-wayland
-    (retroarch.withCores (cores:
-      with cores; [
-        # citra-canary
-        dolphin
-      ]))
-    ryubing
+    # (retroarch.withCores (cores:
+    #   with cores; [
+    #     # citra-canary
+    #     dolphin
+    #   ]))
+    # ryubing
   ];
 
-  # For retroarch
-  nixpkgs.config.permittedInsecurePackages = [
-    "mbedtls-2.28.10"
-  ];
+  # # For retroarch
+  # nixpkgs.config.permittedInsecurePackages = [
+  #   "mbedtls-2.28.10"
+  # ];
 
   hardware.graphics.enable32Bit = true;
 
@@ -51,4 +52,22 @@
       };
     })
   ];
+
+  # gaming flatpaks
+  services.flatpak = {
+    enable = true;
+    packages = [
+      # Hytale Launcher
+      rec {
+        appId = "com.hypixel.HytaleLauncher";
+        sha256 = "sha256-OyKzn9RJWlEiY2e2VVMQ96dYWDN1r6kEez81EWSjT1Y=";
+        bundle = toString (pkgs.fetchurl {
+          url = "https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak";
+          inherit sha256;
+        });
+      }
+      # Retro Deck emulation stuff
+      "net.retrodeck.retrodeck"
+    ];
+  };
 }

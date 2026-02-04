@@ -76,8 +76,6 @@
 
   # virtualisation.waydroid.enable = true;
 
-  services.flatpak.enable = true;
-
   # Don't change, will break things!
   system.stateVersion = "25.11";
 }
