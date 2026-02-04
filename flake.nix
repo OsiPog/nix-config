@@ -9,7 +9,6 @@
       url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    robotnix.url = "github:nix-community/robotnix"; # build aosp with nix
 
     # --- Flake Libraries
     blueprint = {
@@ -85,6 +84,8 @@
       url = "github:venkyr77/jellarr";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # declarative flatpak
+    nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=latest";
 
     # --- Packages
     # Development environments the easy nix way

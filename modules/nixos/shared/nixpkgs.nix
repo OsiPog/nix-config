@@ -18,14 +18,25 @@ in {
             # to access stable packages
             inherit stable;
 
-            hyprlandPlugins.hyprgrass = prev.hyprlandPlugins.hyprgrass.overrideAttrs (prevAttrs: {
-              src = prev.fetchFromGitHub {
-                owner = "horriblename";
-                repo = "hyprgrass";
-                rev = "9b341353a91c23ced96e5ed996dda62fbe426a32";
-                hash = "sha256-Nwd8JwGEEdGBJthxiopK51Fwva5TbM1PEOQDe+NAZEw=";
-              };
-            });
+            # hyprlandPlugins.hyprgrass = prev.hyprlandPlugins.hyprgrass.overrideAttrs (prevAttrs: {
+            #   src = prev.fetchFromGitHub {
+            #     owner = "horriblename";
+            #     repo = "hyprgrass";
+            #     rev = "668d2e44a647a302047adbb72bf3649dc8f1f1d7";
+            #     hash = "sha256-KgroQaxZBjT/iaoNdbWN2N7rMfAOTrDeJMml5FFdfrk=";
+            #   };
+            # });
+
+            hyprlandPlugins.hyprgrass = stable.hyprlandPlugins.hyprgrass;
+
+            # hyprland = prev.hyprland.overrideAttrs (prevAttrs: {
+            #   src = prev.fetchFromGitHub {
+            #     owner = "hyprwm";
+            #     repo = "hyprland";
+            #     rev = "";
+            #     hash = "sha256-OFTMhMUnJCg3woctP+qrWNM0ALeiTnGlbsC7eHStdDY=";
+            #   };
+            # });
 
             # custom flake packages
             matcha = matcha.packages.${prev.system}.default;
