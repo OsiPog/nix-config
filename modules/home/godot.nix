@@ -19,10 +19,10 @@
   };
 
   # Add window rules to hyprland
-  wayland.windowManager.hyprland.settings.windowrulev2 = [
-    "float, title:.*\\(DEBUG\\)$"
-    "size 1280 720, title:.*\\(DEBUG\\)$"
+  wayland.windowManager.hyprland.settings.windowrule = [
+    "float on, match:title .*\\(DEBUG\\)$"
+    "size 1280 720, match:title .*\\(DEBUG\\)$"
 
-    "tile, title:.*Godot Engine$"
+    "tile on, match:title .*Godot Engine$"
   ];
 }

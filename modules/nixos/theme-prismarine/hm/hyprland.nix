@@ -52,15 +52,15 @@ in {
 
       # --- Layerrules and Window Rules
       layerrule = [
-        "animation popin, (w|r)ofi"
+        "animation popin, match:namespace (w|r)ofi"
         # "dimaround, (w|r)ofi"
-        "abovelock true, waybar"
-        "abovelock true, wvkbd"
+        "above_lock 2, match:namespace waybar"
+        "above_lock 2, match:namespace wvkbd"
       ];
       windowrule = [
-        "pin, class:(w|r)ofi"
-        "size 25% 50%, class:(w|r)ofi" # doesnt work?
-        "center, class:(w|r)ofi"
+        "pin on, match:class (w|r)ofi"
+        "size 25% 50%, match:class (w|r)ofi" # doesnt work?
+        "center on, match:class (w|r)ofi"
         # "stayfocused, class:(w|r)ofi" # cant click outside
         # "dimaround, class:(w|r)ofi"
       ];

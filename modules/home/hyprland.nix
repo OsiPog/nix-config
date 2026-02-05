@@ -185,22 +185,22 @@
 
       # --- WINDOW RULES
       windowrule = [
-        "stayfocused, title:^Hyprland Polkit Agent$"
+        "stay_focused on, match:title ^Hyprland Polkit Agent$"
         # "dimaround, title:^Hyprland Polkit Agent$"
 
         # browser saving action
-        "float, title:^Save File$"
-        "float, title:.*wants to save$"
+        "float on, match:title ^Save File$"
+        "float on, match:title .*wants to save$"
 
         # launch android studio in a accessable position
-        "monitor 0, class:jetbrains-studio"
+        "monitor 0, match:class jetbrains-studio"
 
         # The base gnucash window should be tiled, everything else should be floating
-        "float, class:gnucash"
-        "tile, title:.*- GnuCash$"
+        "float on, match:class gnucash"
+        "tile on, match:title .*- GnuCash$"
 
         # Gamescope errors should be float
-        "float, title:Gamescope WSI Layer Error"
+        "float on, match:title Gamescope WSI Layer Error"
       ];
     };
   };
