@@ -13,6 +13,8 @@ pkgs.mkShell {
     nix-modrinth-prefetch
     # convert current monitor configuration to conf options
     get-hypr-monitors-conf
+    # vdfplus
+    vdfplus
   ];
 
   shellHook = ''
