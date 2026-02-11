@@ -49,13 +49,36 @@
     useDefaultShell = true;
   };
 
-  # Allow opencloud to read the husk drive
+  # setup husk group
   users.groups.husk = {};
+
+  # --- OPENCLOUD read husk
   users.users.opencloud.extraGroups = ["husk"];
-  # Mount the husk drive as folder of the admin user
-  fileSystems."${config.services.opencloud.stateDir}/storage/users/users/${config.services.lldap.settings.ldap_user_dn}/husk" = {
-    device = "/mnt/husk";
+  fileSystems."${config.services.opencloud.stateDir}/storage/users/users/osi/cloud" = {
+    device = "/mnt/husk/cloud";
     options = ["bind"];
+  };
+
+  # --- JELLYFIN read husk
+  users.users.jellyfin.extraGroups = ["husk"];
+  fileSystems."${config.services.jellyfin.dataDir}/data/media" = {
+    device = "/mnt/husk/media";
+    options = ["bind"];
+  };
+  services.jellarr.config = {
+    plugins = [{name = "bookshelf";}];
+    library.virtualFolders = [
+      {
+        name = "Shows";
+        collectionType = "tvshows";
+        libraryOptions.pathInfos = [{path = "${config.services.jellyfin.dataDir}/data/media/Shows";}];
+      }
+      {
+        name = "Books";
+        collectionType = "books";
+        libraryOptions.pathInfos = [{path = "${config.services.jellyfin.dataDir}/data/media/Books";}];
+      }
+    ];
   };
 
   # Don't change, will break things!
