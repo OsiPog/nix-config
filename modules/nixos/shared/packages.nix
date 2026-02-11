@@ -17,9 +17,13 @@
     gitMinimal
     helix
     btop
+    nnn
   ];
-
-  environment.variables.EDITOR = lib.mkOverride 900 "hx";
+  environment.variables = {
+    EDITOR = lib.mkOverride 900 "hx";
+    VISUAL = lib.mkOverride 900 "hx";
+    NNN_USE_EDITOR = 1;
+  };
 
   programs.direnv = {
     enable = true;
