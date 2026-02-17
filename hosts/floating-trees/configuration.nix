@@ -12,6 +12,8 @@
 
     drive-blaze-husk
     pcspkr
+
+    ./jellyfin.nix
   ];
 
   disko.devices.disk.disk1.device = "/dev/disk/by-id/ata-EDILOCA_ES106_1TB_AA000000000000050186";
@@ -57,28 +59,6 @@
   fileSystems."${config.services.opencloud.stateDir}/storage/users/users/osi/cloud" = {
     device = "/mnt/husk/cloud";
     options = ["bind"];
-  };
-
-  # --- JELLYFIN read husk
-  users.users.jellyfin.extraGroups = ["husk"];
-  fileSystems."${config.services.jellyfin.dataDir}/data/media" = {
-    device = "/mnt/husk/media";
-    options = ["bind"];
-  };
-  services.jellarr.config = {
-    plugins = [{name = "bookshelf";}];
-    library.virtualFolders = [
-      {
-        name = "Shows";
-        collectionType = "tvshows";
-        libraryOptions.pathInfos = [{path = "${config.services.jellyfin.dataDir}/data/media/Shows";}];
-      }
-      {
-        name = "Books";
-        collectionType = "books";
-        libraryOptions.pathInfos = [{path = "${config.services.jellyfin.dataDir}/data/media/Books";}];
-      }
-    ];
   };
 
   # Don't change, will break things!
