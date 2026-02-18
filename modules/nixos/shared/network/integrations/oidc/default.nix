@@ -4,7 +4,7 @@
   lib,
   ...
 }: let
-  inherit (lib) mkIf mkMerge;
+  inherit (lib) mkIf mkMerge mkDefault;
   inherit (flake.lib) mkNetworkHostServiceIntegrationModule;
   inherit (config.lib.network) getIntegrationVariables getAddress;
 
@@ -42,6 +42,7 @@ in {
         };
 
         services.headscale.settings.oidc = {
+          only_start_if_oidc_is_available = mkDefault false;
           issuer = hostSrvs.headscale.integrations.oidc.address;
           client_id = "headscale";
           client_secret_path = config.getSopsFile "headscale/oidc-secret";
