@@ -3,17 +3,7 @@
   lib,
   config,
   ...
-}: let
-  heygptWrapper = pkgs.writeShellApplication {
-    name = "heygpt";
-    runtimeInputs = [pkgs.heygpt];
-    text = ''
-      OPENAI_API_BASE="https://api.openai.com/v1" \
-      OPENAI_API_KEY=$(cat ${config.getSopsFile "api-keys/open-ai"}) \
-      heygpt --model "''${HEYGPT_MODEL:-gpt-4o}" "$@"
-    '';
-  };
-in {
+}: {
   home.packages = with pkgs; [
     bluetuith # bluetooth tui
     devenv # dev environments made easy
@@ -24,18 +14,8 @@ in {
     wl-clipboard-rs # copy to clipboard from terminal
     serpl # global find and replace as tui
     # Scripts
-    heygptWrapper # terminal gpt integration
     android-tools
   ];
-
-  sops.secrets = {
-    "api-keys/open-ai" = {
-      sopsFile = ./secrets.yaml;
-    };
-    "api-keys/anthropic" = {
-      sopsFile = ./secrets.yaml;
-    };
-  };
 
   # Mounting usb devices easily
   programs.bashmount.enable = true;
@@ -105,31 +85,6 @@ in {
         "break"
         "colors"
       ];
-    };
-  };
-
-  programs.claude-code = {
-    enable = true;
-    memory.text = ''
-      Run any command that is not part of core linux with `nix run nixpkgs#<package-name>`
-    '';
-    settings = {
-      apiKeyHelper = "cat " + (config.getSopsFile "api-keys/anthropic");
-    };
-  };
-
-  programs.opencode = {
-    enable = true;
-    settings = {
-      "$schema" = "https://opencode.ai/config.json";
-      model = "anthropic/claude-sonnet-4-5";
-      autoupdate = false;
-      theme = lib.mkForce " f";
-      provider.anthropic.options.apiKey = "{file:${config.getSopsFile "api-keys/anthropic"}}";
-      permission = {
-        edit = "ask";
-        bash = "ask";
-      };
     };
   };
 }

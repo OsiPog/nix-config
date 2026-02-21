@@ -12,6 +12,7 @@ in {
     theme-prismarine
 
     uni-vpn
+    llm-tools
 
     (mkUserModule username)
   ];

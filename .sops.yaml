@@ -30,17 +30,7 @@ creation_rules:
   key_groups:
   - age:
     - *wet-hands
-- path_regex: modules/home/cli-tools/secrets.yaml$
-  key_groups:
-  - age:
-    - *biome-fest
-    - *dead-voxel
 - path_regex: modules/home/git/secrets.yaml$
-  key_groups:
-  - age:
-    - *biome-fest
-    - *dead-voxel
-- path_regex: modules/home/helix/secrets.yaml$
   key_groups:
   - age:
     - *biome-fest
@@ -54,6 +44,11 @@ creation_rules:
   key_groups:
   - age:
     - *floating-trees
+- path_regex: modules/nixos/llm-tools/secrets.yaml$
+  key_groups:
+  - age:
+    - *biome-fest
+    - *dead-voxel
 - path_regex: modules/nixos/nix-access-tokens/secrets.yaml$
   key_groups:
   - age:
