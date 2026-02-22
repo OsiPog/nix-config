@@ -60,6 +60,7 @@ in {
 
       .modules-left, .modules-center, .modules-right {
         padding-top: ${str margin}px;
+        padding-bottom: ${str margin}px;
       }
       .modules-left {
         padding-left: ${str margin}px;

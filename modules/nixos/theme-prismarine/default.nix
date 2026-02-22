@@ -44,7 +44,7 @@ in {
     prismarineTheme = {
       border-radius = 3;
       border-width = 5;
-      margin = 3;
+      margin = 5;
       padding = 5;
     };
 
