@@ -12,7 +12,8 @@
   # '';
   security.polkit.enable = true;
 
-  environment.systemPackages = [
-    pkgs.obs-studio
-  ];
+  programs.obs-studio = {
+    enable = true;
+    enableVirtualCamera = true;
+  };
 }
