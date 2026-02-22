@@ -52,9 +52,6 @@
 
   wayland.windowManager.hyprland = {
     enable = true;
-    plugins = with pkgs.hyprlandPlugins; [
-      hyprscrolling
-    ];
     settings = {
       general = {
         # Allow to resize windows with dragging the border
@@ -72,16 +69,9 @@
         movefocus_cycles_fullscreen = false;
       };
 
-      # use scrolling layout
-      plugin.hyprscrolling = {
-        column_width = 0.5;
-        fullscreen_on_one_column = true;
-        focus_fit_method = 1; # 0 - center, 1 - fit
+      dwindle = {
+        force_split = 2;
       };
-      general.layout = "scrolling";
-      # dwindle = {
-      #   force_split = 2;
-      # };
 
       # --- Autostart ---
       # run on every reload
