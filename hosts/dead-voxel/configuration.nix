@@ -74,7 +74,8 @@
     "video=HDMI-A-2:1600x900,panel_orientation=right_side_up"
   ];
 
-  # virtualisation.waydroid.enable = true;
+  # init with: sudo waydroid init -s GAPPS -f
+  virtualisation.waydroid.enable = true;
 
   # Don't change, will break things!
   system.stateVersion = "25.11";
