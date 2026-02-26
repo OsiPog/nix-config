@@ -7,7 +7,10 @@
   config,
   ...
 }: {
-  sops.secrets."api-keys/anthropic" = {sopsFile = ./secrets.yaml;};
+  sops.secrets = {
+    "api-keys/anthropic".sopsFile = ./secrets.yaml;
+    "intelephense/licence.txt".sopsFile = ./secrets.yaml;
+  };
 
   home.packages = with pkgs; [
     (writeShellApplication {
@@ -30,8 +33,8 @@
       nixd
 
       # PHP
-      # intelephense
-      phpactor
+      # phpactor
+      intelephense
 
       # Nodejs and friends
       vtsls
@@ -144,6 +147,10 @@
           args = ["language-server"];
         };
 
+        intelephense = {
+          licenceKey = config.getSopsFile "intelephense/licence.txt";
+        };
+
         # Vue
         # vue-language-server = {
         #   command = lib.getExe pkgs.vue-language-server;
@@ -220,7 +227,7 @@
           name = "php";
           file-types = ["php"];
           language-servers = [
-            "phpactor"
+            # "phpactor"
             "intelephense"
           ];
           debugger = {

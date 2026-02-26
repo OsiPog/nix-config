@@ -35,6 +35,11 @@ creation_rules:
   - age:
     - *biome-fest
     - *dead-voxel
+- path_regex: modules/home/helix/secrets.yaml$
+  key_groups:
+  - age:
+    - *biome-fest
+    - *dead-voxel
 - path_regex: modules/home/uni/secrets.yaml$
   key_groups:
   - age:
