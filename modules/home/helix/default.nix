@@ -92,7 +92,9 @@
           '';
 
         # Binds in the menu that opens on "+"
-        plusBinds = {
+        plusBinds = let
+          runTuiPkg = package: [":new" ":insert-output ${lib.getExe package}" ":buffer-close!" ":redraw"];
+        in {
           # Open VSCodium
           v = ":sh codium $PWD --goto %{buffer_name}:%{cursor_line}:%{cursor_column}";
           # Format File
@@ -108,6 +110,8 @@
           b = ":sh git blame -L %{selection_line_start},%{selection_line_end} %{buffer_name}";
           # Copy GitHub permalink to current cursor position
           c = ":sh gh repo view --json url | jq -r \".url + \\\"/blob/$(git rev-parse HEAD)/%{buffer_name}#L%{selection_line_start}-L%{selection_line_end}\\\"\" | wl-copy";
+          # s = runTuiPkg pkgs.serpl; # doesn't work?
+          g = runTuiPkg pkgs.lazygit;
         };
 
         # Binds in the menu that opens on "+" and need select mode
@@ -263,6 +267,17 @@
         }
         {
           name = "typescript";
+          language-servers = [
+            "vtsls"
+            "vscode-eslint-language-server"
+          ];
+          formatter = {
+            command = "prettier";
+            args = ["--parser" "typescript"];
+          };
+        }
+        {
+          name = "tsx";
           language-servers = [
             "vtsls"
             "vscode-eslint-language-server"
