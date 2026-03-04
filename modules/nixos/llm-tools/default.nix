@@ -22,12 +22,12 @@ in {
     enable = true;
     port = 4235;
     package = pkgs.litellm.overridePythonAttrs (old: rec {
-      version = "647e5237a78aa611cba8f6f334bb0274c64ac4d5";
+      version = "7902f3e8040a407e91956e0ed7bb37f000e891d4";
       src = pkgs.fetchFromGitHub {
-        owner = "BerriAI";
+        owner = "WhoisMonesh";
         repo = "litellm";
         rev = version;
-        hash = "sha256-+OvUhKR3LhRTFedicpWPY9L0r2BD3WVvUJpOP1MPrp4=";
+        hash = "sha256-w/f+JgQB8QGNuw0jfkQPyH4R3FFyzX/91puEDOv+V0g=";
       };
     });
     environmentFile = config.sops.templates.litellm-env.path;
@@ -41,6 +41,7 @@ in {
       };
       litellm_settings = {
         api_base = "http://localhost:${toString config.services.litellm.port}";
+        drop_params = true;
       };
       model_list = [
         {
@@ -104,6 +105,20 @@ in {
 
       programs.gemini-cli = {
         enable = true;
+      };
+
+      programs.opencode = {
+        enable = true;
+        settings = {
+          "$schema" = "https://opencode.ai/config.json";
+          model = "anthropic/${claudeModel}";
+          autoupdate = false;
+          provider.anthropic.options.apiKey = "{file:${config.getSopsFile "api-keys/anthropic"}}";
+          permission = {
+            edit = "ask";
+            bash = "ask";
+          };
+        };
       };
     })
   ];
