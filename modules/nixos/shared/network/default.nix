@@ -3,6 +3,7 @@
   config,
   hostName,
   flake,
+  inputs,
   ...
 }: let
   inherit (lib) types mkOption mkEnableOption mkIf;
@@ -24,7 +25,10 @@ in {
       type = with types;
         attrsOf (submoduleWith {
           class = "networkHost";
-          specialArgs.nixosConfig = config;
+          specialArgs = {
+            inherit inputs;
+            nixosConfig = config;
+          };
 
           modules = [
             ({...}: {
@@ -49,7 +53,12 @@ in {
                 domain = mkOption {
                   type = with types; nullOr str;
                   default = null;
-                  description = "A domain with its DNS configured to resolve to the IP address of this host on *.domain.tld.";
+                  description = "The main domain will be set as config.networking.domain, also this servers IP-address reverse DNS points to it. A domain with its DNS configured to resolve to the IP address of this host on *.domain.tld.";
+                };
+                extraDomains = mkOption {
+                  description = "Any other domains that resolve to this servers ip address.";
+                  default = [];
+                  type = with types; listOf str;
                 };
 
                 stateDirs = mkOption {

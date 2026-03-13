@@ -41,7 +41,7 @@ in {
       stateVersion = 3;
       mailDirectory = cfg.stateDir;
       fqdn = "mail.${config.networking.domain}";
-      domains = [config.networking.domain];
+      domains = [config.networking.domain] ++ config.network.hosts.${hostName}.extraDomains;
       enableSubmissionSsl = true;
 
       # # A list of all login accounts. To create the password hashes, use

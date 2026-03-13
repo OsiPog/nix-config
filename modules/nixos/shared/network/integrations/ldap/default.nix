@@ -113,7 +113,7 @@ in {
         enable = true;
         groups.configs.email = {};
         users = {
-          schema.mail_aliases = {
+          schema.mail-aliases = {
             attributeType = "STRING";
             isEditable = false;
             isList = true;
@@ -126,7 +126,7 @@ in {
     (mkIf (serviceWithIntegrationEnable "mailserver") (let
       inherit (hostSrvs.mailserver.integrations) ldap;
 
-      usersFilter = placeholder: "(&(|(mail=${placeholder})(mail-aliases=${placeholder}))(memberof=cn=email,ou=groups,${ldap.baseDN}))";
+      usersFilter = username: "(&(|(mail=${username})(mail-aliases=${username}))(memberof=cn=email,ou=groups,${ldap.baseDN}))";
     in {
       users.users.${config.services.postfix.user}.extraGroups = ["ldap-search"];
 
@@ -139,7 +139,7 @@ in {
           passwordFile = config.getSopsFile "ldap/search-user-pass";
         };
         postfix = {
-          filter = usersFilter "%s";
+          filter = usersFilter "%S";
           uidAttribute = "uid";
           mailAttribute = "mail";
         };

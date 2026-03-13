@@ -1,5 +1,6 @@
-{...}: {
+{inputs, ...}: {
   domain = "axelhax.net";
+  extraDomains = [inputs.nix-config-private.personal_domain];
   vpn.ip = "100.64.0.1";
   ssh = {
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAcSqngrHbdtiCGzPmt6peImIQfYek/WLcaXIwrhN5oS root@haunt-muskie";

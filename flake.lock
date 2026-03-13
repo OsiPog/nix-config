@@ -896,10 +896,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1761852602,
-        "narHash": "sha256-5TFD+EtfdYRIoN82bahcf+b7p6JdC8cZRIteDCtM+3s=",
+        "lastModified": 1773341414,
+        "narHash": "sha256-9T1qEpVhnkfcLdb/pSnFcWDLCaloCQWgKmCa63bW6jI=",
         "ref": "main",
-        "rev": "1535d99e81f8d50eccdd7e58f547597841ac5fed",
+        "rev": "59fab8886d0fd11397d58da8151f31054b26677e",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/osipog/nix-config-private.git"
@@ -1215,11 +1215,11 @@
     },
     "nixpkgs_5": {
       "locked": {
-        "lastModified": 1770181073,
-        "narHash": "sha256-ksTL7P9QC1WfZasNlaAdLOzqD8x5EPyods69YBqxSfk=",
+        "lastModified": 1773122722,
+        "narHash": "sha256-FIqHByVqxCprNjor1NqF80F2QQoiiyqanNNefdlvOg4=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "bf922a59c5c9998a6584645f7d0de689512e444c",
+        "rev": "62dc67aa6a52b4364dd75994ec00b51fbf474e50",
         "type": "github"
       },
       "original": {
