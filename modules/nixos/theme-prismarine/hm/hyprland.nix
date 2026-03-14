@@ -10,7 +10,7 @@ in {
   # Hyprland itself
   wayland.windowManager.hyprland = {
     plugins = with pkgs.hyprlandPlugins; [
-      hyprfocus # currently broken in nixpkgs
+      # hyprfocus # currently broken in nixpkgs
       # hypr-dynamic-cursors
     ];
 
@@ -71,13 +71,13 @@ in {
       # --- Plugins ---
       plugin = {
         # --- Hyprfocus, flash aniomation on focus change
-        hyprfocus = {
-          enabled = "yes";
-          focus_animation = "flash";
-          flash = {
-            flash_opacity = 0.8;
-          };
-        };
+        # hyprfocus = {
+        #   enabled = "yes";
+        #   focus_animation = "flash";
+        #   flash = {
+        #     flash_opacity = 0.8;
+        #   };
+        # };
         # dynamic-cursors = {
         #   enabled = true;
         #   mode = "none";
