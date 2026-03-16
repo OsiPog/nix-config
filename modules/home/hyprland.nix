@@ -69,9 +69,13 @@
         movefocus_cycles_fullscreen = false;
       };
 
-      dwindle = {
-        force_split = 2;
+      # --- Window Management ---
+      general = {
+        layout = "scrolling";
       };
+      # dwindle = {
+      #   force_split = 2;
+      # };
 
       # --- Autostart ---
       # run on every reload
