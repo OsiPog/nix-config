@@ -2,6 +2,7 @@
   inputs,
   pkgs,
   lib,
+  config,
   ...
 }: {
   imports = [
@@ -17,6 +18,19 @@
     #     dolphin
     #   ]))
     # ryubing
+    (writeShellApplication {
+      name = "smart-gamescope";
+      runtimeInputs = [config.programs.gamescope.package];
+      text = ''
+        # if we are inside gamescope already do nothing
+        if [ -n "''${ENABLE_GAMESCOPE_WSI}" ]; then
+          exec "$@"
+        # otherwise wrap command with gamescope
+        else
+          gamescope -w 1920 -h 1080 --xwayland-count 2 --force-grab-cursor --steam -- "$@"
+        fi
+      '';
+    })
   ];
 
   # # For retroarch
@@ -48,7 +62,7 @@
       xdg.desktopEntries.steam-gamescope = {
         icon = "steam";
         name = "Steam Gamescope";
-        exec = "gamescope -w 1920 -h 1080 --xwayland-count 2 --force-grab-cursor --steam -- steam -tenfoot";
+        exec = "smart-gamescope steam -tenfoot";
       };
     })
   ];
