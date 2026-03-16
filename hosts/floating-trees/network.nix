@@ -103,4 +103,10 @@
     enable = true;
     domain = "media.axelhax.net";
   };
+
+  # --- NFS
+  services.nfs = {
+    enable = true;
+    serve.cloud = "/cloud";
+  };
 }

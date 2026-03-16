@@ -149,7 +149,7 @@ in {
       # ...
     };
   });
-};
+}
 ```
 
 This makes it incredibly easy to define options for each host in `network.hosts` while still having the freedom of the NixOS module system.
