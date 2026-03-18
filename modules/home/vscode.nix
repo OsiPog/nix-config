@@ -91,25 +91,25 @@ in {
         "namespaceResolver.autoSort" = false;
 
         # --- NIX ---
-        "nix.enableLanguageServer" = true;
-        "nix.serverPath" = "${lib.getExe pkgs.nixd}";
-        "nix.serverSettings" = {
-          nixd = let
-            flakeExpr = "(builtins.getFlake \'\'${flake}\'\')";
-            pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
-            currentSystemExpr = flakeExpr + ".nixosConfigurations.${nixosConfig.networking.hostName}";
-          in {
-            formatting = {
-              command = ["${lib.getExe pkgs.alejandra}"];
-            };
-            nixpkgs.expr = pkgsExpr;
-            options = {
-              nixos.expr = "${currentSystemExpr}.options";
-              home-manager.expr = "${currentSystemExpr}.options.home-manager.users.type.getSubOptions {}";
-              devenv.expr = "${flakeExpr}.lib.devenv.allDevenvOptions";
-            };
-          };
-        };
+        # "nix.enableLanguageServer" = true;
+        # "nix.serverPath" = "${lib.getExe pkgs.nixd}";
+        # "nix.serverSettings" = {
+        #   nixd = let
+        #     flakeExpr = "(builtins.getFlake \'\'${flake}\'\')";
+        #     pkgsExpr = "(import ${flakeExpr}.inputs.nixpkgs {})";
+        #     currentSystemExpr = flakeExpr + ".nixosConfigurations.${nixosConfig.networking.hostName}";
+        #   in {
+        #     formatting = {
+        #       command = ["${lib.getExe pkgs.alejandra}"];
+        #     };
+        #     nixpkgs.expr = pkgsExpr;
+        #     options = {
+        #       nixos.expr = "${currentSystemExpr}.options";
+        #       home-manager.expr = "${currentSystemExpr}.options.home-manager.users.type.getSubOptions {}";
+        #       devenv.expr = "${flakeExpr}.lib.devenv.allDevenvOptions";
+        #     };
+        #   };
+        # };
 
         # --- JAVA ---
         # All JDKs used for compiling
