@@ -77,6 +77,16 @@
   # init with: sudo waydroid init -s GAPPS -f
   virtualisation.waydroid.enable = true;
 
+  environment.systemPackages = with pkgs; [
+    makemkv
+  ];
+
+  # for makemkv
+  boot.kernelModules = ["sg"];
+
+  # for nfs
+  users.extraGroups.husk.members = ["osi"];
+
   # Don't change, will break things!
   system.stateVersion = "25.11";
 }
