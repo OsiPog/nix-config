@@ -26,10 +26,15 @@ in {
 
   users.extraGroups.podman.members = [username];
   users.extraGroups.dialout.members = [username];
+  users.extraGroups.cdrom.members = [username];
 
   users.users.${username} = {
     # Enable sudo for user
-    extraGroups = ["wheel" "adbusers" "ydotool"];
+    extraGroups = [
+      "wheel" # really important, allows sudo
+      "adbusers"
+      "ydotool"
+    ];
     # password
     hashedPasswordFile = config.getSopsFile "pass-hashes/osi";
   };

@@ -16,17 +16,23 @@
   sops.secrets."pass-hashes/leaf" = {
     neededForUsers = true;
   };
-  users.users.leaf = {
-    extraGroups = ["wheel"];
-    hashedPasswordFile = lib.mkDefault (config.getSopsFile "pass-hashes/leaf");
+  users = {
+    users = {
+      leaf = {
+        extraGroups = ["wheel"];
+        hashedPasswordFile = lib.mkDefault (config.getSopsFile "pass-hashes/leaf");
+      };
+      # Allow logging in as root with ssh keys, but this should not be done
+      root.openssh.authorizedKeys.keys =
+        config.users.users.leaf.openssh.authorizedKeys.keys;
+    };
+
+    # immutable users
+    mutableUsers = false;
+
+    # Default shell
+    defaultUserShell = pkgs.fish;
   };
-
-  # Allow logging in as root with ssh keys, but this should not be done
-  users.users.root.openssh.authorizedKeys.keys =
-    config.users.users.leaf.openssh.authorizedKeys.keys;
-
-  # immutable users
-  users.mutableUsers = false;
 
   home-manager = {
     extraSpecialArgs = {
@@ -51,9 +57,6 @@
       )
     ];
   };
-
-  # Default shell
-  users.defaultUserShell = pkgs.fish;
   programs.fish = {
     enable = true;
     interactiveShellInit = ''

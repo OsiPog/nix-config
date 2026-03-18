@@ -5,19 +5,40 @@
     allowConnectionsFrom = ["biome-fest"];
   };
   stateDirs = ["/home/osi/files"];
-  services = {
-    backup = {
-      enable = true;
-      host = "floating-trees";
-    };
-    # syncthing = {
-    #   enable = true;
-    #   id = "S3LC5E3-CAMYVL6-U6VGXUT-QMXKOZA-V3DVG5C-WMRQ52C-VTDC4GD-IVXRSAI";
-    #   sharedFolders = {
-    #     "working-files" = "/home/osi/files";
-    #     "prism-launcher" = "/home/osi/.local/share/PrismLauncher";
-    #     "ryujinx" = "/home/osi/.config/Ryujinx";
-    #   };
-    # };
+
+  services.backup = {
+    enable = true;
+    host = "floating-trees";
   };
+  # syncthing = {
+  #   enable = true;
+  #   id = "S3LC5E3-CAMYVL6-U6VGXUT-QMXKOZA-V3DVG5C-WMRQ52C-VTDC4GD-IVXRSAI";
+  #   sharedFolders = {
+  #     "working-files" = "/home/osi/files";
+  #     "prism-launcher" = "/home/osi/.local/share/PrismLauncher";
+  #     "ryujinx" = "/home/osi/.config/Ryujinx";
+  #   };
+  # };
+
+  services.nfs = {
+    enable = true;
+    mount.husk = "/husk";
+  };
+
+  # ports.laravel-sail = {
+  #   port = 8000;
+  #   reverseProxy = {
+  #     enable = true;
+  #     domain = "axelhax.net";
+  #     method = "stream";
+  #   };
+  # };
+  # ports.laravel-sail-npm = {
+  #   port = 5173;
+  #   reverseProxy = {
+  #     enable = true;
+  #     domain = "axelhax.net";
+  #     method = "stream";
+  #   };
+  # };
 }

@@ -5,10 +5,10 @@
     allowConnectionsFrom = ["dead-voxel"];
   };
 
-  services.nfs = {
-    enable = true;
-    mount.cloud = "/cloud";
-  };
+  # services.nfs = {
+  #   enable = true;
+  #   mount.cloud = "/cloud";
+  # };
   # services.syncthing = {
   #   enable = true;
   #   settings = {

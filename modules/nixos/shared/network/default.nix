@@ -90,6 +90,7 @@ in {
     ./services/lldap
     ./services/mailserver
     ./services/minecraft-server.nix
+    ./services/nfs.nix
     ./services/opencloud
     ./services/portunus
     ./services/reverseProxy.nix

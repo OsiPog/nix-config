@@ -107,6 +107,6 @@
   # --- NFS
   services.nfs = {
     enable = true;
-    serve.cloud = "/cloud";
+    serve.husk = "/mnt/husk";
   };
 }
