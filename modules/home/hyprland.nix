@@ -76,6 +76,10 @@
       # dwindle = {
       #   force_split = 2;
       # };
+      scrolling = {
+        column_width = 0.5;
+        focus_fit_method = 1; # 0 - center, 1 - fit
+      };
 
       # --- Autostart ---
       # run on every reload
@@ -112,13 +116,6 @@
       "$meta" = "SUPER";
 
       bind = let
-        directions = [
-          "u"
-          "d"
-          "l"
-          "r"
-        ];
-
         arrowsByDirection = {
           u = "Up";
           d = "Down";
@@ -133,7 +130,7 @@
           r = "T";
         };
 
-        perDirection = keyByDirection: f: builtins.map (x: f x (keyByDirection."${x}")) directions;
+        perDirection = keyByDirection: f: map (x: f x (keyByDirection."${x}")) (builtins.attrNames keyByDirection);
         perDirectionLetter = perDirection lettersByDirection;
         perDirectionArrow = perDirection arrowsByDirection;
       in
