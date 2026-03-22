@@ -56,10 +56,15 @@
 
   # --- OPENCLOUD read husk
   users.users.opencloud.extraGroups = ["husk"];
-  fileSystems."${config.services.opencloud.stateDir}/storage/users/users/osi/cloud" = {
-    device = "/mnt/husk/cloud";
+  fileSystems."${config.services.opencloud.stateDir}/storage/users/users/osi/written-mind" = {
+    device = "/mnt/husk/cloud/written-mind";
     options = ["bind"];
   };
+  services.opencloud.environment = {
+    OC_SHARING_PUBLIC_SHARE_MUST_HAVE_PASSWORD = "false";
+    STORAGE_USERS_POSIX_WATCH_FS = "true";
+  };
+  systemd.services.opencloud.path = [pkgs.inotify-tools];
 
   # Don't change, will break things!
   system.stateVersion = "25.11";
