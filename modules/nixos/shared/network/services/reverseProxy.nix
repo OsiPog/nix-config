@@ -91,6 +91,7 @@ in {
           }
           server {
             proxy_pass ${upstream};
+            proxy_timeout 1h;
             ${
             if proxyConf.udp
             then ''
