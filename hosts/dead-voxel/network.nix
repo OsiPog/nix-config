@@ -20,10 +20,10 @@
   #   };
   # };
 
-  services.nfs = {
-    enable = true;
-    mount.husk = "/husk";
-  };
+  # services.nfs = {
+  #   enable = true;
+  #   mount.husk = "/husk";
+  # };
 
   # ports.laravel-sail = {
   #   port = 8000;
