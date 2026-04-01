@@ -24,6 +24,8 @@
     tuigreet
 
     ../../users/osi
+
+    ./vm-gpu-passthrough.nix
   ];
 
   boot.initrd = {
@@ -69,7 +71,7 @@
     opencl.enable = true;
   };
 
-  boot.kernelParams = lib.mkBefore [
+  boot.kernelParams = [
     "video=HDMI-A-1:2560x1440"
     "video=HDMI-A-2:1600x900,panel_orientation=right_side_up"
   ];
