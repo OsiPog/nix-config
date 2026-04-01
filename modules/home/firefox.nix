@@ -181,6 +181,8 @@ in {
           youtube-recommended-videos # unhook: unclutters youtube
           youtube-no-translation # disable automatic translations
           sponsorblock # automatic skip of sponsored sections in yt videos
+
+          tampermonkey # user scripts
         ];
         settings = {};
       };
