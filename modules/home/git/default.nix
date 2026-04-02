@@ -5,6 +5,23 @@
 }: {
   home.packages = with pkgs; [
     lazygit
+    (pkgs.writeShellApplication {
+      name = "git-smart-worktree-add";
+      text = ''
+        set +e
+        export PREK_ALLOW_NO_CONFIG=1
+        branch="$1"
+        mkdir -p ~/worktrees
+        worktree_dir=$(mktemp -d ~/worktrees/XXXXX)
+        git branch "$branch"
+        git worktree add "$worktree_dir" "$branch"
+        cp -a . "$worktree_dir/"
+        if [ -f .git/info/exclude ]; then
+          cp .git/info/exclude "$worktree_dir/.git/info/exclude"
+        fi
+        cd "$worktree_dir"
+      '';
+    })
   ];
 
   programs.fish.functions.git-smart-clone =
