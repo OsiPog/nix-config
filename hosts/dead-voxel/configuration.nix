@@ -60,12 +60,6 @@
     }
   ];
 
-  # motherboard cant wake up from sleep
-  systemd.sleep.settings.Sleep = {
-    AllowSuspend = "no";
-    AllowHybridSleep = "no";
-    AllowSuspendThenHibernate = "no";
-  };
   hardware.amdgpu = {
     initrd.enable = true;
     opencl.enable = true;
