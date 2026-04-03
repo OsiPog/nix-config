@@ -2,6 +2,7 @@
   pkgs,
   lib,
   config,
+  inputs,
   ...
 }: let
   claudeModel = "claude-sonnet-4-6";
@@ -95,6 +96,7 @@ in {
 
       programs.claude-code = {
         enable = true;
+        package = inputs.claude-code-nix.packages.${pkgs.system}.default;
         memory.text = ''
           Run any command that is not part of core linux with `nix run nixpkgs#<package-name>`
         '';
