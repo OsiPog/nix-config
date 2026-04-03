@@ -122,6 +122,11 @@
       url = "github:osipog/libfprint";
       inputs.blueprint.follows = "blueprint";
     };
+    # claude-code, more up-to-date than nixpkgs
+    claude-code-nix = {
+      url = "github:sadjow/claude-code-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs: inputs.blueprint {inherit inputs;};
