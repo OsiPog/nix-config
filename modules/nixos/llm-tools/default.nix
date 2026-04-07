@@ -102,9 +102,37 @@ in {
         '';
         settings = {
           apiKeyHelper = "cat " + (config.getSopsFile "api-keys/anthropic");
+          hooks = let
+            focusWindowAndBell = {
+              type = "command";
+              command = lib.getExe (pkgs.writeShellApplication {
+                name = "focus-window-and-bell";
+                runtimeInputs = with pkgs; [
+                  pulseaudio
+                ];
+                text = ''
+                  INPUT=$(cat)
+
+                  if [ "$(echo "$INPUT" | jq -r '.stop_hook_active')" = "true" ]; then
+                    exit 0
+                  fi
+
+                  paplay ${pkgs.sound-theme-freedesktop}/share/sounds/freedesktop/stereo/bell.oga
+                  hyprctl dispatch focuswindow "pid:$KITTY_PID"
+                '';
+              });
+              timeout = 5;
+            };
+          in {
+            Stop = [{hooks = [focusWindowAndBell];}];
+            Notification = [{hooks = [focusWindowAndBell];}];
+            PermissionRequest = [{hooks = [focusWindowAndBell];}];
+            Elicitation = [{hooks = [focusWindowAndBell];}];
+          };
         };
-        skills.caveman = "${inputs.caveman}/skills/caveman/SKILL.md";
       };
+
+      home.file.".claude/skills/caveman".source = "${inputs.caveman}/skills/caveman";
 
       # programs.gemini-cli = {
       #   enable = true;

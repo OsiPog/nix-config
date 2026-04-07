@@ -2,3 +2,4 @@ result
 .direnv
 a.out
 .env
+/.claude/worktrees
