@@ -88,42 +88,58 @@
         else if (cfg.hosts.${host}.ports.${portName} or null) == null
         then throw "getAddress: port ${portName} is not defined on host ${host}"
         else cfg.hosts.${host}.ports.${portName};
-    in
-      # optional protocol prefix
-      (
-        if protocol != null
-        then "${protocol}://"
-        else ""
-      )
-      + (
-        # use IP if required
+
+      resolvedPort = portCfg.port;
+
+      # Domain from reverse proxy or host config; null when neither applies
+      resolvedDomain =
+        if portCfg.reverseProxy.enable && !direct
+        then portCfg.reverseProxy.domain
+        else if cfg.hosts.${host}.domain != null && !direct
+        then cfg.hosts.${host}.domain
+        else null;
+
+      resolvedHostname =
+        if host == config.networking.hostName
+        then "localhost"
+        else host;
+
+      resolvedIp = cfg.hosts.${host}.vpn.ip;
+
+      # The address token used in `full`
+      effectiveHost =
         if asIP
-        then cfg.hosts.${host}.vpn.ip
-        else
-          (
-            # Go with domain when port is reverse proxied
-            if portCfg.reverseProxy.enable && !direct
-            then portCfg.reverseProxy.domain
-            else if cfg.hosts.${host}.domain != null && !direct
-            then cfg.hosts.${host}.domain
-            else
-              (
-                if host == config.networking.hostName
-                then "localhost"
-                else host
-              )
-          )
-      )
-      + (
-        if appendPort
-        then
-          (
-            if (portCfg.reverseProxy.enable && portCfg.reverseProxy.method == "virtual-host" && !direct && !asIP)
-            then ""
-            else ":" + (toString portCfg.port)
-          )
-        else ""
-      );
+        then resolvedIp
+        else if resolvedDomain != null
+        then resolvedDomain
+        else resolvedHostname;
+
+      showPort =
+        appendPort
+        && !(portCfg.reverseProxy.enable && portCfg.reverseProxy.method == "virtual-host" && !direct && !asIP);
+    in {
+      full =
+        (
+          if protocol != null
+          then "${protocol}://"
+          else ""
+        )
+        + effectiveHost
+        + (
+          if showPort
+          then ":${toString resolvedPort}"
+          else ""
+        );
+
+      inherit protocol;
+      port = resolvedPort;
+      domain = resolvedDomain;
+      hostname = resolvedHostname;
+      ip = resolvedIp;
+    };
+
+    getAddressWithDefaults = defaults: args: getAddress (defaults // args);
+
     serviceEnabledAnywhere = serviceName: (filter (e: e.serviceName == serviceName) allEnabledServices) != [];
 
     # Variables useful to network modules
