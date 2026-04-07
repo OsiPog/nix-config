@@ -1,61 +1,61 @@
-flake: {
-  serviceName,
-  withEnable ? true,
-  withStateDir ? true,
-}: networkModule: {lib, ...}: let
+flake: {serviceName}: networkModule: {lib, ...}: let
   inherit (flake.lib) mkModuleWithExtraMetaAttrs;
-  inherit (lib) mkEnableOption mkMerge mkIf mkOption types;
-  inherit (lib.lists) optional;
-in
-  mkMerge [
-    {
-      network.sharedModules = [
-        ({
-          config,
-          name,
-          ...
-        }: let
-          cfg = config.services.${serviceName};
-        in {
-          imports =
-            [
-              (mkModuleWithExtraMetaAttrs {
-                  extraSpecialArgs = {inherit cfg;};
-                  mapExtraMetaAttr = name: content:
-                    if name == "optionsService"
-                    then {options.services.${serviceName} = content;}
-                    else if name == "configEnable"
-                    then {config = mkIf cfg.enable content;}
-                    else if name == "configService"
-                    then {config.services.${serviceName} = content;}
-                    else null;
-                }
-                networkModule)
-            ]
-            # Ideally services should have an `enable` option which declares whether the service is active or not.
-            ++ (optional withEnable {
-              options.services.${serviceName}.enable = mkEnableOption "the ${serviceName} network service on ${name}";
-            })
-            # Most services are not stateless, so we have a state dir for it which is created with systemd.tmpfiles.rules. To create multiple
-            # state directories extraStateDirs can be used.
-            ++ (optional withStateDir {
-              options.services.${serviceName} = {
-                stateDir = mkOption {
-                  description = "The directory where the ${serviceName} service needs to store its data.";
-                  type = types.pathWith {absolute = true;};
-                  default = "/var/lib/${serviceName}";
+  inherit (lib) mkEnableOption mkIf mkOption types;
+  inherit (lib.attrsets) mapAttrs';
+in {
+  network.sharedModules = [
+    ({
+      config,
+      name,
+      ...
+    }: let
+      cfg = config.services.${serviceName};
+    in {
+      imports = [
+        (mkModuleWithExtraMetaAttrs {
+            extraSpecialArgs = {inherit cfg;};
+            mapExtraMetaAttr = name: content:
+              if name == "optionsService"
+              then {options.services.${serviceName} = content;}
+              else if name == "configEnable"
+              then {config = mkIf cfg.enable content;}
+              else if name == "configService"
+              then {config.services.${serviceName} = content;}
+              else if name == "integrationsEnable"
+              then {
+                # maps integrationEnable = {ldap.server = {...}} to config.network.hosts.<name>.integrations.ldap.<id>.server = {...}
+                config.integrations =
+                  mapAttrs' (name: value: {
+                    inherit name;
+                    value.${cfg.integrations.${name}.id} = mkIf (cfg.integrations.${name}.enable) value;
+                  })
+                  content;
+              }
+              else null;
+          }
+          networkModule)
+
+        # options every network service has
+        {
+          options.services.${serviceName} = {
+            enable = mkEnableOption "the ${serviceName} network service on ${name}";
+            integrations = mkOption {
+              description = "Integrations to integrate with other services on the network";
+              default = {};
+              type = types.attrsOf (types.submodule ({name, ...}: {
+                options = {
+                  enable = mkEnableOption "the ${name} integration";
+                  id = mkOption {
+                    description = "ID used to match clients with servers and peers with peers.";
+                    type = types.str;
+                    default = "default";
+                  };
                 };
-                extraStateDirs = mkOption {
-                  description = "Additional state directories to be created for the service.";
-                  type = with types; listOf (pathWith {absolute = true;});
-                  default = [];
-                };
-              };
-              config = mkIf cfg.enable {
-                stateDirs = [cfg.stateDir] ++ cfg.extraStateDirs;
-              };
-            });
-        })
+              }));
+            };
+          };
+        }
       ];
-    }
-  ]
+    })
+  ];
+}
