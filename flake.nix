@@ -127,6 +127,13 @@
       url = "github:sadjow/claude-code-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # --- Other
+    # caveman, claude code skill for better performance
+    caveman = {
+      url = "github:JuliusBrussee/caveman";
+      flake = false;
+    };
   };
 
   outputs = inputs: inputs.blueprint {inherit inputs;};

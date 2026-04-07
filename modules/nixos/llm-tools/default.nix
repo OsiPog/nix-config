@@ -103,11 +103,12 @@ in {
         settings = {
           apiKeyHelper = "cat " + (config.getSopsFile "api-keys/anthropic");
         };
+        skills.caveman = "${inputs.caveman}/skills/caveman/SKILL.md";
       };
 
-      programs.gemini-cli = {
-        enable = true;
-      };
+      # programs.gemini-cli = {
+      #   enable = true;
+      # };
 
       # programs.opencode = {
       #   enable = true;
