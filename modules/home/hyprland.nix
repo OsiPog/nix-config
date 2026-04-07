@@ -71,13 +71,13 @@
 
       # --- Window Management ---
       general = {
-        layout = "scrolling";
+        layout = "dwindle";
       };
-      # dwindle = {
-      #   force_split = 2;
-      # };
+      dwindle = {
+        force_split = 2;
+      };
       scrolling = {
-        column_width = 0.5;
+        column_width = 0.8;
         focus_fit_method = 1; # 0 - center, 1 - fit
       };
 
