@@ -1,7 +1,8 @@
 flake: {serviceName}: networkModule: {lib, ...}: let
+  inherit (builtins) attrNames;
   inherit (flake.lib) mkModuleWithExtraMetaAttrs;
   inherit (lib) mkEnableOption mkIf mkOption types;
-  inherit (lib.attrsets) mapAttrs';
+  inherit (lib.attrsets) mapAttrs' genAttrs;
 in {
   network.sharedModules = [
     ({
@@ -23,13 +24,20 @@ in {
               then {config.services.${serviceName} = content;}
               else if name == "integrationsEnable"
               then {
-                # maps integrationEnable = {ldap.server = {...}} to config.network.hosts.<name>.integrations.ldap.<id>.server = {...}
-                config.integrations =
-                  mapAttrs' (name: value: {
-                    inherit name;
-                    value.${cfg.integrations.${name}.id} = mkIf (cfg.integrations.${name}.enable) value;
-                  })
-                  content;
+                config = {
+                  # maps integrationEnable = {ldap.server = {...}} to config.network.integrations.ldap.<id>.server = {...}
+                  _integrations =
+                    mapAttrs' (name: value: {
+                      inherit name;
+                      value = {
+                        ${cfg.integrations.${name}.id} = mkIf (cfg.enable && ((cfg.integrations.${name} or null) != null) && cfg.integrations.${name}.enable) value;
+                      };
+                    })
+                    content;
+
+                  # When enable is checked it the option set needs to have the default value, thats applied here
+                  services.${serviceName}.integrations = genAttrs (attrNames content) (_: {});
+                };
               }
               else null;
           }
