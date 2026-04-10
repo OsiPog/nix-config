@@ -2,12 +2,10 @@
   config,
   lib,
   flake,
-  hostName,
-  pkgs,
   ...
 }: let
   inherit (builtins) concatStringsSep;
-  inherit (lib) mkIf pipe mkOption mkForce;
+  inherit (lib) mkIf pipe mkForce;
   inherit (lib.strings) splitString;
 
   inherit (flake.lib) mkNetworkHostServiceModule;
@@ -19,37 +17,11 @@
     networkCfg
     cfg
     ports
+    integrations
     ;
-
-  ldapsDomain = getAddress {
-    portName = "ldaps";
-    appendPort = false;
-  };
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
-      optionsService = {
-        ldap = {
-          baseDN = mkOption {
-            # build a valid RDN with only dc components of the reverse proxy domain
-            default = pipe ldapsDomain [
-              (splitString ".")
-              (map (e: "dc=${e}"))
-              (concatStringsSep ",")
-            ];
-            description = "The base DN of the LDAP server";
-            readOnly = true;
-          };
-          userDN = mkOption {
-            default = "admin";
-            description = "The DN of the admin user";
-          };
-          userEmail = mkOption {
-            default = "admin@${ldapsDomain}";
-            description = "The email of the admin user";
-          };
-        };
-      };
       configEnable = {
         ports = {
           lldap.port = 17170;
@@ -57,6 +29,21 @@ in {
             port = 6360;
             reverseProxy.method = "stream";
           };
+        };
+      };
+      integrationsEnable = {
+        ldap.server = rec {
+          address = getAddress {
+            portName = "ldaps";
+            hostName = "dead-voxel";
+          };
+          baseDN = pipe (address "domain") [
+            (splitString ".")
+            (map (e: "dc=${e}"))
+            (concatStringsSep ",")
+          ];
+          userDN = "admin";
+          userEmail = "admin@${address "domain"}";
         };
       };
     }))
@@ -87,7 +74,7 @@ in {
     # TLS
     services.porkbunAcme = {
       enable = true;
-      domain = ldapsDomain;
+      domain = integrations.ldap.server.address "domain";
     };
 
     users.groups.lldap = {};
@@ -112,7 +99,7 @@ in {
         database_url = "sqlite://${cfg.stateDir}/users.db?mode=rwc";
         force_ldap_user_pass_reset = "always";
         ldaps_options = let
-          acmeDirectory = config.security.acme.certs.${ldapsDomain}.directory;
+          acmeDirectory = config.security.acme.certs.${integrations.ldap.server.address "domain"}.directory;
         in {
           enabled = true;
           port = ports.ldaps.port;
