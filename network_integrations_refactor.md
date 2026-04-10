@@ -1,110 +1,113 @@
 # Network Integrations Refactor
 
-## Current
+## Problem (Before)
 
-Currently the services are half assed glued together in modules/nixos/shared/network/integrations with monolithic config declaring files.
+Services were glued together in `modules/nixos/shared/network/integrations` with monolithic config files. Adding a new integration required editing those files and re-learning how they worked.
 
-Also, ports, damn ports. Port naming is global. Doing `getAddress {portName = "ldaps"}` will throw an error if the port is defined on multiple hosts.
+Port naming was global — `getAddress {portName = "ldaps"}` would fail if the same port name existed on multiple hosts.
 
-## What's bad
+The integration structure was tightly coupled to specific service implementations (e.g. lldap specifically), making it hard to swap in a different LDAP server.
 
-Allowing a new service to be integrated is a lot of work. The integration file needs to be edited and understood how it worked again.
+## Solution
 
-The implementation is very fixed on the master-service being integrated (in the case of lldap for example). This is not very object oriented and decoupled.
-If I decide one day that a different ldap server should be used it's not plug and play at all.
+### `network.integrations.<integrationName>.<id>`
 
-The ports problem: The integrations should not have to run `getAddress {portName = "ldaps"}` themselves this should be exposed in some way that the correct hostName is already defined. If the service is running on multiple hosts this will fail!
-
-## Ideas
-
-### solving decoupling
-
-- A `provide` attribute scoped inside each integration that can provide any data necessary to integrate the service into others
- - Provided data should be defined to have different formats. For example if one defines that the type of `provide` is `LDAP` then it should provide ldap values. This interface logic should help with decoupling the interfaces from their implementation.
-
-- Then the relevant addresses can be provided via `provide`.
-
-- Integrations should then be next to the service definitions. This can be done with a helper function so that there is not much duplicated code.
-
-- I am thinking about something like this. from the `network.nix` side:
-
-
-mailserver:
-```nix
-{...}: {
-  services.mailserver = {
-    integrations.ldap = {
-      enable = true;
-      role = "client";
-      id = "lldap-main"; # client and server are matched by this id
-    };
-  };
-}
-```
-
-lldap:
-```nix
-{...}: {
-  services.lldap = {
-    enable = true;
-    integrations.ldap = {
-      enable = true;
-      role = "server";
-      id = "lldap-main";
-    };
-  }
-}
+Integrations are now a global registry keyed by integration type and ID:
 
 ```
-
-Then everything else can be defined inside the services:
-
-
-master-service (`lldap`).
-```nix
-mkNetworkHostServiceModule {
-  withIntegrations = ["ldap"]; # defines services.<serviceName>.integrations.ldap = {...} (see above)
-}
-{
-  configService = {
-    integrations.ldap.provide.server = {
-      address = getAddress {...};
-      searchUserDN = ...;
-      userAttr = ...;
-      ...
-    };
-  };
-}
+network.integrations.ldap."lldap-main" = {
+  server = { baseDN = ...; adminUser = ...; searchUserDN = ...; };
+  clients = [ { group = "email"; } ... ];
+};
 ```
 
-integrated service (`mailserver`)
+Each integration type (ldap, oidc, mail) defines its schema in `modules/nixos/shared/network/integrations.nix` using `mkIntegration`:
+
 ```nix
-mkNetworkHostServiceModule {
-  withEnable = true;
-  ...
-  withIntegrations = ["ldap"];
-} {
-  configService = {
-    integrations.ldap.provide.client = {
-      group = "email";
-    };
+ldap = mkIntegration {
+  server = { baseDN = mkOption {...}; adminUser = mkOption {...}; ... };
+  clients = { group = mkOption {...}; };
+};
+```
+
+### Declaring integrations from `network.nix`
+
+Each host declares which integrations its services participate in:
+
+```nix
+# lldap is the LDAP server
+services.lldap = {
+  enable = true;
+  integrations.ldap = {
+    enable = true;   # defaults to false
+    id = "lldap-main";
   };
 };
 
-...
-
-config = {
-  services.mailserver.ldap = mkIf (cfg.integrations.ldap.enable) (let
-    inherit (cfg.integrations.ldap.require) server;
-  in {
-    url = server.address;
-    user = server.userAttr;
-    ...
-  });
-}
-
+# authelia is an LDAP client
+services.authelia = {
+  enable = true;
+  integrations.ldap = {
+    enable = true;
+    id = "lldap-main";  # same ID → matched to the same integration entry
+  };
+};
 ```
 
-From the above you can see that both `provide` and `require` are scoped under `integrations.<integrationName>`. `provide` is what this service declares about itself, `require` is a computed property that resolves to the `provide` attrset of the matched peer. Matching is happening through the integration id and the integration name. `provide.server` is the `require.server` of the matched peer `provide.server` is the `require.server` of the matched peer. But `provide.clients` is a list of `require.client` of the matched peers.
+The `id` is what links clients to their server. Both point to `network.integrations.ldap."lldap-main"`.
 
-What the example does not cover is the integration role `peer`. This is kind of integration where all peers have the same permissions. and `require.peers` resolves to each `provide.peer` even the own.
+### Populating data via `integrationsEnable`
+
+Service modules use `integrationsEnable` inside `mkNetworkHostServiceModule` to register their data into the global registry. It is only active when `cfg.enable && cfg.integrations.<name>.enable`.
+
+```nix
+mkNetworkHostServiceModule {serviceName = "lldap";} ({name, ...}: {
+  integrationsEnable = {
+    ldap.server = {
+      address = getAddress { portName = "ldaps"; hostName = name; };
+      baseDN = "dc=axelhax,dc=net";
+      searchUserDN = "uid=search,ou=people,dc=axelhax,dc=net";
+    };
+  };
+})
+```
+
+This is mapped by `mkNetworkHostServiceModule` to:
+
+```nix
+config.integrations.ldap.${cfg._integrations.ldap.id} = mkIf (cfg.enable && cfg.integrations.ldap.enable) {
+  server = { address = ...; baseDN = ...; searchUserDN = ...; };
+};
+```
+
+### Consuming integration data
+
+Service modules use `getServiceVariables` to get a resolved view where each integration name maps directly to the integration entry matched by the service's configured `id`:
+
+```nix
+inherit (getServiceVariables "authelia") cfg integrations;
+
+# integrations.ldap = network.integrations.ldap.${cfg.integrations.ldap.id}
+# e.g. = network.integrations.ldap."lldap-main"
+```
+
+So `integrations.ldap.server.baseDN` gives you the LDAP server's base DN without needing to know which specific service provides it.
+
+
+### Port addressing
+
+`getAddress` now always requires a `hostName`, scoping port lookups to a specific host:
+
+```nix
+getAddress {
+  portName = "ldaps";
+  hostName = name;  # the current host, passed in from mkNetworkHostServiceModule
+}
+```
+
+The returned value is a template function:
+- `address "domain"` → `"ldap.axelhax.net"` (if reverse proxied)
+- `address "ip"` → VPN IP
+- `address "host"` → `"localhost"` (if same host) or hostname
+
+This solves the global port naming collision problem.
