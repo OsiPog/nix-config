@@ -8,27 +8,38 @@
   };
 
   # --- RESTIC BACKUP
-  services.backup = {
-    enable = true;
-    host = "floating-trees";
-  };
+  # services.backup = {
+  #   enable = true;
+  #   host = "floating-trees";
+  # };
 
   # --- NGINX REVERSE PROXY
-  services.reverseProxy.enable = true;
+  # services.reverseProxy.enable = true;
 
   # --- MAIL
   services.mailserver = {
     enable = true;
-    integrations.ldap.enable = true;
+    integrations = {
+      ldap.enable = true;
+      # mail = {
+      #   enable = true;
+      #   role = "server";
+      #   id = "mail-main";
+      # };
+    };
   };
 
   # --- HEADSCALE VPN
-  services.headscale = {
-    enable = true;
-    integrations.oidc.enable = true;
-  };
-  ports.headscale.reverseProxy = {
-    enable = true;
-    domain = "vpn.axelhax.net";
-  };
+  # services.headscale = {
+  #   enable = true;
+  #   integrations.oidc = {
+  #     enable = true;
+  #     role = "client";
+  #     id = "authelia-main";
+  #   };
+  # };
+  # ports.headscale.reverseProxy = {
+  #   enable = true;
+  #   domain = "vpn.axelhax.net";
+  # };
 }

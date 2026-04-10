@@ -11,16 +11,16 @@
   ];
 
   # --- DNSMASQ
-  services.dnsmasq.enable = true;
+  # services.dnsmasq.enable = true;
 
   # --- RESTIC
-  services.backup = {
-    enable = true;
-    server = {
-      enable = true;
-      repository = "/mnt/blaze";
-    };
-  };
+  # services.backup = {
+  #   enable = true;
+  #   server = {
+  #     enable = true;
+  #     repository = "/mnt/blaze";
+  #   };
+  # };
 
   # --- MINECRAFT
   # services.minecraft-server.enable = true;
@@ -41,27 +41,40 @@
   # };
 
   # --- AUTHELIA
-  services.authelia = {
-    enable = true;
-    integrations = {
-      ldap.enable = true;
-      mail = {
-        enable = true;
-        host = "haunt-muskie";
-      };
-    };
-  };
-  ports.authelia.reverseProxy = {
-    enable = true;
-    domain = "auth.axelhax.net";
-  };
+  # services.authelia = {
+  #   enable = true;
+  #   integrations = {
+  #     ldap = {
+  #       enable = true;
+  #       role = "client";
+  #       id = "lldap-main";
+  #     };
+  #     mail = {
+  #       enable = true;
+  #       role = "client";
+  #       id = "mail-main";
+  #     };
+  #     oidc = {
+  #       enable = true;
+  #       role = "server";
+  #       id = "authelia-main";
+  #     };
+  #   };
+  # };
+  # ports.authelia.reverseProxy = {
+  #   enable = true;
+  #   domain = "auth.axelhax.net";
+  # };
 
   # --- LLDAP
   services.lldap = {
     enable = true;
-    integrations.mail = {
-      enable = true;
-      host = "haunt-muskie";
+    integrations = {
+      ldap.enable = true;
+      # mail = {
+      #   enable = true;
+      #   id = "mail-main";
+      # };
     };
   };
   ports.ldaps.reverseProxy = {
@@ -75,38 +88,46 @@
   };
 
   # --- NGINX HTTP
-  services.staticWebsites = {
-    enable = true;
-    sites = ["axelhax" "transit-vis"];
-  };
-  ports.staticWebsites-axelhax.reverseProxy = {
-    enable = true;
-    domain = "axelhax.net";
-  };
-  ports.staticWebsites-transit-vis.reverseProxy = {
-    enable = true;
-    domain = "transit-vis.axelhax.net";
-  };
+  # services.staticWebsites = {
+  #   enable = true;
+  #   sites = ["axelhax" "transit-vis"];
+  # };
+  # ports.staticWebsites-axelhax.reverseProxy = {
+  #   enable = true;
+  #   domain = "axelhax.net";
+  # };
+  # ports.staticWebsites-transit-vis.reverseProxy = {
+  #   enable = true;
+  #   domain = "transit-vis.axelhax.net";
+  # };
 
   # --- OPENCLOUD
-  services.opencloud = {
-    enable = true;
-    integrations.ldap.enable = true;
-  };
-  ports.opencloud.reverseProxy = {
-    enable = true;
-    domain = "cloud.axelhax.net";
-  };
+  # services.opencloud = {
+  #   enable = true;
+  #   integrations.ldap = {
+  #     enable = true;
+  #     role = "client";
+  #     id = "lldap-main";
+  #   };
+  # };
+  # ports.opencloud.reverseProxy = {
+  #   enable = true;
+  #   domain = "cloud.axelhax.net";
+  # };
 
   # --- JELLYFIN
-  services.jellyfin = {
-    enable = true;
-    integrations.ldap.enable = true;
-  };
-  ports.jellyfin.reverseProxy = {
-    enable = true;
-    domain = "media.axelhax.net";
-  };
+  # services.jellyfin = {
+  #   enable = true;
+  #   integrations.ldap = {
+  #     enable = true;
+  #     role = "client";
+  #     id = "lldap-main";
+  #   };
+  # };
+  # ports.jellyfin.reverseProxy = {
+  #   enable = true;
+  #   domain = "media.axelhax.net";
+  # };
 
   # --- NFS
   # services.nfs = {

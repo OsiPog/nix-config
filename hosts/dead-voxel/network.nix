@@ -6,10 +6,10 @@
   };
   stateDirs = ["/home/osi/files"];
 
-  services.backup = {
-    enable = true;
-    host = "floating-trees";
-  };
+  # services.backup = {
+  #   enable = true;
+  #   host = "floating-trees";
+  # };
   # syncthing = {
   #   enable = true;
   #   id = "S3LC5E3-CAMYVL6-U6VGXUT-QMXKOZA-V3DVG5C-WMRQ52C-VTDC4GD-IVXRSAI";
