@@ -24,6 +24,12 @@ in {
               description = "Single port number";
             };
 
+            protocol = mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = "The protocol used on this port.";
+            };
+
             host = mkOption {
               type = types.str;
               default = name;
