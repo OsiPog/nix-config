@@ -80,26 +80,27 @@ in {
     ./importHosts.nix
 
     ./ports.nix
+    ./integrations.nix
 
-    ./services/authelia
-    ./services/backup.nix
-    ./services/dnsmasq.nix
-    ./services/headscale
-    ./services/hytale-server.nix
-    ./services/jellyfin
+    # ./services/authelia
+    # ./services/backup.nix
+    # ./services/dnsmasq.nix
+    # ./services/headscale
+    # ./services/hytale-server.nix
+    # ./services/jellyfin
     ./services/lldap
     ./services/mailserver
-    ./services/minecraft-server.nix
-    ./services/nfs.nix
-    ./services/opencloud
-    ./services/portunus
-    ./services/reverseProxy.nix
-    ./services/staticWebsites.nix
+    # ./services/minecraft-server.nix
+    # ./services/nfs.nix
+    # ./services/opencloud
+    # ./services/portunus
+    # ./services/reverseProxy.nix
+    # ./services/staticWebsites.nix
 
-    ./integrations/ldap
-    ./integrations/mail
-    ./integrations/oidc
-    ./integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
+    # ./integrations/ldap
+    # ./integrations/mail
+    # ./integrations/oidc
+    # ./integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
 
   config = mkIf networkCfg.enable {
