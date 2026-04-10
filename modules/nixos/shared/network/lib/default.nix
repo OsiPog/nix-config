@@ -4,9 +4,9 @@
   hostName,
   ...
 }: let
-  inherit (builtins) throw length filter head concatStringsSep foldl';
+  inherit (builtins) throw length filter head concatStringsSep foldl' replaceStrings attrNames attrValues;
   inherit (lib) pipe;
-  inherit (lib.attrsets) attrsToList filterAttrs mapAttrsToList;
+  inherit (lib.attrsets) attrsToList filterAttrs mapAttrsToList mapAttrs;
   inherit (lib.lists) flatten range;
 
   cfg = config.network;
@@ -63,82 +63,33 @@
 
     getAddress = {
       portName,
-      hostName ? null,
-      asIP ? false,
-      direct ? false,
-      protocol ? null,
-      appendPort ? true,
+      hostName,
     }: let
-      host =
-        if hostName != null
-        then hostName
-        else
-          pipe allPorts [
-            (filter (e: e.portName == portName))
-            (ports:
-              if length ports == 0
-              then throw "getAddress: port ${portName} cannot be found on any host."
-              else if length ports >= 2
-              then throw "getAddress: port ${portName} is defined on multiple hosts (${concatStringsSep ", " (map (e: e.hostName) ports)}). Please provide a hostName or enable the associated service on only one host."
-              else (head ports).hostName)
-          ];
       portCfg =
-        if (cfg.hosts.${host} or null) == null
-        then throw "getAddress: host ${host} is not defined"
-        else if (cfg.hosts.${host}.ports.${portName} or null) == null
-        then throw "getAddress: port ${portName} is not defined on host ${host}"
-        else cfg.hosts.${host}.ports.${portName};
+        if (cfg.hosts.${hostName} or null) == null
+        then throw "getAddress: host ${hostName} is not defined"
+        else if (cfg.hosts.${hostName}.ports.${portName} or null) == null
+        then throw "getAddress: port ${portName} is not defined on host ${hostName}"
+        else cfg.hosts.${hostName}.ports.${portName};
 
-      resolvedPort = portCfg.port;
-
-      # Domain from reverse proxy or host config; null when neither applies
-      resolvedDomain =
-        if portCfg.reverseProxy.enable && !direct
-        then portCfg.reverseProxy.domain
-        else if cfg.hosts.${host}.domain != null && !direct
-        then cfg.hosts.${host}.domain
-        else null;
-
-      resolvedHostname =
-        if host == config.networking.hostName
-        then "localhost"
-        else host;
-
-      resolvedIp = cfg.hosts.${host}.vpn.ip;
-
-      # The address token used in `full`
-      effectiveHost =
-        if asIP
-        then resolvedIp
-        else if resolvedDomain != null
-        then resolvedDomain
-        else resolvedHostname;
-
-      showPort =
-        appendPort
-        && !(portCfg.reverseProxy.enable && portCfg.reverseProxy.method == "virtual-host" && !direct && !asIP);
-    in {
-      full =
-        (
-          if protocol != null
-          then "${protocol}://"
-          else ""
-        )
-        + effectiveHost
-        + (
-          if showPort
-          then ":${toString resolvedPort}"
-          else ""
-        );
-
-      inherit protocol;
-      port = resolvedPort;
-      domain = resolvedDomain;
-      hostname = resolvedHostname;
-      ip = resolvedIp;
-    };
-
-    getAddressWithDefaults = defaults: args: getAddress (defaults // args);
+      address = {
+        protocol =
+          if portCfg.protocol != null
+          then portCfg.protocol
+          else throw "getAddress: ${hostName}: ${portName}: Protocol is null. It cannot be referenced.";
+        port = portCfg.port;
+        domain =
+          if portCfg.reverseProxy.enable
+          then portCfg.reverseProxy.domain
+          else throw "getAddress: ${hostName}: ${portName}: Domain cannot be referenced because port is not reverse proxied.";
+        host =
+          if hostName == config.networking.hostName
+          then "localhost"
+          else hostName;
+        ip = cfg.hosts.${hostName}.vpn.ip;
+      };
+    in
+      replaceStrings (attrNames address) (attrValues address);
 
     serviceEnabledAnywhere = serviceName: (filter (e: e.serviceName == serviceName) allEnabledServices) != [];
 
@@ -156,6 +107,7 @@
         inherit serviceName;
         portName = serviceName;
         cfg = variables.hostCfg.services.${serviceName};
+        integrations = mapAttrs (integrationName: integration: integration.${cfg.integrations.${integrationName}.id}) variables.networkCfg.integrations;
       };
 
     getIntegrationVariables = integrationName: integratedServices:
