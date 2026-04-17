@@ -74,7 +74,7 @@
       # Hytale Launcher
       rec {
         appId = "com.hypixel.HytaleLauncher";
-        sha256 = "sha256-Cl3CEbwFNnilllq/EojfVQpHF/t4/Oo9RSVDTcAXbv8=";
+        sha256 = "sha256-ZlsBaIqa0GaTci7QkRnwfcAByS4CL5osXba2p0gE+CQ=";
         bundle = toString (pkgs.fetchurl {
           url = "https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak";
           inherit sha256;
