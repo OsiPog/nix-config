@@ -31,7 +31,20 @@
     qemu = {
       package = pkgs.qemu_kvm;
       # shared directories
-      vhostUserPackages = [pkgs.virtiofsd];
+      vhostUserPackages = [
+        (pkgs.virtiofsd.overrideAttrs (prev: rec {
+          src = pkgs.fetchFromGitLab {
+            owner = "virtio-fs";
+            repo = "virtiofsd";
+            rev = "47e1f31ec9e5dbc8f2a0fec98f2b88cf1ef81369";
+            hash = "sha256-3UJafKMuHWPPGjl308nXee3DzTcUhKr0RqRcbmUODCU=";
+          };
+          cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+            inherit src;
+            hash = "sha256-2T2ky5h7N5VUga2Dcckhx0mXauFcMsz95fumrppnMH8=";
+          };
+        }))
+      ];
       # looking-glass
       verbatimConfig = ''
         namespaces = []
@@ -50,7 +63,6 @@
   environment.systemPackages = with pkgs; [
     virt-manager
     looking-glass-client
-    virtiofsd
   ];
 
   # looking glass
