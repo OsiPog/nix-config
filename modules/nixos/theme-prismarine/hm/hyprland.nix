@@ -61,8 +61,8 @@ in {
         "pin on, match:class (w|r)ofi"
         "size 25% 50%, match:class (w|r)ofi" # doesnt work?
         "center on, match:class (w|r)ofi"
-        # "stayfocused, class:(w|r)ofi" # cant click outside
-        # "dimaround, class:(w|r)ofi"
+        "stay_focused on, match:class (w|r)ofi"
+        "dim_around on, match:class (w|r)ofi"
       ];
       workspace = [
         "f[1], gapsout:${toString themeCfg.margin}"
