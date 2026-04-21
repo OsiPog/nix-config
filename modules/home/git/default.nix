@@ -20,6 +20,7 @@
   sops.secrets = {
     "ssh-keys/gh-primary/private" = {sopsFile = ./secrets.yaml;};
     "ssh-keys/gh-secondary/private" = {sopsFile = ./secrets.yaml;};
+    "ssh-keys/codeberg/private" = {sopsFile = ./secrets.yaml;};
     "git-authors-json" = {sopsFile = ./secrets.yaml;};
   };
 
@@ -54,6 +55,12 @@
         hostname = "github.com";
         user = "git";
         identityFile = config.getSopsFile "ssh-keys/gh-secondary/private";
+        identitiesOnly = true;
+      };
+      "codeberg.org" = {
+        hostname = "codeberg.org";
+        user = "git";
+        identityFile = config.getSopsFile "ssh-keys/codeberg/private";
         identitiesOnly = true;
       };
     };
