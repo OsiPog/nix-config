@@ -1,6 +1,6 @@
-def --wrapped main [url: string --base-dir: path = "~/repositories" --authors-json: string --get-directory ...rest] {
-  let $authors = if ($authors_json != null) {
-      $authors_json | from json
+def --wrapped main [url: string --base-dir: path = "~/repositories" --authors-json-file: string --get-directory ...rest] {
+  let $authors = if ($authors_json_file != null) {
+      open $authors_json_file --raw | from json
     } else {
       []
     }
