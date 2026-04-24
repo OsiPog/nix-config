@@ -25,7 +25,7 @@
 
     ../../users/osi
 
-    ./vm-gpu-passthrough.nix
+    # ./vm-gpu-passthrough.nix
   ];
 
   boot.initrd = {
@@ -82,6 +82,17 @@
 
   # for nfs
   users.extraGroups.husk.members = ["osi"];
+
+  # we use grub for dual-booting windows
+  boot.loader.grub = {
+    enable = true;
+    devices = ["nodev"];
+    efiSupport = true;
+    useOSProber = true;
+    default = "saved"; # select the previously selected entry, (allows windows to reboot without intervention)
+  };
+  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.systemd-boot.enable = false;
 
   # Don't change, will break things!
   system.stateVersion = "25.11";
