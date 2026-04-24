@@ -17,8 +17,8 @@
     networkCfg
     cfg
     ports
-    integrations
     ;
+  ldapServer = cfg.integrations.ldap.remote.server;
 in {
   imports = [
     inputs.simple-nixos-mailserver.nixosModules.default
@@ -26,20 +26,16 @@ in {
       configEnable = {
         ports.submissions.port = 465;
       };
-      integrationsEnable = {
-        ldap.clients = [
-          {
-            group = "email";
-            extraUserAttributes = {
-              mail-aliases = {
-                attributeType = "STRING";
-                isEditable = false;
-                isList = true;
-                isVisible = true;
-              };
-            };
-          }
-        ];
+      configService.integrations.ldap.local.client = {
+        group = "email";
+        extraUserAttributes = {
+          mail-aliases = {
+            attributeType = "STRING";
+            isEditable = false;
+            isList = true;
+            isVisible = true;
+          };
+        };
       };
     }))
   ];
@@ -79,15 +75,14 @@ in {
     }
 
     (mkIf cfg.integrations.ldap.enable (let
-      inherit (integrations.ldap) server;
-      usersFilter = username: "(&(|(mail=${username})(mail-aliases=${username}))(memberof=cn=email,ou=groups,${server.baseDN}))";
+      usersFilter = username: "(&(|(mail=${username})(mail-aliases=${username}))(memberof=cn=email,ou=groups,${ldapServer.baseDN}))";
     in {
       mailserver.ldap = {
         enable = true;
-        searchBase = server.baseDN;
-        uris = [(server.address "protocol://domain:port")];
+        searchBase = ldapServer.baseDN;
+        uris = [(ldapServer.address "protocol://domain:port")];
         bind = {
-          dn = server.searchUserDN;
+          dn = ldapServer.searchUserDN;
           passwordFile = config.getSopsFile "ldap/search-user-pass";
         };
         postfix = {

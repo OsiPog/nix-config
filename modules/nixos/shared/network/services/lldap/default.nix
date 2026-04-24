@@ -17,11 +17,12 @@
     networkCfg
     cfg
     ports
-    integrations
     ;
+
+  ldapServer = cfg.integrations.ldap.local.server;
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
       configEnable = {
         ports = {
           lldap.port = 17170;
@@ -31,19 +32,33 @@ in {
           };
         };
       };
-      integrationsEnable = {
-        ldap.server = rec {
-          address = getAddress {
-            portName = "ldaps";
-            hostName = "dead-voxel";
+      configService.integrations.ldap.local.server = rec {
+        address = getAddress {
+          portName = "ldaps";
+          hostName = name;
+        };
+        baseDN = pipe (address "domain") [
+          (splitString ".")
+          (map (e: "dc=${e}"))
+          (concatStringsSep ",")
+        ];
+        adminUser = {
+          dn = "admin";
+          secret = {
+            key = "lldap/admin-pass";
+            group = "lldap-admin-pass";
+            mode = "0440";
+            sopsFile = ./secrets.yaml;
           };
-          baseDN = pipe (address "domain") [
-            (splitString ".")
-            (map (e: "dc=${e}"))
-            (concatStringsSep ",")
-          ];
-          userDN = "admin";
-          userEmail = "admin@${address "domain"}";
+        };
+        searchUser = {
+          dn = "search";
+          secret = {
+            key = "lldap/search-pass";
+            sopsFile = ./secrets.yaml;
+            group = "ldap-search";
+            mode = "0440";
+          };
         };
       };
     }))
@@ -65,16 +80,19 @@ in {
     ];
 
     sops.secrets = {
-      "lldap/admin-pass" = {
-        owner = "lldap";
-        sopsFile = ./secrets.yaml;
-      };
+      ${ldapServer.adminUser.secret.key} =
+        ldapServer.adminUser.secret
+        // {
+          user = "lldap";
+        };
     };
+
+    users.groups.${ldapServer.adminUser.group} = {};
 
     # TLS
     services.porkbunAcme = {
       enable = true;
-      domain = integrations.ldap.server.address "domain";
+      domain = ldapServer.address "domain";
     };
 
     users.groups.lldap = {};
@@ -99,7 +117,7 @@ in {
         database_url = "sqlite://${cfg.stateDir}/users.db?mode=rwc";
         force_ldap_user_pass_reset = "always";
         ldaps_options = let
-          acmeDirectory = config.security.acme.certs.${integrations.ldap.server.address "domain"}.directory;
+          acmeDirectory = config.security.acme.certs.${ldapServer.address "domain"}.directory;
         in {
           enabled = true;
           port = ports.ldaps.port;

@@ -111,3 +111,17 @@ The returned value is a template function:
 - `address "host"` → `"localhost"` (if same host) or hostname
 
 This solves the global port naming collision problem.
+
+## TODO
+
+I don't really know how to handle secrets yet.
+
+Here are the specifications:
+
+- less doubled code obviously
+- register secrets into `sops.secrets`
+- use unix groups for secrets so multiple services can access them on the same machine
+- it should be defined in the integration interface which secrets are provided
+
+
+Problems: if i have an `integrations.<name>.<id>.server.secrets` option then I cant use it in imports because it depends on config. But I somehow need a centralized way of "registering" secrets in a configuration (meaning setting `sops.secrets` and defining the groups the secrets mention, maybe even autmatically adding the right users to these groups.)

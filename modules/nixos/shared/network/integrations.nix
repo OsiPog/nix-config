@@ -10,32 +10,23 @@
   inherit (lib.attrsets) optionalAttrs;
 
   mkIntegration = {
-    peers ? null,
     server ? null,
     clients ? null,
   }:
     mkOption {
       type = types.attrsOf (types.submodule {
         options =
-          if peers != null
-          then
-            mkOption {
-              type = types.listOf (types.submodule {options = peers;});
-              description = "Data provided by each peer registered under this ID.";
+          {}
+          // optionalAttrs (server != null) {
+            inherit server;
+          }
+          // optionalAttrs (clients != null) {
+            clients = mkOption {
+              type = types.listOf (types.submodule {options = clients;});
+              description = "Data provided by each client registered under this ID.";
               default = [];
-            }
-          else
-            {}
-            // optionalAttrs (server != null) {
-              inherit server;
-            }
-            // optionalAttrs (clients != null) {
-              clients = mkOption {
-                type = types.listOf (types.submodule {options = clients;});
-                description = "Data provided by each client registered under this ID.";
-                default = [];
-              };
             };
+          };
       });
       default = {};
     };
@@ -116,7 +107,7 @@ in {
     ({...}: {
       options._integrations = mkOption {
         description = "Internal option for gathering integration data per host. Do not use. Use `network.integrations` directly.";
-        type = types.submodule {options = integrationsOptions;};
+        # type = handled by network.integrations for slightly nicer error messages
         default = {};
       };
     })

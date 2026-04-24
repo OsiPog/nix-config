@@ -109,35 +109,6 @@
         cfg = variables.hostCfg.services.${serviceName};
         integrations = mapAttrs (integrationName: integration: integration.${cfg.integrations.${integrationName}.id}) variables.networkCfg.integrations;
       };
-
-    getIntegrationVariables = integrationName: integratedServices:
-      variables
-      // rec {
-        inherit integrationName integratedServices;
-        integratedServiceEnable =
-          foldl'
-          (
-            acc: elem:
-              acc
-              || (variables.hostSrvs.${elem}.enable
-                && variables.hostSrvs.${elem}.integrations.${integrationName}.enable)
-          )
-          false
-          integratedServices;
-        serviceWithIntegrationEnable = serviceName:
-          variables.hostSrvs.${serviceName}.enable
-          && variables.hostSrvs.${serviceName}.integrations.${integrationName}.enable;
-        serviceWithIntegrationEnabledAnywhere = serviceName:
-          (
-            filter (
-              e:
-                (e.serviceName == serviceName)
-                && e.serviceCfg.integrations.${integrationName}.enable
-            )
-            allEnabledServices
-          )
-          != [];
-      };
   };
 in {
   config.lib.network = networkLib;
