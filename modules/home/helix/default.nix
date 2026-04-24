@@ -198,7 +198,6 @@
           name = "nix";
           language-servers = [
             "nixd"
-            "nil"
           ];
           file-types = ["nix"];
           formatter = {
