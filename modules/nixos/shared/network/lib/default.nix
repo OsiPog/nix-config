@@ -5,8 +5,8 @@
   ...
 }: let
   inherit (builtins) throw length filter head concatStringsSep foldl' replaceStrings attrNames attrValues;
-  inherit (lib) pipe;
-  inherit (lib.attrsets) attrsToList filterAttrs mapAttrsToList mapAttrs;
+  inherit (lib) pipe mkMerge;
+  inherit (lib.attrsets) attrsToList filterAttrs mapAttrsToList mapAttrs mapAttrs';
   inherit (lib.lists) flatten range;
 
   cfg = config.network;
@@ -107,7 +107,25 @@
         inherit serviceName;
         portName = serviceName;
         cfg = variables.hostCfg.services.${serviceName};
-        integrations = mapAttrs (integrationName: integration: integration.${cfg.integrations.${integrationName}.id}) variables.networkCfg.integrations;
+        stateDir = "/var/lib/${serviceName}";
+        integrationHelpers =
+          mapAttrs (integrationName: integrationCfg: let
+            scopedName = name: "integrations/${integrationName}/${integrationCfg.id}/${serviceName}/${name}";
+          in {
+            # Used in `mkMerge` to quickly register secrets defined in `remote` block of integrations into the current system and giving specifc users access to them
+            mkRegisterIntegrationSecretsConfig = {
+              secrets, # list of secrets in the form of sops.secrets.<name>.this
+              users, # list of usernames
+            }:
+              mkMerge (mapAttrsToList (name: secret: {
+                  sops.secrets.${scopedName name} = secret;
+                  users.groups.${secret.group}.members = users;
+                })
+                secrets);
+            # Used to get the integration secret file path
+            getSopsFile = name: config.getSopsFile (scopedName name);
+          })
+          cfg.integrations;
       };
   };
 in {
