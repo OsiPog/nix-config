@@ -16,7 +16,9 @@
     serviceName
     networkCfg
     cfg
+    stateDir
     ports
+    integrationHelpers
     ;
   ldapServer = cfg.integrations.ldap.remote.server;
 in {
@@ -27,13 +29,13 @@ in {
         ports.submissions.port = 465;
       };
       configService.integrations.ldap.local.client = {
-        group = "email";
-        extraUserAttributes = {
+        createGroups.email = {};
+        createUserAttributes = {
           mail-aliases = {
-            attributeType = "STRING";
-            isEditable = false;
-            isList = true;
-            isVisible = true;
+            dataType = "string";
+            editable = false;
+            multiple = true;
+            visible = true;
           };
         };
       };
@@ -49,13 +51,13 @@ in {
         }
       ];
 
-    mailserver = {
-      enable = true;
-      stateVersion = 4;
-      mailDirectory = cfg.stateDir;
-      fqdn = "mail.${config.networking.domain}";
-      domains = [config.networking.domain] ++ config.network.hosts.${hostName}.extraDomains;
-      enableSubmissionSsl = true;
+      mailserver = {
+        enable = true;
+        stateVersion = 3;
+        mailDirectory = stateDir;
+        fqdn = "mail.${config.networking.domain}";
+        domains = [config.networking.domain] ++ config.network.hosts.${hostName}.extraDomains;
+        enableSubmissionSsl = true;
 
         # # A list of all login accounts. To create the password hashes, use
         # # nix-shell -p mkpasswd --run 'mkpasswd -sm bcrypt'
@@ -67,31 +69,39 @@ in {
 
         certificateScheme = "acme";
         acmeCertificateName = config.networking.domain;
-
-        ldap = mkIf (cfg.integrations.ldap.enable) {
-          enable = true;
-        };
       };
     }
 
+    # LDAP INTEGRATION
     (mkIf cfg.integrations.ldap.enable (let
       usersFilter = username: "(&(|(mail=${username})(mail-aliases=${username}))(memberof=cn=email,ou=groups,${ldapServer.baseDN}))";
-    in {
-      mailserver.ldap = {
-        enable = true;
-        searchBase = ldapServer.baseDN;
-        uris = [(ldapServer.address "protocol://domain:port")];
-        bind = {
-          dn = ldapServer.searchUserDN;
-          passwordFile = config.getSopsFile "ldap/search-user-pass";
-        };
-        postfix = {
-          filter = usersFilter "%S";
-          uidAttribute = "uid";
-          mailAttribute = "mail";
-        };
-        dovecot.passFilter = usersFilter "%{user}";
-      };
-    }))
+    in
+      mkMerge [
+        (integrationHelpers.ldap.mkRegisterIntegrationSecretsConfig {
+          secrets.searchUserPass = ldapServer.searchUser.secret;
+          users = [
+            # "dovecot" # runs as root
+            "postfix"
+          ];
+        })
+
+        {
+          mailserver.ldap = {
+            enable = true;
+            searchBase = ldapServer.baseDN;
+            uris = [(ldapServer.address "protocol://domain:port")];
+            bind = {
+              dn = ldapServer.searchUser.dn;
+              passwordFile = integrationHelpers.ldap.getSopsFile "searchUserPass";
+            };
+            postfix = {
+              filter = usersFilter "%S";
+              uidAttribute = "uid";
+              mailAttribute = "mail";
+            };
+            dovecot.passFilter = usersFilter "%{user}";
+          };
+        }
+      ]))
   ]);
 }
