@@ -5,9 +5,10 @@
   options,
   ...
 }: let
+  inherit (builtins) replaceStrings;
   inherit (flake.lib) nixosHostNames;
-  inherit (lib) mkOption types;
-  inherit (lib.attrsets) optionalAttrs;
+  inherit (lib) mkOption types mkEnableOption;
+  inherit (lib.attrsets) optionalAttrs genAttrs;
 
   mkIntegration = {
     server ? null,
@@ -32,45 +33,96 @@
     };
 
   addressOption = mkOption {
-    description = "Function that resolves to an address.";
+    description = "The function returned by calling getAddress with a single attrset.";
   };
 
   secretOption = mkOption {
-    description = "A sops secret";
-    type = options.sops.secrets.type.nestedTypes.elemType;
+    description = "A sops secret passed to sops.secrets";
+    type = types.mergeTypes types.attrs (types.attrsOf (types.submodule ({config, ...}: {
+      options = {
+        key = mkOption {
+          default = "The key to be looked up in the secrets file.";
+          type = types.str;
+        };
+        group = mkOption {
+          readOnly = true;
+          default = "${replaceStrings ["/"] ["-"] config.key}";
+        };
+        mode = mkOption {
+          readOnly = true;
+          default = "0440";
+        };
+      };
+    })));
   };
 
   integrationsOptions = {
-    ldap = mkIntegration {
-      server = {
-        address = addressOption;
-        baseDN = mkOption {
-          description = "The base DN of the LDAP directory.";
-          type = types.str;
+    ldap = let
+      mkLdapUser = desc:
+        mkOption {
+          description = desc;
+          type = types.submodule {
+            options = {
+              dn = mkOption {
+                description = "The DN of the user without the baseDN.";
+                type = types.str;
+              };
+              secret = secretOption;
+            };
+          };
         };
-        adminUser = {
-          dn = mkOption {
-            description = "The DN of the LDAP admin user.";
+    in
+      mkIntegration {
+        server = {
+          address = addressOption;
+          baseDN = mkOption {
+            description = "The base DN of the LDAP directory.";
             type = types.str;
           };
-          secret = secretOption;
+          adminUser = mkLdapUser "user with admin permissions";
+          searchUser = mkLdapUser "user with search permissions";
+          managerUser = mkLdapUser "user with search and edit permissions";
         };
-
-        searchUser = {
-          dn = mkOption {
-            description = "The DN of the LDAP search user used by client services.";
-            type = types.str;
+        clients = {
+          createGroups = mkOption {
+            description = "The LDAP groups to create.";
+            default = {};
+            type = types.attrsOf types.attrs; # currently no sub options available, so just if its defined, group will be created
           };
-          secret = secretOption;
+          createUsers = mkOption {
+            description = "The LDAP users to create";
+            default = {};
+            type = types.attrsOf (types.submodule {
+              options = {
+                display = mkOption {
+                  description = "Display name";
+                  type = types.nullOr types.str;
+                  default = null;
+                };
+                email = mkOption {
+                  type = types.nullOr types.str;
+                  default = null;
+                };
+                secret = secretOption;
+              };
+            });
+          };
+          createUserAttributes = mkOption {
+            description = "Additional user attributes to create";
+            default = {};
+            type = types.attrsOf (types.submodule {
+              options = {
+                dataType = mkOption {
+                  type = types.enum ["string" "integer" "boolean" "image" "datetime"];
+                };
+                editable = mkEnableOption "the attribute to be editable by users";
+                multiple = mkEnableOption "the attribute to have multiple values";
+                visible = mkEnableOption "the attribute to be visible to users";
+              };
+            });
+          };
         };
       };
-      clients = {
-        group = mkOption {
-          description = "The LDAP group to create for users of this service.";
-          type = types.str;
-        };
-      };
-    };
 
     oidc = mkIntegration {
       server = {
