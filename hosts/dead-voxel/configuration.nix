@@ -94,6 +94,12 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.enable = false;
 
+  services.sunshine = {
+    autoStart = true;
+    enable = true;
+    capSysAdmin = true;
+  };
+
   # Don't change, will break things!
   system.stateVersion = "25.11";
 }

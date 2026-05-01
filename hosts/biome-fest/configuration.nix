@@ -2,6 +2,7 @@
   config,
   flake,
   inputs,
+  pkgs,
   ...
 }: {
   imports = with flake.nixosModules; [
@@ -62,6 +63,8 @@
 
   # init with: sudo waydroid init -s GAPPS -f
   virtualisation.waydroid.enable = true;
+
+  environment.systemPackages = [pkgs.moonlight-qt];
 
   # Don't change, will break things.
   system.stateVersion = "23.11"; # Did you read the comment?
