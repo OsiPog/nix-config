@@ -155,6 +155,8 @@
           licenceKey = config.getSopsFile "intelephense/licence.txt";
         };
 
+        omnisharp.timeout = 100000; # let him cook
+
         # Vue
         # vue-language-server = {
         #   command = lib.getExe pkgs.vue-language-server;
