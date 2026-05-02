@@ -58,11 +58,13 @@
   users.users.opencloud.extraGroups = ["husk"];
   fileSystems."${config.services.opencloud.stateDir}/storage/users/users/osi/written-mind" = {
     device = "/mnt/husk/cloud/written-mind";
+    fsType = "none";
     options = ["bind"];
   };
   services.opencloud.environment = {
     OC_SHARING_PUBLIC_SHARE_MUST_HAVE_PASSWORD = "false";
     STORAGE_USERS_POSIX_WATCH_FS = "true";
+    FRONTEND_ARCHIVER_MAX_SIZE = "10000000000";
   };
   systemd.services.opencloud.path = [pkgs.inotify-tools];
 
