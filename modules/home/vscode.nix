@@ -1,15 +1,8 @@
 {
-  flake,
   pkgs,
   lib,
-  inputs,
-  config,
-  nixosConfig,
   ...
-}: let
-  inherit (builtins) replaceStrings readFile;
-  vscodeExts = inputs.nix-vscode-extensions.extensions.${pkgs.system};
-in {
+}: {
   # Make codium default
   xdg.mimeApps.defaultApplications = lib.attrsets.genAttrs [
     "text/plain"
@@ -83,12 +76,12 @@ in {
         # --- Debug ---
         "debug.openDebug" = "neverOpen"; # its really annoying that the debug window opens on breakpoint
 
-        # --- CLINE Assistant ---
-        "cline.chromeExecutablePath" = lib.getExe config.programs.chromium.package;
+        # # --- CLINE Assistant ---
+        # "cline.chromeExecutablePath" = lib.getExe config.programs.chromium.package;
 
-        # --- PHP ---
-        "php.debug.executablePath" = lib.getExe pkgs.php83;
-        "namespaceResolver.autoSort" = false;
+        # # --- PHP ---
+        # "php.debug.executablePath" = lib.getExe pkgs.php83;
+        # "namespaceResolver.autoSort" = false;
 
         # --- NIX ---
         # "nix.enableLanguageServer" = true;
@@ -113,22 +106,22 @@ in {
 
         # --- JAVA ---
         # All JDKs used for compiling
-        "java.configuration.runtimes" = with pkgs; [
-          {
-            name = "JavaSE-11";
-            path = openjdk11 + "/lib/openjdk";
-          }
-          {
-            name = "JavaSE-17";
-            path = openjdk17 + "/lib/openjdk";
-          }
-          {
-            name = "JavaSE-21";
-            path = openjdk21 + "/lib/openjdk";
-          }
-        ];
-        "java.jdt.ls.java.home" = pkgs.openjdk + "/lib/openjdk"; # JDK used for the language server
-        "java.configuration.detectJdksAtStart" = false; # Do not try to detect JDKs
+        # "java.configuration.runtimes" = with pkgs; [
+        #   {
+        #     name = "JavaSE-11";
+        #     path = openjdk11 + "/lib/openjdk";
+        #   }
+        #   {
+        #     name = "JavaSE-17";
+        #     path = openjdk17 + "/lib/openjdk";
+        #   }
+        #   {
+        #     name = "JavaSE-21";
+        #     path = openjdk21 + "/lib/openjdk";
+        #   }
+        # ];
+        # "java.jdt.ls.java.home" = pkgs.openjdk + "/lib/openjdk"; # JDK used for the language server
+        # "java.configuration.detectJdksAtStart" = false; # Do not try to detect JDKs
       };
       # Keybindings
       # `when` makes the keybind only available in certain contexts: more on that here
@@ -365,15 +358,13 @@ in {
           command = "editor.debug.action.toggleBreakpoint";
         }
       ];
-      extensions = with vscodeExts;
-      with vscode-marketplace; let
-        op-vsx = open-vsx;
-      in [
+      extensions = with pkgs.nix-vscode-extensions.vscode-marketplace; [
         # --- UTILITIES ---
         # davidlgoldberg.jumpy2 # jumping cursors with short letter combo
         # eamodio.gitlens # useful for git blame inline
         # saoudrizwan.claude-dev # llm coding agent
         # sleistner.vscode-fileutils # crud for files
+        jasew.vscode-helix-emulation
 
         # # --- PHP ---
         # zobo.php-intellisense # intellisense
@@ -401,6 +392,13 @@ in {
 
         # # --- SQL ---
         # adpyke.vscode-sql-formatter
+
+        # --- PYTHON ---
+        ms-toolsai.jupyter
+        ms-python.python
+        ms-python.vscode-pylance
+        ms-python.debugpy
+        ms-python.vscode-python-envs
       ];
     };
   };

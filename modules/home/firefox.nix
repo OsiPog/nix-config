@@ -2,11 +2,9 @@
   pkgs,
   lib,
   config,
-  inputs,
   ...
 }: let
   packageName = "librewolf";
-  addons = inputs.nix-firefox-addons.addons.${pkgs.system};
 in {
   # Make firefox default
   xdg.mimeApps.defaultApplications = lib.attrsets.genAttrs [
@@ -171,7 +169,7 @@ in {
 
     profiles.default = {
       extensions = {
-        packages = with addons; [
+        packages = with pkgs.firefoxAddons; [
           ublock-origin # adblock
           darkreader # dark mode for every website
           locale-switcher # switch language on the fly for application testing

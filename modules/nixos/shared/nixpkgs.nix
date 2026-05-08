@@ -11,6 +11,8 @@ in {
   nixpkgs = {
     hostPlatform = lib.mkOptionDefault "x86_64-linux";
     overlays = with inputs; [
+      inputs.nix-vscode-extensions.overlays.default
+      inputs.nix-firefox-addons.overlays.default
       # Add packages of the flakes in an overlay
       (
         final: prev:
