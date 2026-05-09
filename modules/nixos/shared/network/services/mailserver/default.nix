@@ -38,7 +38,7 @@ in {
 
     mailserver = {
       enable = true;
-      stateVersion = 3;
+      stateVersion = 4;
       mailDirectory = cfg.stateDir;
       fqdn = "mail.${config.networking.domain}";
       domains = [config.networking.domain] ++ config.network.hosts.${hostName}.extraDomains;
@@ -52,7 +52,7 @@ in {
       #   };
       # };
 
-      certificateScheme = "acme";
+      # certificateScheme = "acme";
       acmeCertificateName = config.networking.domain;
     };
   };

@@ -465,15 +465,15 @@
     "flake-compat_6": {
       "flake": false,
       "locked": {
-        "lastModified": 1761588595,
-        "narHash": "sha256-XKUZz9zewJNUj46b4AJdiRZJAvSZ0Dqj2BNfXvFlJC4=",
-        "owner": "edolstra",
+        "lastModified": 1767039857,
+        "narHash": "sha256-vNpUSpF5Nuw8xvDLj2KCwwksIbjua2LZCqhV1LNRDns=",
+        "owner": "NixOS",
         "repo": "flake-compat",
-        "rev": "f387cd2afec9419c8ee37694406ca490c3f34ee5",
+        "rev": "5edf11c44bc78a0d334f6334cdaf7d60d732daab",
         "type": "github"
       },
       "original": {
-        "owner": "edolstra",
+        "owner": "NixOS",
         "repo": "flake-compat",
         "type": "github"
       }
@@ -772,11 +772,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1763988335,
-        "narHash": "sha256-QlcnByMc8KBjpU37rbq5iP7Cp97HvjRP0ucfdh+M4Qc=",
+        "lastModified": 1775585728,
+        "narHash": "sha256-8Psjt+TWvE4thRKktJsXfR6PA/fWWsZ04DVaY6PUhr4=",
         "owner": "cachix",
         "repo": "git-hooks.nix",
-        "rev": "50b9238891e388c9fdc6a5c49e49c42533a1b5ce",
+        "rev": "580633fa3fe5fc0379905986543fd7495481913d",
         "type": "github"
       },
       "original": {
@@ -1552,11 +1552,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1764763336,
-        "narHash": "sha256-007DlZGjQ3ziQ5UMjt3GdjBAbgAtHgMwOxMY2v7/b7c=",
-        "ref": "refs/heads/master",
-        "rev": "1ccd57f177539ed8c207b893c3f9798d88f87d2e",
-        "revCount": 850,
+        "lastModified": 1777287493,
+        "narHash": "sha256-Fj7S91TuZm6+DG/v6SFme/p+sWrYMQICGX6yQ5KD43Q=",
+        "ref": "refs/heads/main",
+        "rev": "e33fbde199eaad513ef5d0746db19d5878150232",
+        "revCount": 996,
         "type": "git",
         "url": "https://gitlab.com/simple-nixos-mailserver/nixos-mailserver.git"
       },
