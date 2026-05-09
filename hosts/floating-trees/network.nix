@@ -34,11 +34,11 @@
   # };
 
   # --- HYTALE
-  services.hytale-server.enable = true;
-  ports.hytale.reverseProxy = {
-    enable = true;
-    domain = "axelhax.net";
-  };
+  # services.hytale-server.enable = true;
+  # ports.hytale.reverseProxy = {
+  #   enable = true;
+  #   domain = "axelhax.net";
+  # };
 
   # --- AUTHELIA
   services.authelia = {
@@ -77,11 +77,15 @@
   # --- NGINX HTTP
   services.staticWebsites = {
     enable = true;
-    sites = ["axelhax"];
+    sites = ["axelhax" "transit-vis"];
   };
   ports.staticWebsites-axelhax.reverseProxy = {
     enable = true;
     domain = "axelhax.net";
+  };
+  ports.staticWebsites-transit-vis.reverseProxy = {
+    enable = true;
+    domain = "transit-vis.axelhax.net";
   };
 
   # --- OPENCLOUD
