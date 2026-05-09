@@ -18,7 +18,6 @@
     cfg
     stateDir
     ports
-    integrationHelpers
     ;
   ldapServer = cfg.integrations.ldap.remote.server;
 in {
@@ -77,7 +76,7 @@ in {
       usersFilter = username: "(&(|(mail=${username})(mail-aliases=${username}))(memberof=cn=email,ou=groups,${ldapServer.baseDN}))";
     in
       mkMerge [
-        (integrationHelpers.ldap.mkRegisterIntegrationSecretsConfig {
+        (cfg.integrations.ldap.mkRegisterIntegrationSecretsConfig {
           secrets.searchUserPass = ldapServer.searchUser.secret;
           users = [
             # "dovecot" # runs as root
@@ -92,7 +91,7 @@ in {
             uris = [(ldapServer.address "protocol://domain:port")];
             bind = {
               dn = ldapServer.searchUser.dn;
-              passwordFile = integrationHelpers.ldap.getSopsFile "searchUserPass";
+              passwordFile = cfg.integrations.ldap.getSopsFile "searchUserPass";
             };
             postfix = {
               filter = usersFilter "%S";

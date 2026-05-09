@@ -6,8 +6,8 @@ flake: {serviceName}: networkModule: {
 }: let
   inherit (builtins) mapAttrs;
   inherit (flake.lib) mkModuleWithExtraMetaAttrs;
-  inherit (lib) mkEnableOption mkIf mkOption types;
-  inherit (lib.attrsets) optionalAttrs;
+  inherit (lib) mkEnableOption mkIf mkOption types mkMerge;
+  inherit (lib.attrsets) optionalAttrs mapAttrsToList;
 
   networkCfg = config.network;
 in {
@@ -51,7 +51,9 @@ in {
                 integrationName = name;
                 integrationCfg = config;
               in {
-                options = {
+                options = let
+                  scopedName = name: "integrations/${integrationName}/${integrationCfg.id}/${serviceName}/${name}";
+                in {
                   enable = mkEnableOption "the ${name} integration";
                   id = mkOption {
                     description = "ID used to match clients with servers.";
@@ -89,6 +91,18 @@ in {
                       readOnly = true;
                     };
                   };
+                  # Used in `mkMerge` to quickly register secrets defined in `remote` block of integrations into the current system and giving specifc users access to them
+                  mkRegisterIntegrationSecretsConfig = {
+                    secrets, # attrs of secrets in the form of sops.secrets.<name>.this
+                    users, # list of usernames
+                  }:
+                    mkMerge (mapAttrsToList (name: secret: {
+                        sops.secrets.${scopedName name} = secret;
+                        users.groups.${secret.group}.members = users;
+                      })
+                      secrets);
+                  # Used to get the integration secret file path
+                  getSopsFile = name: config.getSopsFile (scopedName name);
                 };
                 # Apply aliases
                 config.local = let

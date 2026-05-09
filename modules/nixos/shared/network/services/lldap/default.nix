@@ -19,7 +19,6 @@
     cfg
     ports
     stateDir
-    integrationHelpers
     ;
 
   ldapServer = cfg.integrations.ldap.local.server;
@@ -76,7 +75,7 @@ in {
 
   config = mkIf (networkCfg.enable && cfg.enable) (mkMerge [
     # register secrets with read access for the lldap user
-    (integrationHelpers.ldap.mkRegisterIntegrationSecretsConfig {
+    (cfg.integrations.ldap.mkRegisterIntegrationSecretsConfig {
       secrets = {
         adminUserPass = ldapServer.adminUser.secret;
         searchUserPass = ldapServer.searchUser.secret;
@@ -121,7 +120,7 @@ in {
           http_port = ports.lldap.port;
           ldap_base_dn = ldapServer.baseDN;
           ldap_user_dn = ldapServer.adminUser.dn;
-          ldap_user_pass_file = integrationHelpers.ldap.getSopsFile "adminUserPass";
+          ldap_user_pass_file = cfg.integrations.ldap.getSopsFile "adminUserPass";
           database_url = "sqlite://${stateDir}/users.db?mode=rwc";
           force_ldap_user_pass_reset = "always";
           ldaps_options = let
@@ -138,14 +137,14 @@ in {
           users.configs = {
             ${ldapServer.searchUser.dn} = {
               email = "search-user@example.com";
-              password_file = integrationHelpers.ldap.getSopsFile "searchUserPass";
+              password_file = cfg.integrations.ldap.getSopsFile "searchUserPass";
               groups = [
                 "lldap_strict_readonly"
               ];
             };
             ${ldapServer.managerUser.dn} = {
               email = "manager-user@example.com";
-              password_file = integrationHelpers.ldap.getSopsFile "managerUserPass";
+              password_file = cfg.integrations.ldap.getSopsFile "managerUserPass";
               groups = [
                 "lldap_password_manager" # has rw permissions on users
               ];
@@ -176,7 +175,7 @@ in {
         createUserAttributes,
       }:
         (
-          integrationHelpers.ldap.mkRegisterIntegrationSecretsConfig {
+          cfg.integrations.ldap.mkRegisterIntegrationSecretsConfig {
             secrets =
               mapAttrs' (name: {secret, ...}: {
                 name = "${name}UserPass";
@@ -217,7 +216,7 @@ in {
                 }: {
                   inherit email;
                   displayName = display;
-                  password_file = integrationHelpers.ldap.getSopsFile "${name}UserPass";
+                  password_file = cfg.integrations.ldap.getSopsFile "${name}UserPass";
                 })
                 createUsers;
             };

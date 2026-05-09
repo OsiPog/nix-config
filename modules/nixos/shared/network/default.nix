@@ -56,15 +56,9 @@ in {
                   description = "The main domain will be set as config.networking.domain, also this servers IP-address reverse DNS points to it. A domain with its DNS configured to resolve to the IP address of this host on *.domain.tld.";
                 };
                 extraDomains = mkOption {
-                  description = "Any other domains that resolve to this servers ip address.";
+                  description = "Any other domains that resolve to this hosts ip address.";
                   default = [];
                   type = with types; listOf str;
-                };
-
-                stateDirs = mkOption {
-                  type = with types; listOf (pathWith {absolute = true;});
-                  default = [];
-                  description = "A list of directories where any kind of state is stored. Useful for the backup service to know what to backup.";
                 };
               };
             })
