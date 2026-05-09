@@ -86,6 +86,11 @@
     };
     # declarative flatpak
     nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=latest";
+    # secure boot
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote/v1.0.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # --- Packages
     # Development environments the easy nix way
