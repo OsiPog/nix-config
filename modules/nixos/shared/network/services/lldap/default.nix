@@ -9,8 +9,9 @@
   inherit (builtins) concatStringsSep mapAttrs getAttr;
   inherit (lib) mkIf pipe mkForce mkMerge;
   inherit (lib.strings) splitString;
+  inherit (lib.attrsets) getAttrs;
 
-  inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers mapMerge;
+  inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers mkMergeTopLevel;
 
   serviceName = "lldap";
   networkCfg = config.network;
@@ -164,19 +165,13 @@ in {
     }
 
     # implement ldap clients
+    (mkMergeTopLevel ["sops" "users" "services"] (map (ldapClient: {
+        sops = {inherit (ldapClient) secrets;};
 
-    (let
-      clients = cfg.require.ldap-clients;
-    in {
-      sops = mapMerge clients (e: {secrets = e.secrets;});
+        users.groups = mkGroupsFromSecretsWithMembers ldapClient.secrets ["lldap"];
 
-      users = mapMerge clients (e: {
-        groups = mkGroupsFromSecretsWithMembers e.secrets ["lldap"];
-      });
-
-      services = mapMerge clients (e: {
-        lldap.bootstrap = {
-          groups.configs = e.groups;
+        services.lldap.bootstrap = {
+          groups.configs = ldapClient.groups;
           users = {
             schema =
               mapAttrs (_: attribute: {
@@ -188,17 +183,17 @@ in {
                   datetime = "DATETIME";
                 };
               })
-              e.extraUserAttributes;
+              ldapClient.extraUserAttributes;
             configs =
               mapAttrs (_: user: {
                 displayName = user.display;
                 password_file = config.getSopsFile user.secretName;
                 email = user.email;
               })
-              e.users;
+              ldapClient.users;
           };
         };
-      });
-    })
+      })
+      cfg.require.ldap-clients))
   ]);
 }
