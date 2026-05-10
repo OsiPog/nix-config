@@ -2,99 +2,94 @@
 
 ## Problem (Before)
 
-Services were glued together in `modules/nixos/shared/network/integrations` with monolithic config files. Adding a new integration required editing those files and re-learning how they worked.
+- editing the integrations file, only one integration of a specific type
+- very specialised code in `integrations`
+- services are coupled intensely
 
-Port naming was global — `getAddress {portName = "ldaps"}` would fail if the same port name existed on multiple hosts.
+- We need to create an interface logic where a service gets data in a specific format and implements it like the service needs it
 
-The integration structure was tightly coupled to specific service implementations (e.g. lldap specifically), making it hard to swap in a different LDAP server.
 
-## Solution
+## Solution: provide and require
 
-### `network.integrations.<integrationName>.<id>`
+We edit `mkNetworkHostServiceIntegrationModule` to include two new fields for each service. `provide` and `require`. Each have the same type. One is to provide data to other services the other is to require data from other services.
 
-Integrations are now a global registry keyed by integration type and ID:
-
-```
-network.integrations.ldap."lldap-main" = {
-  server = { baseDN = ...; adminUser = ...; searchUserDN = ...; };
-  clients = [ { group = "email"; } ... ];
-};
-```
-
-Each integration type (ldap, oidc, mail) defines its schema in `modules/nixos/shared/network/integrations.nix` using `mkIntegration`:
+it may look like this:
 
 ```nix
-ldap = mkIntegration {
-  server = { baseDN = mkOption {...}; adminUser = mkOption {...}; ... };
-  clients = { group = mkOption {...}; };
-};
-```
-
-### Declaring integrations from `network.nix`
-
-Each host declares which integrations its services participate in:
-
-```nix
-# lldap is the LDAP server
-services.lldap = {
-  enable = true;
-  integrations.ldap = {
-    enable = true;   # defaults to false
-    id = "lldap-main";
-  };
-};
-
-# authelia is an LDAP client
-services.authelia = {
-  enable = true;
-  integrations.ldap = {
+# host 'vps', network.nix
+{nixosConfig, ...}: {
+  sevices.mailserver = {
     enable = true;
-    id = "lldap-main";  # same ID → matched to the same integration entry
+    require.ldap-server = nixosConfig.network.hosts.homeserver.services.portunus.provide.ldap-server;
   };
-};
+}
 ```
 
-The `id` is what links clients to their server. Both point to `network.integrations.ldap."lldap-main"`.
-
-### Populating data via `integrationsEnable`
-
-Service modules use `integrationsEnable` inside `mkNetworkHostServiceModule` to register their data into the global registry. It is only active when `cfg.enable && cfg.integrations.<name>.enable`.
-
 ```nix
-mkNetworkHostServiceModule {serviceName = "lldap";} ({name, ...}: {
-  integrationsEnable = {
-    ldap.server = {
-      address = getAddress { portName = "ldaps"; hostName = name; };
-      baseDN = "dc=axelhax,dc=net";
-      searchUserDN = "uid=search,ou=people,dc=axelhax,dc=net";
-    };
+# host 'homeserver', network.nix
+{nixosConfig, ...}: {
+  sevices.portunus = {
+    enable = true;
+    require.ldap-clients = 
+      nixosConfig.network.hosts.vps.services.mailserver.provide.ldap-clients
+      // # ...
+      # ...
   };
-})
+}
 ```
+(of course we could use some kind of helper alias to make these config references shorter)
 
-This is mapped by `mkNetworkHostServiceModule` to:
+The respective services will set their `provide` attribute in their own service definitions. And implement the given require interface if set too.
 
-```nix
-config.integrations.ldap.${cfg._integrations.ldap.id} = mkIf (cfg.enable && cfg.integrations.ldap.enable) {
-  server = { address = ...; baseDN = ...; searchUserDN = ...; };
-};
-```
-
-### Consuming integration data
-
-Service modules use `getServiceVariables` to get a resolved view where each integration name maps directly to the integration entry matched by the service's configured `id`:
-
-```nix
-inherit (getServiceVariables "authelia") cfg integrations;
-
-# integrations.ldap = network.integrations.ldap.${cfg.integrations.ldap.id}
-# e.g. = network.integrations.ldap."lldap-main"
-```
-
-So `integrations.ldap.server.baseDN` gives you the LDAP server's base DN without needing to know which specific service provides it.
+The problem here is that when connecting two services we will need to change 2 code places at once. But that is semantically correct when thinking about nixos hosts, we have to rebuild 2 hosts, so changing 2 configs is just logically correct.
 
 
-### Port addressing
+### The interfaces
+
+#### `ldap-server`
+- `secrets`
+- `baseDN`, baseDN of ldap
+- `address`, address to the server returned by getAddress
+- `users`
+  - `admin`, with `dn`, `secretName`, user with admin permissions
+  - `search`, with `dn`, `secretName`, user with search permissions
+  - `manage`, with `dn`, `secretName`, user with search and write permissions
+- `attributes`, map of attribute names of the ldap server
+  - `email`
+  - `uid`
+  - `password`
+  - `memberof`
+  - `icon`
+
+#### `ldap-clients` (list of submodule)
+- `secrets`
+- `groups`, attrs of empty attrs of groups to create (attrname is group name)
+- `users`, attrs of attrs (`display`, `email`, `secretName`) (attrname is uid)
+- `extraUserAttributes`, attrs of user attributes (`dataType`, `editable`, `visible`, `multiple`) (attrname is user attribute name)
+
+
+#### `mail-server`
+- `address`
+
+#### `mail-clients` (list of submodule)
+- `secrets`
+- `mailAccount`
+  - `display`
+  - `email`
+  - `secretName`
+
+#### `oidc-clients` (list of submodule)
+- `redirectUri`
+- `clientId`
+- `clientSecretName`
+- `scopes`
+- ...
+
+#### `oidc-server`
+- `address`
+- ...
+
+## Port addressing
 
 `getAddress` now always requires a `hostName`, scoping port lookups to a specific host:
 
@@ -112,16 +107,27 @@ The returned value is a template function:
 
 This solves the global port naming collision problem.
 
-## TODO
+## shared secrets across services
 
-I don't really know how to handle secrets yet.
+When a secret is needed in a require/provide then a top-level secrets attrset is added. This one is meant to be imported into sops.secrets like so.
 
-Here are the specifications:
+Then, to indicate what each provided secret is we use extra attributes that point to it:
 
-- less doubled code obviously
-- register secrets into `sops.secrets`
-- use unix groups for secrets so multiple services can access them on the same machine
-- it should be defined in the integration interface which secrets are provided
+```nix
 
+# defined by a service
+provide.ldap-server = {
+  secrets = {
+    "my-custom-integration/ldap-admin" = {/* ... */};
+    # ...
+  };
+  adminSecretName = "my-custom-integration/ldap-admin";
+}
 
-Problems: if i have an `integrations.<name>.<id>.server.secrets` option then I cant use it in imports because it depends on config. But I somehow need a centralized way of "registering" secrets in a configuration (meaning setting `sops.secrets` and defining the groups the secrets mention, maybe even autmatically adding the right users to these groups.)
+# implementing
+
+sops.secrets = cfg.require.ldap-server.secrets;
+
+services.portunus.adminPassPath = config.getSopsFile cfg.require.ldap-server.adminSecretName;
+
+```
