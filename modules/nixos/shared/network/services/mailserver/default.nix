@@ -8,36 +8,34 @@
   ...
 }: let
   inherit (lib) mkIf mkMerge;
-  inherit (flake.lib) mkNetworkHostServiceModule;
-  inherit (config.lib.network) getServiceVariables;
+  inherit (lib.attrsets) filterAttrs;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers;
 
-  inherit
-    (getServiceVariables "mailserver")
-    serviceName
-    networkCfg
-    cfg
-    stateDir
-    ports
-    ;
-  ldapServer = cfg.integrations.ldap.remote.server;
+  serviceName = "mailserver";
+  networkCfg = config.network;
+  hostCfg = config.network.hosts.${hostName};
+  cfg = hostCfg.services.${serviceName};
+  ports = hostCfg.ports;
 in {
   imports = [
     inputs.simple-nixos-mailserver.nixosModules.default
-    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
       configEnable = {
         ports.submissions.port = 465;
       };
-      configService.integrations.ldap.local.client = {
-        createGroups.email = {};
-        createUserAttributes = {
-          mail-aliases = {
-            dataType = "string";
-            editable = false;
-            multiple = true;
-            visible = true;
+      configService.provide.ldap-clients = [
+        {
+          groups.email = {};
+          extraUserAttributes = {
+            mail-aliases = {
+              dataType = "string";
+              editable = false;
+              multiple = true;
+              visible = true;
+            };
           };
-        };
-      };
+        }
+      ];
     }))
   ];
 
@@ -52,8 +50,7 @@ in {
 
       mailserver = {
         enable = true;
-        stateVersion = 3;
-        mailDirectory = stateDir;
+        stateVersion = 4;
         fqdn = "mail.${config.networking.domain}";
         domains = [config.networking.domain] ++ config.network.hosts.${hostName}.extraDomains;
         enableSubmissionSsl = true;
@@ -72,35 +69,31 @@ in {
     }
 
     # LDAP INTEGRATION
-    (mkIf cfg.integrations.ldap.enable (let
-      usersFilter = username: "(&(|(mail=${username})(mail-aliases=${username}))(memberof=cn=email,ou=groups,${ldapServer.baseDN}))";
+    (let
+      ldapServer = cfg.require.ldap-server;
+      secrets = filterAttrs (name: _: name == ldapServer.users.search.secretName) ldapServer.secrets;
     in
-      mkMerge [
-        (cfg.integrations.ldap.mkRegisterIntegrationSecretsConfig {
-          secrets.searchUserPass = ldapServer.searchUser.secret;
-          users = [
-            # "dovecot" # runs as root
-            "postfix"
-          ];
-        })
+      mkIf (ldapServer != null) (let
+        usersFilter = username: "(&(|(${ldapServer.attributes.email}=${username})(mail-aliases=${username}))(${ldapServer.attributes.memberof}=cn=email,ou=groups,${ldapServer.baseDN}))";
+      in {
+        sops = {inherit secrets;};
 
-        {
-          mailserver.ldap = {
-            enable = true;
-            searchBase = ldapServer.baseDN;
-            uris = [(ldapServer.address "protocol://domain:port")];
-            bind = {
-              dn = ldapServer.searchUser.dn;
-              passwordFile = cfg.integrations.ldap.getSopsFile "searchUserPass";
-            };
-            postfix = {
-              filter = usersFilter "%S";
-              uidAttribute = "uid";
-              mailAttribute = "mail";
-            };
-            dovecot.passFilter = usersFilter "%{user}";
+        users.groups = mkGroupsFromSecretsWithMembers secrets ["postfix"];
+        mailserver.ldap = {
+          enable = true;
+          searchBase = ldapServer.baseDN;
+          uris = [(ldapServer.address "protocol://domain:port")];
+          bind = {
+            dn = ldapServer.users.search.dn;
+            passwordFile = cfg.getSopsFile ldapServer.users.search.secretName;
           };
-        }
-      ]))
+          postfix = {
+            filter = usersFilter "%S";
+            uidAttribute = ldapServer.attributes.uid;
+            mailAttribute = ldapServer.attributes.email;
+          };
+          dovecot.passFilter = usersFilter "%{user}";
+        };
+      }))
   ]);
 }

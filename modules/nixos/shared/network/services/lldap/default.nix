@@ -2,30 +2,30 @@
   config,
   lib,
   flake,
+  hostName,
+  pkgs,
   ...
 }: let
-  inherit (builtins) concatStringsSep getAttr mapAttrs;
+  inherit (builtins) concatStringsSep mapAttrs getAttr;
   inherit (lib) mkIf pipe mkForce mkMerge;
   inherit (lib.strings) splitString;
-  inherit (lib.attrsets) mapAttrs';
 
-  inherit (flake.lib) mkNetworkHostServiceModule;
-  inherit (config.lib.network) getAddress getServiceVariables;
+  inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers mapMerge;
 
-  inherit
-    (getServiceVariables "lldap")
-    serviceName
-    networkCfg
-    cfg
-    ports
-    stateDir
-    ;
+  serviceName = "lldap";
+  networkCfg = config.network;
+  hostCfg = config.network.hosts.${hostName};
+  cfg = hostCfg.services.${serviceName};
+  ports = hostCfg.ports;
 
-  ldapServer = cfg.integrations.ldap.local.server;
-  ldapClients = cfg.integrations.ldap.remote.clients;
+  ldapServer = cfg.provide.ldap-server;
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({
+      name,
+      networkLib,
+      ...
+    }: {
       configEnable = {
         ports = {
           lldap.port = 17170;
@@ -35,36 +35,43 @@ in {
           };
         };
       };
-      configService.integrations.ldap.local.server = rec {
-        address = getAddress {
-          portName = "ldaps";
+      configService.provide.ldap-server = rec {
+        secrets =
+          mkSharedSecrets [
+            users.admin.secretName
+            users.search.secretName
+            users.manage.secretName
+          ]
+          ./secrets.yaml;
+        address = networkLib.getAddress {
           hostName = name;
+          portName = "ldaps";
         };
         baseDN = pipe (address "domain") [
           (splitString ".")
           (map (e: "dc=${e}"))
           (concatStringsSep ",")
         ];
-        adminUser = {
-          dn = "admin";
-          secret = {
-            sopsFile = ./secrets.yaml;
-            key = "lldap/admin-pass";
+        users = {
+          admin = {
+            dn = "admin";
+            secretName = "lldap/admin-pass";
+          };
+          search = {
+            dn = "search-user";
+            secretName = "lldap/search-pass";
+          };
+          manage = {
+            dn = "manager";
+            secretName = "lldap/manager-pass";
           };
         };
-        searchUser = {
-          dn = "search-user";
-          secret = {
-            sopsFile = ./secrets.yaml;
-            key = "lldap/search-pass";
-          };
-        };
-        managerUser = {
-          dn = "manager";
-          secret = {
-            sopsFile = ./secrets.yaml;
-            key = "lldap/manager-pass";
-          };
+        attributes = {
+          email = "mail";
+          uid = "uid";
+          password = "password";
+          icon = "avatar";
+          memberof = "memberof";
         };
       };
     }))
@@ -74,16 +81,6 @@ in {
   ];
 
   config = mkIf (networkCfg.enable && cfg.enable) (mkMerge [
-    # register secrets with read access for the lldap user
-    (cfg.integrations.ldap.mkRegisterIntegrationSecretsConfig {
-      secrets = {
-        adminUserPass = ldapServer.adminUser.secret;
-        searchUserPass = ldapServer.searchUser.secret;
-        managerUserPass = ldapServer.managerUser.secret;
-      };
-      users = ["lldap"];
-    })
-
     {
       assertions = [
         {
@@ -96,13 +93,14 @@ in {
         }
       ];
 
+      sops.secrets = ldapServer.secrets;
+
       # TLS
       services.porkbunAcme = {
         enable = true;
         domain = ldapServer.address "domain";
       };
 
-      users.groups.lldap = {};
       users.users.lldap = {
         group = "lldap";
         isSystemUser = true;
@@ -110,6 +108,8 @@ in {
         # Give lldap user access to ACME certificates
         extraGroups = ["acme"];
       };
+
+      users.groups = {lldap = {};} // (mkGroupsFromSecretsWithMembers ldapServer.secrets ["lldap"]);
 
       # LLDAP service configuration
       services.lldap = {
@@ -119,9 +119,9 @@ in {
           http_host = "0.0.0.0";
           http_port = ports.lldap.port;
           ldap_base_dn = ldapServer.baseDN;
-          ldap_user_dn = ldapServer.adminUser.dn;
-          ldap_user_pass_file = cfg.integrations.ldap.getSopsFile "adminUserPass";
-          database_url = "sqlite://${stateDir}/users.db?mode=rwc";
+          ldap_user_dn = ldapServer.users.admin.dn;
+          ldap_user_pass_file = config.getSopsFile ldapServer.users.admin.secretName;
+          database_url = "sqlite://${cfg.stateDir}/users.db?mode=rwc";
           force_ldap_user_pass_reset = "always";
           ldaps_options = let
             acmeDirectory = config.security.acme.certs.${ldapServer.address "domain"}.directory;
@@ -134,26 +134,22 @@ in {
         };
         bootstrap = {
           enable = true;
-          users.configs = {
-            ${ldapServer.searchUser.dn} = {
-              email = "search-user@example.com";
-              password_file = cfg.integrations.ldap.getSopsFile "searchUserPass";
-              groups = [
-                "lldap_strict_readonly"
-              ];
-            };
-            ${ldapServer.managerUser.dn} = {
-              email = "manager-user@example.com";
-              password_file = cfg.integrations.ldap.getSopsFile "managerUserPass";
-              groups = [
-                "lldap_password_manager" # has rw permissions on users
-              ];
-            };
-          };
           cleanup = {
             enable = true;
             keepUsers = true;
             keepGroupMembership = true;
+          };
+          users.configs = {
+            "${ldapServer.users.search.dn}" = {
+              email = "search@${ldapServer.address "domain"}";
+              password_file = config.getSopsFile ldapServer.users.search.secretName;
+              groups = ["lldap_strict_readonly"];
+            };
+            "${ldapServer.users.manage.dn}" = {
+              email = "manage@${ldapServer.address "domain"}";
+              password_file = config.getSopsFile ldapServer.users.manage.secretName;
+              groups = ["lldap_password_manager"];
+            };
           };
         };
       };
@@ -162,66 +158,47 @@ in {
         services.lldap.serviceConfig.DynamicUser = mkForce false;
         # Ensure state directory is owned by lldap
         tmpfiles.rules = [
-          "d ${stateDir} 0750 lldap lldap -"
+          "d /var/lib/lldap 0750 lldap lldap -"
         ];
       };
     }
 
-    # LDAP INTEGRATION
-    (mkIf (cfg.integrations.ldap.enable) (pipe ldapClients [
-      (map ({
-        createGroups,
-        createUsers,
-        createUserAttributes,
-      }:
-        (
-          cfg.integrations.ldap.mkRegisterIntegrationSecretsConfig {
-            secrets =
-              mapAttrs' (name: {secret, ...}: {
-                name = "${name}UserPass";
-                value = secret;
+    # implement ldap clients
+
+    (let
+      clients = cfg.require.ldap-clients;
+    in {
+      sops = mapMerge clients (e: {secrets = e.secrets;});
+
+      users = mapMerge clients (e: {
+        groups = mkGroupsFromSecretsWithMembers e.secrets ["lldap"];
+      });
+
+      services = mapMerge clients (e: {
+        lldap.bootstrap = {
+          groups.configs = e.groups;
+          users = {
+            schema =
+              mapAttrs (_: attribute: {
+                attributeType = getAttr attribute.dataType {
+                  string = "STRING";
+                  integer = "INTEGER";
+                  boolean = throw "Boolean type is not implemented by lldap use integer instead";
+                  jpeg = "JPEG";
+                  datetime = "DATETIME";
+                };
               })
-              createUsers;
-            users = ["lldap"];
-          }
-        )
-        // {
-          services.lldap.bootstrap = {
-            groups.configs = createGroups;
-            users = {
-              schemas =
-                mapAttrs (_: {
-                  dataType,
-                  editable,
-                  multiple,
-                  visible,
-                }: {
-                  attributeType = getAttr dataType {
-                    string = "STRING";
-                    integer = "INTEGER";
-                    boolean = throw "Type boolean is not implemented in LLDAP.";
-                    jpeg = "JPEG";
-                    datetime = "DATETIME";
-                  };
-                  isEditable = editable;
-                  isList = multiple;
-                  isVisible = visible;
-                })
-                createUserAttributes;
-              configs =
-                mapAttrs (name: {
-                  display,
-                  email,
-                  ...
-                }: {
-                  inherit email;
-                  displayName = display;
-                  password_file = cfg.integrations.ldap.getSopsFile "${name}UserPass";
-                })
-                createUsers;
-            };
+              e.extraUserAttributes;
+            configs =
+              mapAttrs (_: user: {
+                displayName = user.display;
+                password_file = config.getSopsFile user.secretName;
+                email = user.email;
+              })
+              e.users;
           };
-        }))
-    ]))
+        };
+      });
+    })
   ]);
 }
