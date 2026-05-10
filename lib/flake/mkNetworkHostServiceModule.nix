@@ -2,28 +2,28 @@ flake: {serviceName}: networkModule: {
   lib,
   config,
   hostName,
+  options,
   ...
 }: let
-  inherit (builtins) mapAttrs;
   inherit (flake.lib) mkModuleWithExtraMetaAttrs;
-  inherit (lib) mkEnableOption mkIf mkOption types mkMerge;
-  inherit (lib.attrsets) optionalAttrs mapAttrsToList;
-
-  networkCfg = config.network;
+  inherit (lib) mkEnableOption mkIf mkOption types;
 in {
   network.sharedModules = [
     ({
       config,
       name,
+      nixosConfig,
       ...
     }: let
       cfg = config.services.${serviceName};
+      networkCfg = nixosConfig.network;
     in {
       imports = [
         (mkModuleWithExtraMetaAttrs {
             extraSpecialArgs = {
               inherit cfg;
               inherit name; # I think because we use imports instead of directly through sharedModules we lose the `name` extra argument.
+              networkLib = nixosConfig.lib.network;
             };
             mapExtraMetaAttr = name: content:
               if name == "optionsService"
@@ -40,95 +40,130 @@ in {
         ({...}: {
           options.services.${serviceName} = {
             enable = mkEnableOption "the ${serviceName} network service on ${name}";
-            integrations = mkOption {
-              description = "Integrations to integrate with other services on the network";
-              default = {};
-              type = types.attrsOf (types.submodule ({
-                name,
-                config,
-                ...
-              }: let
-                integrationName = name;
-                integrationCfg = config;
-              in {
-                options = let
-                  scopedName = name: "integrations/${integrationName}/${integrationCfg.id}/${serviceName}/${name}";
-                in {
-                  enable = mkEnableOption "the ${name} integration";
-                  id = mkOption {
-                    description = "ID used to match clients with servers.";
-                    type = types.str;
-                    default = "default";
-                  };
-                  local = {
-                    server = mkOption {
-                      description = "Define server data for the integration matching the specified ID.";
-                      type = types.nullOr types.attrs;
-                      default = null;
+          };
+        })
+
+        # provide/require
+        ({...}: let
+          namedUserOptions = {
+            display = mkOption {type = types.str;};
+            email = mkOption {type = types.str;};
+            secretName = mkOption {type = types.str;};
+          };
+
+          namedUserSubmodule = types.submodule {options = namedUserOptions;};
+
+          secretsOpt = mkOption {
+            type = options.sops.secrets.type;
+            default = {};
+          };
+
+          addressOpt = mkOption {
+            type = types.functionTo types.str; # function: "domain"|"ip"|"host" -> str
+          };
+
+          interfaces = {
+            ldap-server = let
+              mkUser = {
+                dn = mkOption {type = types.str;};
+                secretName = mkOption {type = types.str;};
+              };
+            in
+              mkOption {
+                default = null;
+                type = types.nullOr (types.submodule {
+                  options = {
+                    secrets = secretsOpt;
+                    baseDN = mkOption {type = types.str;};
+                    address = addressOpt;
+                    users = {
+                      admin = mkUser;
+                      search = mkUser;
+                      manage = mkUser;
                     };
-                    clients = mkOption {
-                      description = "Define a list of clients data for the integration matching the specified ID.";
-                      type = types.listOf types.attrs;
-                      default = [];
-                    };
-                    client = mkOption {
-                      description = "Alias for clients = [ <this> ]";
-                      type = types.nullOr types.attrs;
-                      default = null;
-                    };
-                  };
-                  remote = {
-                    server = mkOption {
-                      description = "Server data in the integration matching the specified ID.";
-                      type = types.nullOr types.attrs;
-                      default = networkCfg.integrations.${integrationName}.${integrationCfg.id}.server;
-                      readOnly = true;
-                    };
-                    clients = mkOption {
-                      description = "List of clients data in the integration matching the specified ID.";
-                      type = types.listOf types.attrs;
-                      default = networkCfg.integrations.${integrationName}.${integrationCfg.id}.clients;
-                      readOnly = true;
+                    attributes = {
+                      email = mkOption {type = types.str;};
+                      uid = mkOption {type = types.str;};
+                      password = mkOption {type = types.str;};
+                      memberof = mkOption {type = types.str;};
+                      icon = mkOption {type = types.str;};
                     };
                   };
-                  # Used in `mkMerge` to quickly register secrets defined in `remote` block of integrations into the current system and giving specifc users access to them
-                  mkRegisterIntegrationSecretsConfig = {
-                    secrets, # attrs of secrets in the form of sops.secrets.<name>.this
-                    users, # list of usernames
-                  }:
-                    mkMerge (mapAttrsToList (name: secret: {
-                        sops.secrets.${scopedName name} = secret;
-                        users.groups.${secret.group}.members = users;
-                      })
-                      secrets);
-                  # Used to get the integration secret file path
-                  getSopsFile = name: config.getSopsFile (scopedName name);
+                });
+              };
+
+            ldap-clients = mkOption {
+              default = [];
+              type = types.listOf (types.submodule {
+                options = {
+                  secrets = secretsOpt;
+                  groups = mkOption {
+                    type = types.attrsOf types.attrs;
+                    default = {};
+                  };
+                  users = mkOption {
+                    type = types.attrsOf namedUserSubmodule;
+                    default = {};
+                  };
+                  extraUserAttributes = mkOption {
+                    default = {};
+                    type = types.attrsOf (types.submodule {
+                      options = {
+                        dataType = mkOption {type = types.enum ["string" "integer" "boolean" "jpeg" "datetime"];};
+                        editable = mkOption {type = types.bool;};
+                        visible = mkOption {type = types.bool;};
+                        multiple = mkOption {type = types.bool;};
+                      };
+                    });
+                  };
                 };
-                # Apply aliases
-                config.local = let
-                  inherit (integrationCfg.local) client;
-                in {
-                  clients = mkIf (client != null) [client];
+              });
+            };
+
+            mail-server = mkOption {
+              default = null;
+              type = types.nullOr (types.submodule {
+                options.address = addressOpt;
+              });
+            };
+
+            mail-clients = mkOption {
+              default = [];
+              type = types.listOf (types.submodule {
+                options = {
+                  secrets = secretsOpt;
+                  mailAccount = namedUserOptions;
                 };
-              }));
+              });
+            };
+
+            oidc-clients = mkOption {
+              default = [];
+              type = types.listOf (types.submodule {
+                options = {
+                  redirectUri = mkOption {type = types.str;};
+                  clientId = mkOption {type = types.str;};
+                  clientSecretName = mkOption {type = types.str;};
+                  scopes = mkOption {
+                    type = types.listOf types.str;
+                    default = [];
+                  };
+                };
+              });
+            };
+
+            oidc-server = mkOption {
+              default = null;
+              type = types.nullOr (types.submodule {
+                options.address = addressOpt;
+              });
             };
           };
-          config._integrations = mkIf (cfg.enable) (
-            mapAttrs (integrationName: integrationCfg: {
-              ${integrationCfg.id} = mkIf (integrationCfg.enable) (
-                let
-                  inherit (integrationCfg.local) server clients;
-                in
-                  {
-                    clients = mkIf (clients != []) clients;
-                  }
-                  // (optionalAttrs (server != null) {
-                    inherit server;
-                  })
-              );
-            })
-            cfg.integrations
-          );
+        in {
+          options.services.${serviceName} = {
+            provide = interfaces;
+            require = interfaces;
+          };
         })
       ];
     })
