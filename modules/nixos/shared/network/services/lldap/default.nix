@@ -2,31 +2,27 @@
   config,
   lib,
   flake,
-  hostName,
-  pkgs,
   ...
 }: let
   inherit (builtins) concatStringsSep mapAttrs getAttr;
   inherit (lib) mkIf pipe mkForce mkMerge;
   inherit (lib.strings) splitString;
-  inherit (lib.attrsets) getAttrs;
 
   inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers mkMergeTopLevel;
+  inherit (config.lib.network) getServiceVariables getAddress;
 
-  serviceName = "lldap";
-  networkCfg = config.network;
-  hostCfg = config.network.hosts.${hostName};
-  cfg = hostCfg.services.${serviceName};
-  ports = hostCfg.ports;
+  inherit
+    (getServiceVariables "lldap")
+    serviceName
+    networkCfg
+    cfg
+    ports
+    ;
 
   ldapServer = cfg.provide.ldap-server;
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({
-      name,
-      networkLib,
-      ...
-    }: {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
       configEnable = {
         ports = {
           lldap.port = 17170;
@@ -36,7 +32,7 @@ in {
           };
         };
       };
-      configService.provide.ldap-server = rec {
+      provideEnable.ldap-server = rec {
         secrets =
           mkSharedSecrets [
             users.admin.secretName
@@ -44,7 +40,7 @@ in {
             users.manage.secretName
           ]
           ./secrets.yaml;
-        address = networkLib.getAddress {
+        address = getAddress {
           hostName = name;
           portName = "ldaps";
         };

@@ -10,20 +10,23 @@
   inherit (lib) mkIf mkMerge;
   inherit (lib.attrsets) filterAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers;
+  inherit (config.lib.network) getServiceVariables;
 
-  serviceName = "mailserver";
-  networkCfg = config.network;
-  hostCfg = config.network.hosts.${hostName};
-  cfg = hostCfg.services.${serviceName};
-  ports = hostCfg.ports;
+  inherit
+    (getServiceVariables "mailserver")
+    serviceName
+    networkCfg
+    cfg
+    ports
+    ;
 in {
   imports = [
     inputs.simple-nixos-mailserver.nixosModules.default
-    (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
       configEnable = {
         ports.submissions.port = 465;
       };
-      configService.provide.ldap-clients = [
+      provideEnable.ldap-clients = [
         {
           groups.email = {};
           extraUserAttributes = {

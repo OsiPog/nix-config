@@ -1,7 +1,5 @@
 flake: {serviceName}: networkModule: {
   lib,
-  config,
-  hostName,
   options,
   ...
 }: let
@@ -12,18 +10,15 @@ in {
     ({
       config,
       name,
-      nixosConfig,
       ...
     }: let
       cfg = config.services.${serviceName};
-      networkCfg = nixosConfig.network;
     in {
       imports = [
         (mkModuleWithExtraMetaAttrs {
             extraSpecialArgs = {
               inherit cfg;
               inherit name; # I think because we use imports instead of directly through sharedModules we lose the `name` extra argument.
-              networkLib = nixosConfig.lib.network;
             };
             mapExtraMetaAttr = name: content:
               if name == "optionsService"
@@ -32,6 +27,8 @@ in {
               then {config = mkIf cfg.enable content;}
               else if name == "configService"
               then {config.services.${serviceName} = content;}
+              else if name == "provideEnable"
+              then {config.services.${serviceName}.provide = mkIf cfg.enable content;}
               else null;
           }
           networkModule)
