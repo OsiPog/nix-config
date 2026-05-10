@@ -74,7 +74,6 @@ in {
     ./importHosts.nix
 
     ./ports.nix
-    ./integrations.nix
 
     # ./services/authelia
     # ./services/backup.nix
