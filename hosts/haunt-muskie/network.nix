@@ -1,4 +1,8 @@
-{inputs, ...}: {
+{
+  inputs,
+  nixosConfig,
+  ...
+}: {
   domain = "axelhax.net";
   extraDomains = [inputs.nix-config-private.personal_domain];
   vpn.ip = "100.64.0.1";
@@ -19,14 +23,7 @@
   # --- MAIL
   services.mailserver = {
     enable = true;
-    integrations = {
-      ldap.enable = true;
-      # mail = {
-      #   enable = true;
-      #   role = "server";
-      #   id = "mail-main";
-      # };
-    };
+    require.ldap-server = nixosConfig.network.hosts.floating-trees.services.lldap.provide.ldap-server;
   };
 
   # --- HEADSCALE VPN

@@ -1,14 +1,11 @@
 # This is a special nix module. It is imported into `networking.hosts.<name>` of every nixos configuration.
 # So that each host can see the network configuration of all other hosts.
-{...}: {
+{nixosConfig, ...}: {
   vpn.ip = "100.64.0.4";
   ssh = {
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDYdr33vJvtTnrSDiEhCUkc0fL7GyrZG9UEL8zjaKJpU root@floating-trees";
     allowConnectionsFrom = ["dead-voxel" "biome-fest"];
   };
-  stateDirs = [
-    "/mnt/husk"
-  ];
 
   # --- DNSMASQ
   # services.dnsmasq.enable = true;
@@ -69,13 +66,7 @@
   # --- LLDAP
   services.lldap = {
     enable = true;
-    integrations = {
-      ldap.enable = true;
-      # mail = {
-      #   enable = true;
-      #   id = "mail-main";
-      # };
-    };
+    require.ldap-clients = nixosConfig.network.hosts.haunt-muskie.services.mailserver.provide.ldap-clients;
   };
   ports.ldaps.reverseProxy = {
     enable = true;
