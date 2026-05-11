@@ -27,7 +27,7 @@ in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
       configEnable.ports.${portName} = {
-        protocol = "https";
+        protocol = "http";
         port = mkDefault 9200;
       };
       provideEnable.ldap-clients = [{groups.cloud = {};}];
@@ -41,7 +41,7 @@ in {
         enable = true;
         address = "0.0.0.0";
         port = ports.opencloud.port;
-        url = address "protocol://domain";
+        url = address "proxyProtocol://domain";
         environment = {
           PROXY_TLS = "false"; # TLS handled by reverse proxy
         };
@@ -68,7 +68,7 @@ in {
         };
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.opencloud.user];
         services.opencloud.environment = {
-          OC_LDAP_URI = ldapServer.address "protocol://domain:port";
+          OC_LDAP_URI = ldapServer.address "proxyProtocol://domain:port";
           OC_LDAP_BIND_DN = "uid=${ldapServer.users.search.dn},ou=people,${ldapServer.baseDN}";
           OC_ADMIN_USER_ID = ldapServer.users.admin.dn;
 

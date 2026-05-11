@@ -75,7 +75,7 @@ in {
           session.cookies = [
             {
               domain = address "domain";
-              authelia_url = address "protocol://domain";
+              authelia_url = address "proxyProtocol://domain";
             }
           ];
           access_control.default_policy = "two_factor";
@@ -97,7 +97,7 @@ in {
             refresh_interval = mkDefault "1m";
             ldap = {
               implementation = "lldap";
-              address = ldapServer.address "protocol://domain:port";
+              address = ldapServer.address "proxyProtocol://domain:port";
               base_dn = ldapServer.baseDN;
               user = "uid=${ldapServer.users.manage.dn},ou=people,${ldapServer.baseDN}";
             };

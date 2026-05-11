@@ -29,7 +29,7 @@ in {
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
       configEnable = {
         ports.${portName} = {
-          protocol = "https";
+          protocol = "http";
           port = mkDefault 8096;
         };
       };
@@ -76,7 +76,7 @@ in {
         };
         config = {
           version = mkDefault 1;
-          base_url = address "protocol://domain";
+          base_url = address "proxyProtocol://domain";
           system = {};
           startup.completeStartupWizard = true;
           users = [

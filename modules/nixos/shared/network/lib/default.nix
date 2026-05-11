@@ -72,11 +72,15 @@
         then throw "getAddress: port ${portName} is not defined on host ${hostName}"
         else cfg.hosts.${hostName}.ports.${portName};
 
-      address = {
-        protocol =
+      address = rec {
+        localProtocol =
           if portCfg.protocol != null
           then portCfg.protocol
           else throw "getAddress: ${hostName}: ${portName}: Protocol is null. It cannot be referenced.";
+        proxyProtocol =
+          if portCfg.reverseProxy.method == "virtual-host"
+          then "https"
+          else localProtocol;
         port = portCfg.port;
         domain =
           if portCfg.reverseProxy.enable

@@ -24,7 +24,10 @@ in {
     inputs.simple-nixos-mailserver.nixosModules.default
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
       configEnable = {
-        ports.submissions.port = 465;
+        ports.submissions = {
+          protocol = "submissions";
+          port = 465;
+        };
       };
       provideEnable.ldap-clients = [
         {
@@ -85,7 +88,7 @@ in {
         mailserver.ldap = {
           enable = true;
           searchBase = ldapServer.baseDN;
-          uris = [(ldapServer.address "protocol://domain:port")];
+          uris = [(ldapServer.address "proxyProtocol://domain:port")];
           bind = {
             dn = ldapServer.users.search.dn;
             passwordFile = cfg.getSopsFile ldapServer.users.search.secretName;
