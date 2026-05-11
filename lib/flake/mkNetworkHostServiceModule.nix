@@ -37,6 +37,11 @@ in {
         ({...}: {
           options.services.${serviceName} = {
             enable = mkEnableOption "the ${serviceName} network service on ${name}";
+            id = mkOption {
+              description = "ID of the server to decouple from host and service name. Can be referenced by config.lib.network.servicesById";
+              type = types.str;
+              default = name + "-" + serviceName;
+            };
           };
         })
 

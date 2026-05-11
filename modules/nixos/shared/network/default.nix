@@ -27,6 +27,7 @@ in {
           class = "networkHost";
           specialArgs = {
             inherit inputs;
+            inherit (config.lib.network) servicesById;
             nixosConfig = config;
           };
 

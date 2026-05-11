@@ -1,6 +1,6 @@
 # This is a special nix module. It is imported into `networking.hosts.<name>` of every nixos configuration.
 # So that each host can see the network configuration of all other hosts.
-{nixosConfig, ...}: {
+{servicesById, ...}: {
   vpn.ip = "100.64.0.4";
   ssh = {
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDYdr33vJvtTnrSDiEhCUkc0fL7GyrZG9UEL8zjaKJpU root@floating-trees";
@@ -39,8 +39,9 @@
 
   # --- AUTHELIA
   services.authelia = {
+    id = "oidc-provider";
     enable = true;
-    require.ldap-server = nixosConfig.network.hosts.floating-trees.services.lldap.provide.ldap-server;
+    require.ldap-server = servicesById.ldap-server.provide.ldap-server;
   };
   ports.authelia.reverseProxy = {
     enable = true;
@@ -49,12 +50,14 @@
 
   # --- LLDAP
   services.lldap = {
+    id = "ldap-server";
     enable = true;
-    require.ldap-clients =
-      nixosConfig.network.hosts.haunt-muskie.services.mailserver.provide.ldap-clients
-      ++ nixosConfig.network.hosts.floating-trees.services.authelia.provide.ldap-clients
-      ++ nixosConfig.network.hosts.floating-trees.services.opencloud.provide.ldap-clients
-      ++ nixosConfig.network.hosts.floating-trees.services.jellyfin.provide.ldap-clients;
+    require.ldap-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.ldap-clients) [] [
+      "email"
+      "oidc-provider"
+      "cloud"
+      "media-server"
+    ];
   };
   ports.ldaps.reverseProxy = {
     enable = true;
@@ -82,8 +85,9 @@
 
   # --- OPENCLOUD
   services.opencloud = {
+    id = "cloud";
     enable = true;
-    require.ldap-server = nixosConfig.network.hosts.floating-trees.services.lldap.provide.ldap-server;
+    require.ldap-server = servicesById.ldap-server.provide.ldap-server;
   };
   ports.opencloud.reverseProxy = {
     enable = true;
@@ -92,8 +96,9 @@
 
   # --- JELLYFIN
   services.jellyfin = {
+    id = "media-server";
     enable = true;
-    require.ldap-server = nixosConfig.network.hosts.floating-trees.services.lldap.provide.ldap-server;
+    require.ldap-server = servicesById.ldap-server.provide.ldap-server;
   };
   ports.jellyfin.reverseProxy = {
     enable = true;

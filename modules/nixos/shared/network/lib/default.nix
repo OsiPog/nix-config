@@ -4,7 +4,7 @@
   hostName,
   ...
 }: let
-  inherit (builtins) throw length filter head concatStringsSep foldl' replaceStrings attrNames attrValues;
+  inherit (builtins) throw length filter head concatStringsSep foldl' replaceStrings attrNames attrValues listToAttrs;
   inherit (lib) pipe mkMerge;
   inherit (lib.attrsets) attrsToList filterAttrs mapAttrsToList mapAttrs mapAttrs';
   inherit (lib.lists) flatten range;
@@ -59,6 +59,14 @@
           host.value.ports)
       )
       flatten
+    ];
+
+    servicesById = pipe allEnabledServices [
+      (map (service: {
+        name = service.serviceCfg.id;
+        value = service.serviceCfg;
+      }))
+      listToAttrs
     ];
 
     getAddress = {

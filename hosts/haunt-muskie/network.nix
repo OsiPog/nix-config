@@ -1,6 +1,6 @@
 {
   inputs,
-  nixosConfig,
+  servicesById,
   ...
 }: {
   domain = "axelhax.net";
@@ -22,8 +22,9 @@
 
   # --- MAIL
   services.mailserver = {
+    id = "email";
     enable = true;
-    require.ldap-server = nixosConfig.network.hosts.floating-trees.services.lldap.provide.ldap-server;
+    require.ldap-server = servicesById.ldap-server.provide.ldap-server;
   };
 
   # --- HEADSCALE VPN
