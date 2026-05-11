@@ -38,35 +38,23 @@
   # };
 
   # --- AUTHELIA
-  # services.authelia = {
-  #   enable = true;
-  #   integrations = {
-  #     ldap = {
-  #       enable = true;
-  #       role = "client";
-  #       id = "lldap-main";
-  #     };
-  #     mail = {
-  #       enable = true;
-  #       role = "client";
-  #       id = "mail-main";
-  #     };
-  #     oidc = {
-  #       enable = true;
-  #       role = "server";
-  #       id = "authelia-main";
-  #     };
-  #   };
-  # };
-  # ports.authelia.reverseProxy = {
-  #   enable = true;
-  #   domain = "auth.axelhax.net";
-  # };
+  services.authelia = {
+    enable = true;
+    require.ldap-server = nixosConfig.network.hosts.floating-trees.services.lldap.provide.ldap-server;
+  };
+  ports.authelia.reverseProxy = {
+    enable = true;
+    domain = "auth.axelhax.net";
+  };
 
   # --- LLDAP
   services.lldap = {
     enable = true;
-    require.ldap-clients = nixosConfig.network.hosts.haunt-muskie.services.mailserver.provide.ldap-clients;
+    require.ldap-clients =
+      nixosConfig.network.hosts.haunt-muskie.services.mailserver.provide.ldap-clients
+      ++ nixosConfig.network.hosts.floating-trees.services.authelia.provide.ldap-clients
+      ++ nixosConfig.network.hosts.floating-trees.services.opencloud.provide.ldap-clients
+      ++ nixosConfig.network.hosts.floating-trees.services.jellyfin.provide.ldap-clients;
   };
   ports.ldaps.reverseProxy = {
     enable = true;
@@ -93,32 +81,24 @@
   # };
 
   # --- OPENCLOUD
-  # services.opencloud = {
-  #   enable = true;
-  #   integrations.ldap = {
-  #     enable = true;
-  #     role = "client";
-  #     id = "lldap-main";
-  #   };
-  # };
-  # ports.opencloud.reverseProxy = {
-  #   enable = true;
-  #   domain = "cloud.axelhax.net";
-  # };
+  services.opencloud = {
+    enable = true;
+    require.ldap-server = nixosConfig.network.hosts.floating-trees.services.lldap.provide.ldap-server;
+  };
+  ports.opencloud.reverseProxy = {
+    enable = true;
+    domain = "cloud.axelhax.net";
+  };
 
   # --- JELLYFIN
-  # services.jellyfin = {
-  #   enable = true;
-  #   integrations.ldap = {
-  #     enable = true;
-  #     role = "client";
-  #     id = "lldap-main";
-  #   };
-  # };
-  # ports.jellyfin.reverseProxy = {
-  #   enable = true;
-  #   domain = "media.axelhax.net";
-  # };
+  services.jellyfin = {
+    enable = true;
+    require.ldap-server = nixosConfig.network.hosts.floating-trees.services.lldap.provide.ldap-server;
+  };
+  ports.jellyfin.reverseProxy = {
+    enable = true;
+    domain = "media.axelhax.net";
+  };
 
   # --- NFS
   # services.nfs = {

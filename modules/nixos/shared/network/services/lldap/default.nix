@@ -17,6 +17,7 @@
     networkCfg
     cfg
     ports
+    stateDir
     ;
 
   ldapServer = cfg.provide.ldap-server;
@@ -25,8 +26,12 @@ in {
     (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
       configEnable = {
         ports = {
-          lldap.port = 17170;
+          lldap = {
+            protocol = "http";
+            port = 17170;
+          };
           ldaps = {
+            protocol = "ldaps";
             port = 6360;
             reverseProxy.method = "stream";
           };
@@ -118,7 +123,7 @@ in {
           ldap_base_dn = ldapServer.baseDN;
           ldap_user_dn = ldapServer.users.admin.dn;
           ldap_user_pass_file = config.getSopsFile ldapServer.users.admin.secretName;
-          database_url = "sqlite://${cfg.stateDir}/users.db?mode=rwc";
+          database_url = "sqlite://${stateDir}/users.db?mode=rwc";
           force_ldap_user_pass_reset = "always";
           ldaps_options = let
             acmeDirectory = config.security.acme.certs.${ldapServer.address "domain"}.directory;

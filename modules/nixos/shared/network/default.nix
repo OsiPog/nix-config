@@ -75,17 +75,17 @@ in {
 
     ./ports.nix
 
-    # ./services/authelia
+    ./services/authelia
     # ./services/backup.nix
     # ./services/dnsmasq.nix
     # ./services/headscale
     # ./services/hytale-server.nix
-    # ./services/jellyfin
+    ./services/jellyfin
     ./services/lldap
     ./services/mailserver
     # ./services/minecraft-server.nix
     # ./services/nfs.nix
-    # ./services/opencloud
+    ./services/opencloud
     # ./services/portunus
     # ./services/reverseProxy.nix
     # ./services/staticWebsites.nix

@@ -45,11 +45,11 @@
   #   serviceConfig.Type = "oneshot";
   # };
 
-  users.users.nginx = {
-    # for transferring website data
-    openssh.authorizedKeys = {inherit (config.users.users.leaf.openssh.authorizedKeys) keys;};
-    useDefaultShell = true;
-  };
+  # users.users.nginx = {
+  #   # for transferring website data
+  #   openssh.authorizedKeys = {inherit (config.users.users.leaf.openssh.authorizedKeys) keys;};
+  #   useDefaultShell = true;
+  # };
 
   # setup husk group
   users.groups.husk = {};

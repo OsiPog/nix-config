@@ -51,7 +51,7 @@ in {
           namedUserSubmodule = types.submodule {options = namedUserOptions;};
 
           secretsOpt = mkOption {
-            type = options.sops.secrets.type;
+            description = "Same type as sops.secrets but trust me bro";
             default = {};
           };
 

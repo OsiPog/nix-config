@@ -81,7 +81,7 @@
           if portCfg.reverseProxy.method == "virtual-host"
           then "https"
           else localProtocol;
-        port = portCfg.port;
+        port = toString portCfg.port;
         domain =
           if portCfg.reverseProxy.enable
           then portCfg.reverseProxy.domain
