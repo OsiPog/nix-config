@@ -28,16 +28,13 @@
   };
 
   # --- HEADSCALE VPN
-  # services.headscale = {
-  #   enable = true;
-  #   integrations.oidc = {
-  #     enable = true;
-  #     role = "client";
-  #     id = "authelia-main";
-  #   };
-  # };
-  # ports.headscale.reverseProxy = {
-  #   enable = true;
-  #   domain = "vpn.axelhax.net";
-  # };
+  services.headscale = {
+    id = "headscale";
+    enable = true;
+    require.oidc-server = servicesById.authelia.provide.oidc-server;
+  };
+  ports.headscale.reverseProxy = {
+    enable = true;
+    domain = "vpn.axelhax.net";
+  };
 }

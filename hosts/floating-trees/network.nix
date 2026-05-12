@@ -42,6 +42,9 @@
     id = "oidc-provider";
     enable = true;
     require.ldap-server = servicesById.ldap-server.provide.ldap-server;
+    require.oidc-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.oidc-clients) [] [
+      "headscale"
+    ];
   };
   ports.authelia.reverseProxy = {
     enable = true;

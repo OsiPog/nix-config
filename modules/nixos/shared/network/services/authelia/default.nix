@@ -5,10 +5,11 @@
   hostName,
   ...
 }: let
+  inherit (builtins) head;
   inherit (lib) mkIf mkMerge mkDefault;
   inherit (lib.attrsets) getAttrs;
 
-  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets mkMergeTopLevel;
   inherit (config.lib.network) getAddress getServiceVariables;
 
   inherit
@@ -27,10 +28,33 @@
   };
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({
+      cfg,
+      name,
+      ...
+    }: {
       configEnable.ports.${portName} = {
         protocol = "https";
         port = 9091;
+      };
+
+      provideEnable = {
+        mail-clients = [
+          rec {
+            secrets = mkSharedSecrets [mailAccount.secretName] ./secrets.yaml;
+            mailAccount = {
+              uid = "authelia-mail-notifier";
+              email = "noreply@${cfg.require.mail-server.address "domain"}";
+              display = "Authelia";
+              secretName = "authelia/mail-pass";
+            };
+          }
+        ];
+
+        oidc-server.address = getAddress {
+          portName = "authelia";
+          hostName = name;
+        };
       };
     }))
   ];
@@ -83,7 +107,7 @@ in {
       };
     }
 
-    # LDAP INTEGRATION
+    # LDAP SERVER INTEGRATION
     (let
       ldapServer = cfg.require.ldap-server;
       secrets = getAttrs [ldapServer.users.manage.secretName] ldapServer.secrets;
@@ -100,6 +124,55 @@ in {
               address = ldapServer.address "proxyProtocol://domain:port";
               base_dn = ldapServer.baseDN;
               user = "uid=${ldapServer.users.manage.dn},ou=people,${ldapServer.baseDN}";
+            };
+          };
+        };
+      })
+
+    # OIDC CLIENTS INTEGRATION
+    (mkMergeTopLevel ["services"] (map (client: {
+        services.authelia.instances.default.settings.identity_providers.oidc = {
+          claims_policies.${client.clientId}.id_token = client.idTokenClaims;
+          clients = [
+            {
+              client_id = client.clientId;
+              client_name = client.clientName;
+              client_secret = client.hashedClientSecret;
+              claims_policy = client.clientId;
+              public = false;
+              require_pkce = client.pkce.enabled;
+              pkce_challenge_method = client.pkce.method;
+              redirect_uris = client.redirectUris;
+              scopes = client.scopes;
+              response_types = ["code"];
+              grant_types = ["authorization_code"];
+              access_token_signed_response_alg = "none";
+              userinfo_signed_response_alg = "none";
+              token_endpoint_auth_method = "client_secret_basic";
+            }
+          ];
+        };
+      })
+      cfg.require.oidc-clients))
+
+    # MAIL SERVER INTEGRATION
+    (let
+      mailServer = cfg.require.mail-server;
+      mailClient = head cfg.provide.mail-clients;
+      secrets = getAttrs [mailClient.mailAccount.secretName] mailClient.secrets;
+    in
+      mkIf (mailServer != null) {
+        sops = {inherit secrets;};
+        users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.authelia.instances.default.user];
+        services.authelia.instances.default = {
+          environmentVariables = {
+            AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE = config.getSopsFile mailClient.mailAccount.secretName;
+          };
+          settings = {
+            notifier.smtp = {
+              address = mailServer.address "protocol://domain:port";
+              sender = "${mailClient.mailAccount.display} <${mailClient.mailAccount.email}>";
+              username = mailClient.mailAccount.email;
             };
           };
         };
