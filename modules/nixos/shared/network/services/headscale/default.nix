@@ -56,8 +56,6 @@ in {
           }
         ];
       }))
-
-    # ../../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
   config = mkMerge [
     (mkIf (networkCfg.enable && cfg.enable) {

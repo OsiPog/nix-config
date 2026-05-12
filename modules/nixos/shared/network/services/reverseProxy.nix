@@ -40,8 +40,6 @@ in {
         enforceSingleInstance = true;
       }
       null)
-
-    ../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     networking.firewall = {
@@ -84,7 +82,7 @@ in {
             else "";
         in ''
           upstream ${upstream} {
-            server ${p.portCfg.address "localProtocol://host:port"};
+            server ${p.portCfg.address "host:port"};
           }
           server {
             proxy_pass ${upstream};

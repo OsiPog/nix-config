@@ -75,7 +75,7 @@ in {
 
     ./services/authelia
     # ./services/backup.nix
-    # ./services/dnsmasq.nix
+    ./services/dnsmasq.nix
     ./services/headscale
     # ./services/hytale-server.nix
     ./services/jellyfin
@@ -87,8 +87,6 @@ in {
     # ./services/portunus
     ./services/reverseProxy.nix
     ./services/staticWebsites.nix
-
-    # ./integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
 
   config = mkIf networkCfg.enable {

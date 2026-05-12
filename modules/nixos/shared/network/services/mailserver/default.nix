@@ -7,7 +7,7 @@
   hostName,
   ...
 }: let
-  inherit (lib) mkIf mkMerge;
+  inherit (lib) mkIf mkMerge mkForce;
   inherit (lib.attrsets) getAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkMergeTopLevel;
   inherit (config.lib.network) getServiceVariables getAddress;
@@ -47,7 +47,7 @@ in {
                 mail-aliases = {
                   dataType = "string";
                   editable = false;
-                  multiple = true;
+                  multiple = false;
                   visible = true;
                 };
               };
@@ -58,6 +58,7 @@ in {
               secrets = getAttrs [mailClient.mailAccount.secretName] mailClient.secrets;
               users.${mailClient.mailAccount.uid} = {
                 inherit (mailClient.mailAccount) display email secretName;
+                groups = ["email"];
               };
             })
             cfg.require.mail-clients);
@@ -110,10 +111,11 @@ in {
         users.groups = mkGroupsFromSecretsWithMembers secrets ["postfix"];
         mailserver.ldap = {
           enable = true;
+          scope = "one";
           base = ldapServer.baseDN;
           uris = [(ldapServer.address "proxyProtocol://domain:port")];
           bind = {
-            dn = ldapServer.users.search.dn;
+            dn = "cn=${ldapServer.users.search.dn},ou=people,${ldapServer.baseDN}";
             passwordFile = config.getSopsFile ldapServer.users.search.secretName;
           };
           attributes = with ldapServer.attributes; {
@@ -124,6 +126,42 @@ in {
           };
           postfix.filter = usersFilter "%S";
           dovecot.passFilter = usersFilter "%{user}";
+        };
+
+        # TODO: remove when fixed upstream
+        services.dovecot2.settings."passdb ldap" = mkForce {
+          bind = "yes";
+          filter = config.mailserver.ldap.dovecot.passFilter;
+        };
+        # TODO: same here
+        services.postfix.submissionsOptions.smtpd_sender_login_maps =
+          mkForce "ldap:${config.sops.templates.postfixSenderLoginMapsMain.path},ldap:${config.sops.templates.postfixSenderLoginMapsAliases.path}";
+        sops.templates = let
+          cfg = config.mailserver;
+          ldapAuthBlock = ''
+            server_host = ${ldapServer.address "proxyProtocol://domain:port"}
+            start_tls = no
+            version = 3
+            tls_ca_cert_file = ${cfg.ldap.caFile}
+            tls_require_cert = yes
+
+            search_base = ${cfg.ldap.base}
+            scope = ${cfg.ldap.scope}
+
+            bind = yes
+            bind_dn = ${cfg.ldap.bind.dn}
+            bind_pw = ${config.sops.placeholder.${ldapServer.users.search.secretName}}
+
+            query_filter = ${cfg.ldap.postfix.filter}
+          '';
+        in {
+          postfixSenderLoginMapsMain = {
+            owner = "postfix";
+            content = ''
+              ${ldapAuthBlock}
+              result_attribute = ${cfg.ldap.attributes.mail}
+            '';
+          };
         };
       }))
 

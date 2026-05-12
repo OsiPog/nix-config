@@ -114,7 +114,15 @@ in {
                     default = {};
                   };
                   users = mkOption {
-                    type = types.attrsOf namedUserSubmodule;
+                    type = types.attrsOf (types.submodule {
+                      options =
+                        namedUserOptions
+                        // {
+                          groups = mkOption {
+                            type = types.listOf types.str;
+                          };
+                        };
+                    });
                     default = {};
                   };
                   extraUserAttributes = mkOption {

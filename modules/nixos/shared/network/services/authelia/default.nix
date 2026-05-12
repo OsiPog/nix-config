@@ -5,7 +5,7 @@
   hostName,
   ...
 }: let
-  inherit (builtins) head;
+  inherit (builtins) head elem;
   inherit (lib) mkIf mkMerge mkDefault;
   inherit (lib.attrsets) getAttrs;
 
@@ -44,7 +44,7 @@ in {
             secrets = mkSharedSecrets [mailAccount.secretName] ./secrets.yaml;
             mailAccount = {
               uid = "authelia-mail-notifier";
-              email = "noreply@${cfg.require.mail-server.address "domain"}";
+              email = "noreply.authelia@${cfg.require.mail-server.address "domain"}";
               display = "Authelia";
               secretName = "authelia/mail-pass";
             };
@@ -170,7 +170,7 @@ in {
           };
           settings = {
             notifier.smtp = {
-              address = mailServer.address "protocol://domain:port";
+              address = mailServer.address "proxyProtocol://domain:port";
               sender = "${mailClient.mailAccount.display} <${mailClient.mailAccount.email}>";
               username = mailClient.mailAccount.email;
             };

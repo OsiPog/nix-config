@@ -8,7 +8,7 @@
   };
 
   # --- DNSMASQ
-  # services.dnsmasq.enable = true;
+  services.dnsmasq.enable = true;
 
   # --- RESTIC
   # services.backup = {

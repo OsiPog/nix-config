@@ -4,9 +4,6 @@
   lib,
   ...
 }: {
-  imports = with inputs; [
-    flake-programs-sqlite.nixosModules.programs-sqlite
-  ];
   environment.systemPackages = with pkgs; [
     fastfetch # System info
     bat # Better cat
@@ -34,5 +31,8 @@
   services.udisks2.enable = true;
 
   # When a command is entered that does not exist a nice message is presented
-  programs.command-not-found.enable = true;
+  programs.command-not-found = {
+    enable = true;
+    dbPath = lib.mkForce inputs.flake-programs-sqlite.packages.${pkgs.system}.programs-sqlite;
+  };
 }

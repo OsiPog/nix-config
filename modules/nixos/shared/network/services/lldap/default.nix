@@ -183,10 +183,14 @@ in {
                   jpeg = "JPEG";
                   datetime = "DATETIME";
                 };
+                isEditable = attribute.editable;
+                isList = attribute.multiple;
+                isVisible = attribute.visible;
               })
               ldapClient.extraUserAttributes;
             configs =
               mapAttrs (_: user: {
+                inherit (user) groups;
                 displayName = user.display;
                 password_file = config.getSopsFile user.secretName;
                 email = user.email;
