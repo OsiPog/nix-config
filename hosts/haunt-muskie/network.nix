@@ -22,9 +22,14 @@
 
   # --- MAIL
   services.mailserver = {
-    id = "email";
+    id = "snm";
     enable = true;
-    require.ldap-server = servicesById.ldap-server.provide.ldap-server;
+    require = {
+      inherit (servicesById.lldap.provide) ldap-server;
+      mail-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.mail-clients) [] [
+        "authelia"
+      ];
+    };
   };
 
   # --- HEADSCALE VPN

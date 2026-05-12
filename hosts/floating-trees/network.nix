@@ -39,9 +39,10 @@
 
   # --- AUTHELIA
   services.authelia = {
-    id = "oidc-provider";
+    id = "authelia";
     enable = true;
-    require.ldap-server = servicesById.ldap-server.provide.ldap-server;
+    require.ldap-server = servicesById.lldap.provide.ldap-server;
+    require.mail-server = servicesById.snm.provide.mail-server;
     require.oidc-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.oidc-clients) [] [
       "headscale"
     ];
@@ -53,13 +54,13 @@
 
   # --- LLDAP
   services.lldap = {
-    id = "ldap-server";
+    id = "lldap";
     enable = true;
     require.ldap-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.ldap-clients) [] [
-      "email"
-      "oidc-provider"
-      "cloud"
-      "media-server"
+      "snm"
+      "authelia"
+      "opencloud"
+      "jellyfin"
     ];
   };
   ports.ldaps.reverseProxy = {
@@ -88,9 +89,9 @@
 
   # --- OPENCLOUD
   services.opencloud = {
-    id = "cloud";
+    id = "opencloud";
     enable = true;
-    require.ldap-server = servicesById.ldap-server.provide.ldap-server;
+    require.ldap-server = servicesById.lldap.provide.ldap-server;
   };
   ports.opencloud.reverseProxy = {
     enable = true;
@@ -99,9 +100,9 @@
 
   # --- JELLYFIN
   services.jellyfin = {
-    id = "media-server";
+    id = "jellyfin";
     enable = true;
-    require.ldap-server = servicesById.ldap-server.provide.ldap-server;
+    require.ldap-server = servicesById.lldap.provide.ldap-server;
   };
   ports.jellyfin.reverseProxy = {
     enable = true;
