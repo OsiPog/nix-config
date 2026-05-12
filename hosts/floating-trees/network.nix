@@ -74,18 +74,18 @@
   };
 
   # --- NGINX HTTP
-  # services.staticWebsites = {
-  #   enable = true;
-  #   sites = ["axelhax" "transit-vis"];
-  # };
-  # ports.staticWebsites-axelhax.reverseProxy = {
-  #   enable = true;
-  #   domain = "axelhax.net";
-  # };
-  # ports.staticWebsites-transit-vis.reverseProxy = {
-  #   enable = true;
-  #   domain = "transit-vis.axelhax.net";
-  # };
+  services.staticWebsites = {
+    enable = true;
+    sites = ["axelhax" "transit-vis"];
+  };
+  ports.staticWebsites-axelhax.reverseProxy = {
+    enable = true;
+    domain = "axelhax.net";
+  };
+  ports.staticWebsites-transit-vis.reverseProxy = {
+    enable = true;
+    domain = "transit-vis.axelhax.net";
+  };
 
   # --- OPENCLOUD
   services.opencloud = {

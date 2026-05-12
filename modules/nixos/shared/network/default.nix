@@ -86,7 +86,7 @@ in {
     ./services/opencloud
     # ./services/portunus
     # ./services/reverseProxy.nix
-    # ./services/staticWebsites.nix
+    ./services/staticWebsites.nix
 
     # ./integrations/ldap
     # ./integrations/mail
