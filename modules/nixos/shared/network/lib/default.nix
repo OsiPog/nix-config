@@ -73,12 +73,13 @@
       portName,
       hostName,
     }: let
+      hostCfg = cfg.hosts.${hostName} or null;
       portCfg =
-        if (cfg.hosts.${hostName} or null) == null
+        if hostCfg == null
         then throw "getAddress: host ${hostName} is not defined"
-        else if (cfg.hosts.${hostName}.ports.${portName} or null) == null
+        else if (hostCfg.ports.${portName} or null) == null
         then throw "getAddress: port ${portName} is not defined on host ${hostName}"
-        else cfg.hosts.${hostName}.ports.${portName};
+        else hostCfg.ports.${portName};
 
       address = rec {
         localProtocol =
@@ -93,12 +94,14 @@
         domain =
           if portCfg.reverseProxy.enable
           then portCfg.reverseProxy.domain
+          else if hostCfg.domain != null
+          then hostCfg.domain
           else throw "getAddress: ${hostName}: ${portName}: Domain cannot be referenced because port is not reverse proxied.";
         host =
           if hostName == config.networking.hostName
           then "localhost"
           else hostName;
-        ip = cfg.hosts.${hostName}.vpn.ip;
+        ip = hostCfg.vpn.ip;
       };
     in
       replaceStrings (attrNames address) (attrValues address);

@@ -134,7 +134,14 @@ in {
               type = types.listOf (types.submodule {
                 options = {
                   secrets = secretsOpt;
-                  mailAccount = namedUserOptions;
+                  mailAccount =
+                    {
+                      uid = mkOption {
+                        description = "username of mail user";
+                        type = types.str;
+                      };
+                    }
+                    // namedUserOptions;
                 };
               });
             };

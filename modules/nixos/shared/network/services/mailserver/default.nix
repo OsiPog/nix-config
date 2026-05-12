@@ -8,9 +8,9 @@
   ...
 }: let
   inherit (lib) mkIf mkMerge;
-  inherit (lib.attrsets) filterAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers;
-  inherit (config.lib.network) getServiceVariables;
+  inherit (lib.attrsets) getAttrs;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkMergeTopLevel;
+  inherit (config.lib.network) getServiceVariables getAddress;
 
   inherit
     (getServiceVariables "mailserver")
@@ -22,27 +22,49 @@
 in {
   imports = [
     inputs.simple-nixos-mailserver.nixosModules.default
-    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({
+      cfg,
+      name,
+      ...
+    }: {
       configEnable = {
         ports.submissions = {
           protocol = "submissions";
           port = 465;
         };
       };
-      provideEnable.ldap-clients = [
-        {
-          groups.email = {};
-          extraUserAttributes = {
-            mail-aliases = {
-              dataType = "string";
-              editable = false;
-              multiple = true;
-              visible = true;
-            };
-          };
-        }
-      ];
+      provideEnable = {
+        mail-server.address = getAddress {
+          portName = "submissions";
+          hostName = name;
+        };
+
+        ldap-clients =
+          [
+            {
+              groups.email = {};
+              extraUserAttributes = {
+                mail-aliases = {
+                  dataType = "string";
+                  editable = false;
+                  multiple = true;
+                  visible = true;
+                };
+              };
+            }
+          ]
+          # translate mail accounts to ldap accounts (is connected to ldap)
+          ++ (map (mailClient: {
+              secrets = getAttrs [mailClient.mailAccount.secretName] mailClient.secrets;
+              users.${mailClient.mailAccount.uid} = {
+                inherit (mailClient.mailAccount) display email secretName;
+              };
+            })
+            cfg.require.mail-clients);
+      };
     }))
+
+    flake.nixosModules.porkbunAcme
   ];
 
   config = mkIf (networkCfg.enable && cfg.enable) (mkMerge [
@@ -53,6 +75,8 @@ in {
           message = "Due to mail protocol requirements, mailserver cannot be reverse proxied.";
         }
       ];
+
+      services.porkbunAcme.enable = true;
 
       mailserver = {
         enable = true;
@@ -69,15 +93,14 @@ in {
         #   };
         # };
 
-        certificateScheme = "acme";
-        acmeCertificateName = config.networking.domain;
+        mailserver.x509.useACMEHost = config.networking.domain;
       };
     }
 
     # LDAP INTEGRATION
     (let
       ldapServer = cfg.require.ldap-server;
-      secrets = filterAttrs (name: _: name == ldapServer.users.search.secretName) ldapServer.secrets;
+      secrets = getAttrs [ldapServer.users.search.secretName] ldapServer.secrets;
     in
       mkIf (ldapServer != null) (let
         usersFilter = username: "(&(|(${ldapServer.attributes.email}=${username})(mail-aliases=${username}))(${ldapServer.attributes.memberof}=cn=email,ou=groups,${ldapServer.baseDN}))";
@@ -87,19 +110,31 @@ in {
         users.groups = mkGroupsFromSecretsWithMembers secrets ["postfix"];
         mailserver.ldap = {
           enable = true;
-          searchBase = ldapServer.baseDN;
+          base = ldapServer.baseDN;
           uris = [(ldapServer.address "proxyProtocol://domain:port")];
           bind = {
             dn = ldapServer.users.search.dn;
-            passwordFile = cfg.getSopsFile ldapServer.users.search.secretName;
+            passwordFile = config.getSopsFile ldapServer.users.search.secretName;
           };
-          postfix = {
-            filter = usersFilter "%S";
-            uidAttribute = ldapServer.attributes.uid;
-            mailAttribute = ldapServer.attributes.email;
+          attributes = with ldapServer.attributes; {
+            inherit password;
+            uuid = uid;
+            username = uid;
+            mail = email;
           };
+          postfix.filter = usersFilter "%S";
           dovecot.passFilter = usersFilter "%{user}";
         };
       }))
+
+    # MAIL CLIENTS INTEGRATION (only register mail accounts when ldap is not set)
+    (mkIf (cfg.require.ldap-server == null) (mkMergeTopLevel ["sops" "users" "mailserver"] (map (mailClient: {
+        sops.secrets = mailClient.secrets;
+
+        users.groups = mkGroupsFromSecretsWithMembers mailClient.secrets ["postfix"];
+
+        mailserver.accounts."${mailClient.mailAccount.email}".passwordFile = config.getSopsFile mailClient.mailAccount.secretName;
+      })
+      cfg.require.mail-clients)))
   ]);
 }
