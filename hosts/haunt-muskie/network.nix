@@ -18,7 +18,7 @@
   # };
 
   # --- NGINX REVERSE PROXY
-  # services.reverseProxy.enable = true;
+  services.reverseProxy.enable = true;
 
   # --- MAIL
   services.mailserver = {

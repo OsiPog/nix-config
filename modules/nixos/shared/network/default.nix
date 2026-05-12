@@ -85,12 +85,9 @@ in {
     # ./services/nfs.nix
     ./services/opencloud
     # ./services/portunus
-    # ./services/reverseProxy.nix
+    ./services/reverseProxy.nix
     ./services/staticWebsites.nix
 
-    # ./integrations/ldap
-    # ./integrations/mail
-    # ./integrations/oidc
     # ./integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];
 
