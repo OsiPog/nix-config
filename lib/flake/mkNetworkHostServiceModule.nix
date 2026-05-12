@@ -1,11 +1,21 @@
-flake: {serviceName}: networkModule: {
+flake: {
+  serviceName,
+  enforceSingleInstance ? false,
+}: networkModule: {
   lib,
-  options,
+  config,
   ...
 }: let
+  inherit (builtins) filter length;
   inherit (flake.lib) mkModuleWithExtraMetaAttrs;
   inherit (lib) mkEnableOption mkIf mkOption types;
+  inherit (lib.lists) optional;
 in {
+  assertions = optional enforceSingleInstance {
+    assertion = length (filter (e: e.serviceName == serviceName) config.lib.network.allEnabledServices) == 1;
+    message = "Network service '${serviceName}' must be enabled on exactly one host.";
+  };
+
   network.sharedModules = [
     ({
       config,
@@ -150,10 +160,27 @@ in {
               default = [];
               type = types.listOf (types.submodule {
                 options = {
-                  redirectUri = mkOption {type = types.str;};
+                  secrets = secretsOpt;
                   clientId = mkOption {type = types.str;};
+                  clientName = mkOption {type = types.str;};
+                  hashedClientSecret = mkOption {type = types.str;};
                   clientSecretName = mkOption {type = types.str;};
+                  redirectUris = mkOption {type = types.listOf types.str;};
                   scopes = mkOption {
+                    type = types.listOf types.str;
+                    default = ["openid" "profile" "email"];
+                  };
+                  pkce = {
+                    enabled = mkOption {
+                      type = types.bool;
+                      default = false;
+                    };
+                    method = mkOption {
+                      type = types.enum ["plain" "S256"];
+                      default = "S256";
+                    };
+                  };
+                  idTokenClaims = mkOption {
                     type = types.listOf types.str;
                     default = [];
                   };
