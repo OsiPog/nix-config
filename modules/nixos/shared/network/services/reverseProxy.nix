@@ -35,7 +35,11 @@ in {
   imports = [
     flake.nixosModules.porkbunAcme
 
-    (mkNetworkHostServiceModule {inherit serviceName;} null)
+    (mkNetworkHostServiceModule {
+        inherit serviceName;
+        enforceSingleInstance = true;
+      }
+      null)
 
     ../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
   ];

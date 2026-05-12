@@ -93,7 +93,7 @@ in {
         #   };
         # };
 
-        mailserver.x509.useACMEHost = config.networking.domain;
+        x509.useACMEHost = config.networking.domain;
       };
     }
 

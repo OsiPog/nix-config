@@ -36,10 +36,6 @@ in {
               imports = networkCfg.sharedModules;
 
               options = {
-                vpn.ip = mkOption {
-                  type = types.str;
-                  description = "VPN IP address for the host";
-                };
                 ssh = {
                   publicKey = mkOption {
                     type = types.str;
@@ -75,11 +71,12 @@ in {
     ./importHosts.nix
 
     ./ports.nix
+    ./vpn
 
     ./services/authelia
     # ./services/backup.nix
     # ./services/dnsmasq.nix
-    # ./services/headscale
+    ./services/headscale
     # ./services/hytale-server.nix
     ./services/jellyfin
     ./services/lldap
