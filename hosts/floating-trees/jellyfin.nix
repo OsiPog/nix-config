@@ -1,8 +1,12 @@
 {
   config,
   pkgs,
+  inputs,
   ...
 }: {
+  imports = [
+    inputs.jellarr.nixosModules.default
+  ];
   # --- JELLYFIN
   # read husk
   users.users.jellyfin.extraGroups = ["husk" "render" "video"];

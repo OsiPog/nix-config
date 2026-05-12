@@ -3,7 +3,7 @@ flake: {
   extraSpecialArgs ? {}, # extra special args added during module evaluation
 }: module: moduleArgs: let
   inherit (builtins) elem attrNames foldl';
-  inherit (moduleArgs.lib.attrsets) attrsToList recursiveUpdate;
+  inherit (moduleArgs.lib.attrsets) attrsToList;
 
   evaluated =
     if module != null

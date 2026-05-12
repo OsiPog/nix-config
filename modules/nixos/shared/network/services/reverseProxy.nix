@@ -35,9 +35,11 @@ in {
   imports = [
     flake.nixosModules.porkbunAcme
 
-    (mkNetworkHostServiceModule {inherit serviceName;} null)
-
-    ../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
+    (mkNetworkHostServiceModule {
+        inherit serviceName;
+        enforceSingleInstance = true;
+      }
+      null)
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     networking.firewall = {
@@ -60,11 +62,7 @@ in {
               useACMEHost = hostCfg.domain;
               forceSSL = true;
               locations."/" = {
-                proxyPass = getAddress {
-                  inherit (p) portName hostName;
-                  protocol = "http";
-                  direct = true;
-                };
+                proxyPass = p.portCfg.address "http://host:port";
                 proxyWebsockets = true;
               };
             };
@@ -84,10 +82,7 @@ in {
             else "";
         in ''
           upstream ${upstream} {
-            server ${getAddress {
-            inherit (p) portName hostName;
-            direct = true;
-          }};
+            server ${p.portCfg.address "host:port"};
           }
           server {
             proxy_pass ${upstream};
@@ -121,6 +116,6 @@ in {
 
     services.porkbunAcme.enable = true;
     users.users.nginx.extraGroups = ["acme"];
-    security.acme.certs."${hostCfg.domain}".extraDomainNames = map (p: getAddress {inherit (p) portName hostName;}) relevantVirtualHostPorts;
+    security.acme.certs."${hostCfg.domain}".extraDomainNames = map (p: p.portCfg.address "domain") relevantVirtualHostPorts;
   };
 }

@@ -4,9 +4,9 @@
   hostName,
   ...
 }: let
-  inherit (builtins) throw length filter head concatStringsSep foldl';
-  inherit (lib) pipe;
-  inherit (lib.attrsets) attrsToList filterAttrs mapAttrsToList;
+  inherit (builtins) throw length filter head concatStringsSep foldl' replaceStrings attrNames attrValues listToAttrs;
+  inherit (lib) pipe mkMerge;
+  inherit (lib.attrsets) attrsToList filterAttrs mapAttrsToList mapAttrs mapAttrs';
   inherit (lib.lists) flatten range;
 
   cfg = config.network;
@@ -61,69 +61,51 @@
       flatten
     ];
 
+    servicesById = pipe allEnabledServices [
+      (map (service: {
+        name = service.serviceCfg.id;
+        value = service.serviceCfg;
+      }))
+      listToAttrs
+    ];
+
     getAddress = {
       portName,
-      hostName ? null,
-      asIP ? false,
-      direct ? false,
-      protocol ? null,
-      appendPort ? true,
+      hostName,
     }: let
-      host =
-        if hostName != null
-        then hostName
-        else
-          pipe allPorts [
-            (filter (e: e.portName == portName))
-            (ports:
-              if length ports == 0
-              then throw "getAddress: port ${portName} cannot be found on any host."
-              else if length ports >= 2
-              then throw "getAddress: port ${portName} is defined on multiple hosts (${concatStringsSep ", " (map (e: e.hostName) ports)}). Please provide a hostName or enable the associated service on only one host."
-              else (head ports).hostName)
-          ];
+      hostCfg = cfg.hosts.${hostName} or null;
       portCfg =
-        if (cfg.hosts.${host} or null) == null
-        then throw "getAddress: host ${host} is not defined"
-        else if (cfg.hosts.${host}.ports.${portName} or null) == null
-        then throw "getAddress: port ${portName} is not defined on host ${host}"
-        else cfg.hosts.${host}.ports.${portName};
+        if hostCfg == null
+        then throw "getAddress: host ${hostName} is not defined"
+        else if (hostCfg.ports.${portName} or null) == null
+        then throw "getAddress: port ${portName} is not defined on host ${hostName}"
+        else hostCfg.ports.${portName};
+
+      address = rec {
+        localProtocol =
+          if portCfg.protocol != null
+          then portCfg.protocol
+          else throw "getAddress: ${hostName}: ${portName}: Protocol is null. It cannot be referenced.";
+        proxyProtocol =
+          if portCfg.reverseProxy.method == "virtual-host"
+          then "https"
+          else localProtocol;
+        port = toString portCfg.port;
+        domain =
+          if portCfg.reverseProxy.enable
+          then portCfg.reverseProxy.domain
+          else if hostCfg.domain != null
+          then hostCfg.domain
+          else throw "getAddress: ${hostName}: ${portName}: Domain cannot be referenced because port is not reverse proxied.";
+        host =
+          if hostName == config.networking.hostName
+          then "localhost"
+          else hostName;
+        ip = hostCfg.vpn.ip;
+      };
     in
-      # optional protocol prefix
-      (
-        if protocol != null
-        then "${protocol}://"
-        else ""
-      )
-      + (
-        # use IP if required
-        if asIP
-        then cfg.hosts.${host}.vpn.ip
-        else
-          (
-            # Go with domain when port is reverse proxied
-            if portCfg.reverseProxy.enable && !direct
-            then portCfg.reverseProxy.domain
-            else if cfg.hosts.${host}.domain != null && !direct
-            then cfg.hosts.${host}.domain
-            else
-              (
-                if host == config.networking.hostName
-                then "localhost"
-                else host
-              )
-          )
-      )
-      + (
-        if appendPort
-        then
-          (
-            if (portCfg.reverseProxy.enable && portCfg.reverseProxy.method == "virtual-host" && !direct && !asIP)
-            then ""
-            else ":" + (toString portCfg.port)
-          )
-        else ""
-      );
+      replaceStrings (attrNames address) (attrValues address);
+
     serviceEnabledAnywhere = serviceName: (filter (e: e.serviceName == serviceName) allEnabledServices) != [];
 
     # Variables useful to network modules
@@ -140,35 +122,7 @@
         inherit serviceName;
         portName = serviceName;
         cfg = variables.hostCfg.services.${serviceName};
-      };
-
-    getIntegrationVariables = integrationName: integratedServices:
-      variables
-      // rec {
-        inherit integrationName integratedServices;
-        integratedServiceEnable =
-          foldl'
-          (
-            acc: elem:
-              acc
-              || (variables.hostSrvs.${elem}.enable
-                && variables.hostSrvs.${elem}.integrations.${integrationName}.enable)
-          )
-          false
-          integratedServices;
-        serviceWithIntegrationEnable = serviceName:
-          variables.hostSrvs.${serviceName}.enable
-          && variables.hostSrvs.${serviceName}.integrations.${integrationName}.enable;
-        serviceWithIntegrationEnabledAnywhere = serviceName:
-          (
-            filter (
-              e:
-                (e.serviceName == serviceName)
-                && e.serviceCfg.integrations.${integrationName}.enable
-            )
-            allEnabledServices
-          )
-          != [];
+        stateDir = "/var/lib/${serviceName}";
       };
   };
 in {

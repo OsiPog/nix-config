@@ -12,16 +12,27 @@ in {
     ({
       name,
       config,
+      nixosConfig,
       ...
-    }: {
+    }: let
+      hostName = name;
+    in {
       options.ports = mkOption {
         description = "Ports opened on this host";
-        type = types.attrsOf (types.submodule (_portModule: {
+        type = types.attrsOf (types.submodule ({name, ...} @ _portModule: let
+          portName = name;
+        in {
           options = {
             port = mkOption {
               type = types.nullOr types.port;
               default = null;
               description = "Single port number";
+            };
+
+            protocol = mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = "The protocol used on this port.";
             };
 
             host = mkOption {
@@ -46,6 +57,15 @@ in {
               });
               default = null;
               description = "Port range for this port";
+            };
+
+            address = mkOption {
+              type = types.functionTo types.str;
+              description = "return value of getAddress on this port";
+              readOnly = true;
+              default = nixosConfig.lib.network.getAddress {
+                inherit hostName portName;
+              };
             };
 
             reverseProxy = mkOption {

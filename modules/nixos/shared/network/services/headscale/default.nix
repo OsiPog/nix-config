@@ -5,9 +5,10 @@
   flake,
   ...
 }: let
-  inherit (builtins) toFile toJSON;
+  inherit (builtins) toFile toJSON head;
   inherit (lib) mkIf mkDefault mkMerge mkForce;
-  inherit (flake.lib) mkNetworkHostServiceModule;
+  inherit (lib.attrsets) getAttrs;
+  inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers;
   inherit (config.lib.network) getAddress getServiceVariables;
 
   inherit
@@ -18,16 +19,43 @@
     cfg
     ports
     ;
+
+  stateDir = "/var/lib/headscale"; # hardcoded in nixpkgs, not configurable
+  address = getAddress {inherit hostName portName;};
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
-      configEnable = {
-        ports.${portName}.port = mkDefault 8081;
-      };
-      configService.stateDir = "/var/lib/headscale"; # hardcoded in nixpkgs module
-    }))
-
-    ../../integrations/hiddenServicesWithHeadscaleAndDnsmasq.nix
+    (mkNetworkHostServiceModule {
+        inherit serviceName;
+        enforceSingleInstance = true;
+      } ({name, ...}: {
+        configEnable = {
+          ports.${portName} = {
+            protocol = "http";
+            port = mkDefault 8081;
+          };
+        };
+        provideEnable.oidc-clients = [
+          rec {
+            secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
+            clientId = "headscale";
+            clientName = "Headscale";
+            hashedClientSecret = "$pbkdf2-sha512$310000$OM.pbqoXjN0sV3ePThP93A$DqJvD5pH5D65CC48UVV2amlinmsQN078kWapJWtn4JUr369PHh/Ce/0TZyx1gbFcOBeFo2Kr8IkUvkQx2fwUYQ";
+            clientSecretName = "headscale/oidc-secret";
+            redirectUris = let
+              address = getAddress {
+                hostName = name;
+                portName = serviceName;
+              };
+            in ["${address "proxyProtocol://domain"}/oidc/callback"];
+            scopes = ["openid" "profile" "email" "groups"];
+            pkce = {
+              enabled = true;
+              method = "S256";
+            };
+            idTokenClaims = ["email" "groups"];
+          }
+        ];
+      }))
   ];
   config = mkMerge [
     (mkIf (networkCfg.enable && cfg.enable) {
@@ -38,10 +66,7 @@ in {
         settings = {
           # allow all policy
           policy.path = toFile "file.json" (toJSON {});
-          server_url = getAddress {
-            protocol = "https";
-            inherit portName;
-          };
+          server_url = address "proxyProtocol://domain";
           dns = {
             override_local_dns = true;
             # can be overriden ;)
@@ -53,46 +78,31 @@ in {
             ];
             # Magic DNS
             magic_dns = true;
-            base_domain = "dns." + (getAddress {inherit portName;});
+            base_domain = "dns." + (address "domain");
           };
         };
       };
     })
-    # Enable tailscale for every host
-    (mkIf networkCfg.enable {
-      sops.secrets."tailscale/auth-key" = {sopsFile = ./secrets.yaml;};
-
-      # disable kresd
-      services.kresd.enable = mkForce false;
-
-      services.tailscale = {
-        enable = true;
-        openFirewall = true;
-        interfaceName = "sculk";
-        useRoutingFeatures = "both";
-        authKeyFile = config.getSopsFile "tailscale/auth-key";
-        extraUpFlags = [
-          "--login-server=${
-            getAddress {
-              inherit portName;
-              # Nginx uses tailscale to reverse proxy to other hosts on the tailnet. So the host that runs headscale must depend not on nginx.
-              # thus, we directly connect to localhost
-              direct = cfg.enable;
-            }
-          }"
-          "--hostname=${hostName}"
-        ];
-        # extraSetFlags = ["--accept-dns=false"];
-      };
-
-      # overwrite the autoconnect service
-      # systemd.services.tailscaled-autoconnect.script = let
-      #   inherit (lib) escapeShellArgs;
-      #   cfg = config.services.tailscale;
-      # in
-      #   mkForce ''
-      #     tailscale up --auth-key="$(cat ${cfg.authKeyFile})" ${escapeShellArgs cfg.extraUpFlags}
-      #   '';
-    })
+    # OIDC SERVER INTEGRATION
+    (let
+      oidcServer = cfg.require.oidc-server;
+      oidcClient = head cfg.provide.oidc-clients;
+      secrets = getAttrs [oidcClient.clientSecretName] oidcClient.secrets;
+    in
+      mkIf (networkCfg.enable && cfg.enable && oidcServer != null) {
+        sops = {inherit secrets;};
+        users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.headscale.user];
+        services.headscale.settings.oidc = {
+          only_start_if_oidc_is_available = mkDefault false;
+          issuer = oidcServer.address "proxyProtocol://domain";
+          client_id = oidcClient.clientId;
+          client_secret_path = config.getSopsFile oidcClient.clientSecretName;
+          scope = oidcClient.scopes;
+          pkce = {
+            enabled = oidcClient.pkce.enabled;
+            method = oidcClient.pkce.method;
+          };
+        };
+      })
   ];
 }

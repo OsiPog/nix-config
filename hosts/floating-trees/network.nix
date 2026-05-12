@@ -1,26 +1,23 @@
 # This is a special nix module. It is imported into `networking.hosts.<name>` of every nixos configuration.
 # So that each host can see the network configuration of all other hosts.
-{...}: {
+{servicesById, ...}: {
   vpn.ip = "100.64.0.4";
   ssh = {
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDYdr33vJvtTnrSDiEhCUkc0fL7GyrZG9UEL8zjaKJpU root@floating-trees";
     allowConnectionsFrom = ["dead-voxel" "biome-fest"];
   };
-  stateDirs = [
-    "/mnt/husk"
-  ];
 
   # --- DNSMASQ
   services.dnsmasq.enable = true;
 
   # --- RESTIC
-  services.backup = {
-    enable = true;
-    server = {
-      enable = true;
-      repository = "/mnt/blaze";
-    };
-  };
+  # services.backup = {
+  #   enable = true;
+  #   server = {
+  #     enable = true;
+  #     repository = "/mnt/blaze";
+  #   };
+  # };
 
   # --- MINECRAFT
   # services.minecraft-server.enable = true;
@@ -42,14 +39,13 @@
 
   # --- AUTHELIA
   services.authelia = {
+    id = "authelia";
     enable = true;
-    integrations = {
-      ldap.enable = true;
-      mail = {
-        enable = true;
-        host = "haunt-muskie";
-      };
-    };
+    require.ldap-server = servicesById.lldap.provide.ldap-server;
+    require.mail-server = servicesById.snm.provide.mail-server;
+    require.oidc-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.oidc-clients) [] [
+      "headscale"
+    ];
   };
   ports.authelia.reverseProxy = {
     enable = true;
@@ -58,11 +54,14 @@
 
   # --- LLDAP
   services.lldap = {
+    id = "lldap";
     enable = true;
-    integrations.mail = {
-      enable = true;
-      host = "haunt-muskie";
-    };
+    require.ldap-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.ldap-clients) [] [
+      "snm"
+      "authelia"
+      "opencloud"
+      "jellyfin"
+    ];
   };
   ports.ldaps.reverseProxy = {
     enable = true;
@@ -90,8 +89,9 @@
 
   # --- OPENCLOUD
   services.opencloud = {
+    id = "opencloud";
     enable = true;
-    integrations.ldap.enable = true;
+    require.ldap-server = servicesById.lldap.provide.ldap-server;
   };
   ports.opencloud.reverseProxy = {
     enable = true;
@@ -100,8 +100,9 @@
 
   # --- JELLYFIN
   services.jellyfin = {
+    id = "jellyfin";
     enable = true;
-    integrations.ldap.enable = true;
+    require.ldap-server = servicesById.lldap.provide.ldap-server;
   };
   ports.jellyfin.reverseProxy = {
     enable = true;

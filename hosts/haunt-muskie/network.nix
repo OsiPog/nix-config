@@ -1,4 +1,8 @@
-{inputs, ...}: {
+{
+  inputs,
+  servicesById,
+  ...
+}: {
   domain = "axelhax.net";
   extraDomains = [inputs.nix-config-private.personal_domain];
   vpn.ip = "100.64.0.1";
@@ -8,24 +12,31 @@
   };
 
   # --- RESTIC BACKUP
-  services.backup = {
-    enable = true;
-    host = "floating-trees";
-  };
+  # services.backup = {
+  #   enable = true;
+  #   host = "floating-trees";
+  # };
 
   # --- NGINX REVERSE PROXY
   services.reverseProxy.enable = true;
 
   # --- MAIL
   services.mailserver = {
+    id = "snm";
     enable = true;
-    integrations.ldap.enable = true;
+    require = {
+      inherit (servicesById.lldap.provide) ldap-server;
+      mail-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.mail-clients) [] [
+        "authelia"
+      ];
+    };
   };
 
   # --- HEADSCALE VPN
   services.headscale = {
+    id = "headscale";
     enable = true;
-    integrations.oidc.enable = true;
+    require.oidc-server = servicesById.authelia.provide.oidc-server;
   };
   ports.headscale.reverseProxy = {
     enable = true;

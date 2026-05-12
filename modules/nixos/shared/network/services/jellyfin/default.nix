@@ -1,12 +1,14 @@
 {
   config,
   lib,
+  pkgs,
   flake,
   hostName,
   ...
 }: let
-  inherit (lib) mkIf mkDefault;
-  inherit (flake.lib) mkNetworkHostServiceModule;
+  inherit (lib) mkIf mkMerge mkDefault;
+  inherit (lib.attrsets) filterAttrs;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers;
   inherit (config.lib.network) getServiceVariables getAddress;
 
   inherit
@@ -14,73 +16,141 @@
     serviceName
     portName
     networkCfg
+    stateDir
     cfg
     ;
+
+  address = getAddress {
+    inherit portName;
+    inherit hostName;
+  };
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
       configEnable = {
-        ports.${portName}.port = mkDefault 8096;
+        ports.${portName} = {
+          protocol = "http";
+          port = mkDefault 8096;
+        };
       };
+      provideEnable.ldap-clients = [{groups.media = {};}];
     }))
 
     flake.inputs.jellarr.nixosModules.default
   ];
 
-  config = mkIf (networkCfg.enable && cfg.enable) {
-    sops = {
-      secrets = {
-        "jellyfin/admin-pass" = {
-          owner = config.services.jellyfin.user;
-          sopsFile = ./secrets.yaml;
+  config = mkIf (networkCfg.enable && cfg.enable) (mkMerge [
+    {
+      sops = {
+        secrets = {
+          "jellyfin/admin-pass" = {
+            owner = config.services.jellyfin.user;
+            sopsFile = ./secrets.yaml;
+          };
+          "jellyfin/api-key" = {
+            owner = config.services.jellyfin.user;
+            sopsFile = ./secrets.yaml;
+          };
         };
-        "jellyfin/api-key" = {
+        templates.jellarr-env = {
+          content = ''
+            JELLARR_API_KEY=${config.sops.placeholder."jellyfin/api-key"}
+          '';
           owner = config.services.jellyfin.user;
-          sopsFile = ./secrets.yaml;
         };
       };
-      templates.jellarr-env = {
-        content = ''
-          JELLARR_API_KEY=${config.sops.placeholder."jellyfin/api-key"}
-        '';
-        owner = config.services.jellyfin.user;
-      };
-    };
 
-    services.jellyfin = {
-      enable = true;
-      dataDir = cfg.stateDir;
-    };
-
-    services.jellarr = {
-      enable = true;
-      environmentFile = config.sops.templates.jellarr-env.path;
-      inherit (config.services.jellyfin) user group;
-      dataDir = "${cfg.stateDir}/jellarr";
-      bootstrap = {
+      services.jellyfin = {
         enable = true;
-        apiKeyFile = config.getSopsFile "jellyfin/api-key";
+        dataDir = stateDir;
       };
-      config = {
-        version = mkDefault 1;
-        base_url = getAddress {
-          protocol = "https";
-          inherit portName;
-          inherit hostName;
+
+      services.jellarr = {
+        enable = true;
+        environmentFile = config.sops.templates.jellarr-env.path;
+        inherit (config.services.jellyfin) user group;
+        dataDir = "${stateDir}/jellarr";
+        bootstrap = {
+          enable = true;
+          apiKeyFile = config.getSopsFile "jellyfin/api-key";
         };
-        system = {};
-        startup.completeStartupWizard = true;
-        users = [
-          {
-            name = "jellyfin-admin";
-            passwordFile = config.getSopsFile "jellyfin/admin-pass";
-            policy = {
-              isAdministrator = true;
-              loginAttemptsBeforeLockout = 3;
-            };
-          }
-        ];
+        config = {
+          version = mkDefault 1;
+          base_url = address "proxyProtocol://domain";
+          system = {};
+          startup.completeStartupWizard = true;
+          users = [
+            {
+              name = "jellyfin-admin";
+              passwordFile = config.getSopsFile "jellyfin/admin-pass";
+              policy = {
+                isAdministrator = true;
+                loginAttemptsBeforeLockout = 3;
+              };
+            }
+          ];
+        };
       };
-    };
-  };
+    }
+
+    # LDAP INTEGRATION
+    (let
+      ldapServer = cfg.require.ldap-server;
+      secrets = filterAttrs (name: _: name == ldapServer.users.search.secretName) ldapServer.secrets;
+    in
+      mkIf (ldapServer != null) {
+        sops = {inherit secrets;};
+        users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.jellyfin.user];
+        services.jellarr.config = {
+          system.pluginRepositories = [
+            {
+              name = "Jellyfin Official";
+              url = "https://repo.jellyfin.org/releases/plugin/manifest.json";
+              enabled = true;
+            }
+          ];
+          plugins = [
+            {
+              name = "LDAP Authentication";
+              configuration = {
+                LdapServer = ldapServer.address "domain";
+                LdapPort = 6360;
+
+                LdapAdminBaseDn = ldapServer.baseDN;
+                LdapAdminFilter = "(uid=${ldapServer.users.admin.dn})";
+
+                LdapBaseDn = ldapServer.baseDN;
+                LdapBindUser = "uid=${ldapServer.users.search.dn},ou=people,${ldapServer.baseDN}";
+                LdapPasswordAttribute = ldapServer.attributes.password;
+                LdapProfileImageAttribute = ldapServer.attributes.icon;
+                LdapProfileImageFormat = "Default";
+                LdapSearchAttributes = "uid,cn,mail,displayName";
+                LdapSearchFilter = "(|(memberof=cn=media,ou=groups,${ldapServer.baseDN})(uid=${ldapServer.users.admin.dn}))";
+                LdapUidAttribute = ldapServer.attributes.uid;
+                LdapUsernameAttribute = "cn";
+
+                UseSsl = true;
+
+                AllowPassChange = false;
+                CreateUsersFromLdap = true;
+                EnableLdapProfileImageSync = true;
+              };
+            }
+          ];
+        };
+        systemd.services.jellarr-set-ldap-bind-password = {
+          after = ["jellarr.service" "jellyfin.service"];
+          wantedBy = ["multi-user.target"];
+          path = [pkgs.curl];
+          serviceConfig.Type = "oneshot";
+          script = ''
+            curl ${config.services.jellarr.config.base_url}/Plugins/958aad6637844d2ab89aa7b6fab6e25c/Configuration \
+              -X POST \
+              -H "Content-Type: application/json" \
+              -H "X-Emby-Token: $(cat ${config.services.jellarr.bootstrap.apiKeyFile})" \
+              --data "{\"LdapBindPassword\": \"$(cat ${config.getSopsFile ldapServer.users.search.secretName})\"}"
+          '';
+        };
+      })
+  ]);
 }
