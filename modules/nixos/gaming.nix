@@ -72,14 +72,14 @@
     enable = true;
     packages = [
       # Hytale Launcher
-      rec {
-        appId = "com.hypixel.HytaleLauncher";
-        sha256 = "sha256-ETQntlv7zfuWBysF5eNeAONBrCaa6l6RjvOPh6kbSEI=";
-        bundle = toString (pkgs.fetchurl {
-          url = "https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak";
-          inherit sha256;
-        });
-      }
+      # rec {
+      #   appId = "com.hypixel.HytaleLauncher";
+      #   sha256 = "sha256-ETQntlv7zfuWBysF5eNeAONBrCaa6l6RjvOPh6kbSEI=";
+      #   bundle = toString (pkgs.fetchurl {
+      #     url = "https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak";
+      #     inherit sha256;
+      #   });
+      # }
       # Retro Deck emulation stuff
       "net.retrodeck.retrodeck"
     ];
