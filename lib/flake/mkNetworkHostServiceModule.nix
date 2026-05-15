@@ -178,6 +178,7 @@ in {
                     type = types.listOf types.str;
                     default = ["openid" "profile" "email"];
                   };
+                  public = mkEnableOption "the oidc client to be public, thus using no secret.";
                   pkce = {
                     enabled = mkOption {
                       type = types.bool;

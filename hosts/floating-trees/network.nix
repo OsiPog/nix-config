@@ -45,6 +45,7 @@
     require.mail-server = servicesById.snm.provide.mail-server;
     require.oidc-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.oidc-clients) [] [
       "headscale"
+      "opencloud"
     ];
   };
   ports.authelia.reverseProxy = {
@@ -92,6 +93,7 @@
     id = "opencloud";
     enable = true;
     require.ldap-server = servicesById.lldap.provide.ldap-server;
+    require.oidc-server = servicesById.authelia.provide.oidc-server;
   };
   ports.opencloud.reverseProxy = {
     enable = true;

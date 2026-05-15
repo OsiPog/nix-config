@@ -68,6 +68,13 @@
   };
   systemd.services.opencloud.path = [pkgs.inotify-tools];
 
+  # services.opencloud.url = pkgs.lib.mkForce "http://10.12.21.41:9200";
+  # services.opencloud.environment = {
+  #   OC_INSECURE = "true";
+  #   PROXY_TLS = "false";
+  #   OC_EXCLUDE_RUN_SERVICES = "idp,nats";
+  # };
+  # networking.firewall.allowedTCPPorts = [9200];
   # Don't change, will break things!
   system.stateVersion = "25.11";
 }

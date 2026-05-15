@@ -32,10 +32,22 @@ in {
       cfg,
       name,
       ...
-    }: {
+    }: let
+      address = getAddress {
+        portName = "authelia";
+        hostName = name;
+      };
+    in {
       configEnable.ports.${portName} = {
         protocol = "https";
         port = 9091;
+        reverseProxy.extraConfig.locations."/api/oidc/token" = {
+          proxyPass = address "http://host:port";
+          extraConfig = ''
+            add_header Access-Control-Allow-Origin "*";
+            add_header Access-Control-Allow-Methods "*";
+          '';
+        };
       };
 
       provideEnable = {
@@ -51,10 +63,7 @@ in {
           }
         ];
 
-        oidc-server.address = getAddress {
-          portName = "authelia";
-          hostName = name;
-        };
+        oidc-server = {inherit address;};
       };
     }))
   ];
@@ -132,14 +141,18 @@ in {
     # OIDC CLIENTS INTEGRATION
     (mkMergeTopLevel ["services"] (map (client: {
         services.authelia.instances.default.settings.identity_providers.oidc = {
+          cors.allowed_origins_from_client_redirect_uris = true;
           claims_policies.${client.clientId}.id_token = client.idTokenClaims;
           clients = [
             {
               client_id = client.clientId;
               client_name = client.clientName;
-              client_secret = client.hashedClientSecret;
+              client_secret =
+                if client.public
+                then ""
+                else client.hashedClientSecret;
               claims_policy = client.clientId;
-              public = false;
+              public = client.public;
               require_pkce = client.pkce.enabled;
               pkce_challenge_method = client.pkce.method;
               redirect_uris = client.redirectUris;
@@ -148,7 +161,7 @@ in {
               grant_types = ["authorization_code"];
               access_token_signed_response_alg = "none";
               userinfo_signed_response_alg = "none";
-              token_endpoint_auth_method = "client_secret_basic";
+              consent_mode = "pre-configured";
             }
           ];
         };

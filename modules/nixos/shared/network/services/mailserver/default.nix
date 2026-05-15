@@ -135,7 +135,7 @@ in {
         };
         # TODO: same here
         services.postfix.submissionsOptions.smtpd_sender_login_maps =
-          mkForce "ldap:${config.sops.templates.postfixSenderLoginMapsMain.path},ldap:${config.sops.templates.postfixSenderLoginMapsAliases.path}";
+          mkForce "ldap:${config.sops.templates.postfixSenderLoginMapsMain.path}";
         sops.templates = let
           cfg = config.mailserver;
           ldapAuthBlock = ''

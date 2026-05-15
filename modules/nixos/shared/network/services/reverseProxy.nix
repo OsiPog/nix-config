@@ -35,11 +35,7 @@ in {
   imports = [
     flake.nixosModules.porkbunAcme
 
-    (mkNetworkHostServiceModule {
-        inherit serviceName;
-        enforceSingleInstance = true;
-      }
-      null)
+    (mkNetworkHostServiceModule {inherit serviceName;} null)
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     networking.firewall = {
@@ -61,9 +57,21 @@ in {
             virtualHostsConfig = {
               useACMEHost = hostCfg.domain;
               forceSSL = true;
-              locations."/" = {
-                proxyPass = p.portCfg.address "http://host:port";
-                proxyWebsockets = true;
+              locations = let
+                common = {
+                  proxyPass = p.portCfg.address "http://host:port";
+                  proxyWebsockets = true;
+                };
+              in {
+                "/" = common;
+                ".well-known/" =
+                  common
+                  // {
+                    extraConfig = ''
+                      add_header Access-Control-Allow-Origin "*";
+                      add_header Access-Control-Allow-Methods "*";
+                    '';
+                  };
               };
             };
           in {
