@@ -24,6 +24,7 @@ in
 
         # installer is not part of the network
         network.enable = false;
+        network.hosts.nixos-installer = {};
 
         # allow any host to connect to this installer with passwordless login
         users.users.root.openssh.authorizedKeys.keys = pipe flake.lib.nixosHostNames [
