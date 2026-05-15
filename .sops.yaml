@@ -18,6 +18,10 @@ creation_rules:
   key_groups:
   - age:
     - *dead-voxel
+- path_regex: hosts/floating-trees/drives/secrets.yaml$
+  key_groups:
+  - age:
+    - *floating-trees
 - path_regex: hosts/floating-trees/secrets.yaml$
   key_groups:
   - age:
@@ -45,10 +49,6 @@ creation_rules:
   - age:
     - *biome-fest
     - *dead-voxel
-- path_regex: modules/nixos/drive-blaze-husk/secrets.yaml$
-  key_groups:
-  - age:
-    - *floating-trees
 - path_regex: modules/nixos/llm-tools/secrets.yaml$
   key_groups:
   - age:

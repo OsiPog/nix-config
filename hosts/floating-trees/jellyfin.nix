@@ -12,7 +12,7 @@
   users.users.jellyfin.extraGroups = ["husk" "render" "video"];
   fileSystems."${config.services.jellyfin.dataDir}/data/media" = {
     fsType = "fuse.bindfs";
-    device = "/mnt/husk/media";
+    device = "/mnt/zombie-horse/media";
   };
   services.jellarr.config = {
     plugins = [{name = "bookshelf";}];

@@ -10,10 +10,10 @@
 
     disko-fsd
 
-    drive-blaze-husk
     pcspkr
 
     ./jellyfin.nix
+    ./drives
   ];
 
   disko.devices.disk.disk1.device = "/dev/disk/by-id/ata-EDILOCA_ES106_1TB_AA000000000000050186";
@@ -55,12 +55,12 @@
   users.groups.husk = {};
 
   # --- OPENCLOUD read husk
-  users.users.opencloud.extraGroups = ["husk"];
-  fileSystems."${config.services.opencloud.stateDir}/storage/users/users/osi/written-mind" = {
-    device = "/mnt/husk/cloud/written-mind";
-    fsType = "none";
-    options = ["bind"];
-  };
+  # users.users.opencloud.extraGroups = ["husk"];
+  # fileSystems."${config.services.opencloud.stateDir}/storage/users/users/osi/written-mind" = {
+  #   device = "/mnt/zombie-horse/cloud/written-mind";
+  #   fsType = "none";
+  #   options = ["bind"];
+  # };
   services.opencloud.environment = {
     OC_SHARING_PUBLIC_SHARE_MUST_HAVE_PASSWORD = "false";
     STORAGE_USERS_POSIX_WATCH_FS = "true";
