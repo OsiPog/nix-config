@@ -41,7 +41,7 @@ in {
       configEnable.ports.${portName} = {
         protocol = "https";
         port = 9091;
-        reverseProxy.extraConfig.locations."/api/oidc/token" = {
+        reverseProxy.extraConfig.locations."/api/oidc" = {
           proxyPass = address "http://host:port";
           extraConfig = ''
             add_header Access-Control-Allow-Origin "*";
