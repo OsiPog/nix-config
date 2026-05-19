@@ -71,7 +71,7 @@ in {
             reverseProxy = mkOption {
               type = types.submodule (_proxyModule: {
                 options = {
-                  enable = mkEnableOption "reverse proxy for this port";
+                  enable = (mkEnableOption "reverse proxy for this port") // {default = _proxyModule.domain != null;};
                   hidden = mkEnableOption "that the service is only accessable in the VPN";
 
                   method = mkOption {

@@ -7,6 +7,11 @@
     allowConnectionsFrom = ["dead-voxel" "biome-fest"];
   };
 
+  ports.vmu = {
+    port = 8080;
+    reverseProxy.domain = "vmu.axelhax.net";
+  };
+
   # --- DNSMASQ
   services.dnsmasq.enable = true;
 
@@ -21,21 +26,12 @@
 
   # --- MINECRAFT
   # services.minecraft-server.enable = true;
-  # ports.minecraft-java.reverseProxy = {
-  #   enable = true;
-  #   domain = "axelhax.net";
-  # };
-  # ports.minecraft-bedrock.reverseProxy = {
-  #   enable = true;
-  #   domain = "axelhax.net";
-  # };
+  # ports.minecraft-java.reverseProxy.domain = "axelhax.net";
+  # ports.minecraft-bedrock.reverseProxy.domain = "axelhax.net";
 
   # --- HYTALE
   # services.hytale-server.enable = true;
-  # ports.hytale.reverseProxy = {
-  #   enable = true;
-  #   domain = "axelhax.net";
-  # };
+  # ports.hytale.reverseProxy.domain = "axelhax.net";
 
   # --- AUTHELIA
   services.authelia = {
@@ -48,10 +44,7 @@
       "opencloud"
     ];
   };
-  ports.authelia.reverseProxy = {
-    enable = true;
-    domain = "auth.axelhax.net";
-  };
+  ports.authelia.reverseProxy.domain = "auth.axelhax.net";
 
   # --- LLDAP
   services.lldap = {
@@ -64,29 +57,17 @@
       "jellyfin"
     ];
   };
-  ports.ldaps.reverseProxy = {
-    enable = true;
-    domain = "ldap.axelhax.net";
-    # hidden = true; # TODO: currently broken
-  };
-  ports.lldap.reverseProxy = {
-    enable = true;
-    domain = "users.axelhax.net";
-  };
+  ports.ldaps.reverseProxy.domain = "ldap.axelhax.net";
+  # ports.ldaps.reverseProxy.hidden = true; # TODO: currently broken
+  ports.lldap.reverseProxy.domain = "users.axelhax.net";
 
   # --- NGINX HTTP
   services.staticWebsites = {
     enable = true;
     sites = ["axelhax" "transit-vis"];
   };
-  ports.staticWebsites-axelhax.reverseProxy = {
-    enable = true;
-    domain = "axelhax.net";
-  };
-  ports.staticWebsites-transit-vis.reverseProxy = {
-    enable = true;
-    domain = "transit-vis.axelhax.net";
-  };
+  ports.staticWebsites-axelhax.reverseProxy.domain = "axelhax.net";
+  ports.staticWebsites-transit-vis.reverseProxy.domain = "transit-vis.axelhax.net";
 
   # --- OPENCLOUD
   services.opencloud = {
@@ -95,10 +76,7 @@
     require.ldap-server = servicesById.lldap.provide.ldap-server;
     require.oidc-server = servicesById.authelia.provide.oidc-server;
   };
-  ports.opencloud.reverseProxy = {
-    enable = true;
-    domain = "cloud.axelhax.net";
-  };
+  ports.opencloud.reverseProxy.domain = "cloud.axelhax.net";
 
   # --- JELLYFIN
   services.jellyfin = {
@@ -106,10 +84,7 @@
     enable = true;
     require.ldap-server = servicesById.lldap.provide.ldap-server;
   };
-  ports.jellyfin.reverseProxy = {
-    enable = true;
-    domain = "media.axelhax.net";
-  };
+  ports.jellyfin.reverseProxy.domain = "media.axelhax.net";
 
   # --- NFS
   # services.nfs = {

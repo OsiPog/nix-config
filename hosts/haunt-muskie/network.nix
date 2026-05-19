@@ -38,8 +38,5 @@
     enable = true;
     require.oidc-server = servicesById.authelia.provide.oidc-server;
   };
-  ports.headscale.reverseProxy = {
-    enable = true;
-    domain = "vpn.axelhax.net";
-  };
+  ports.headscale.reverseProxy.domain = "vpn.axelhax.net";
 }
