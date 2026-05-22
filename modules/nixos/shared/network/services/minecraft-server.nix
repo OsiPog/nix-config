@@ -30,10 +30,8 @@ in {
           };
           minecraft-bedrock = {
             port = 19132;
-            reverseProxy = {
-              method = "stream";
-              udp = true;
-            };
+            udp = true;
+            reverseProxy.method = "stream";
           };
         };
       };

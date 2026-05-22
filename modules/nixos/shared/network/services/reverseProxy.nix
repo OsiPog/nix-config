@@ -39,8 +39,8 @@ in {
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     networking.firewall = {
-      allowedTCPPorts = [443] ++ (map (p: p.port) (filter (p: !p.portCfg.reverseProxy.udp && !p.portCfg.reverseProxy.hidden) relevantStreamPorts));
-      allowedUDPPorts = map (p: p.port) (filter (p: p.portCfg.reverseProxy.udp) relevantStreamPorts);
+      allowedTCPPorts = [443] ++ (map (p: p.port) (filter (p: !p.portCfg.udp && !p.portCfg.reverseProxy.hidden) relevantStreamPorts));
+      allowedUDPPorts = map (p: p.port) (filter (p: p.portCfg.udp) relevantStreamPorts);
     };
 
     # If the current host is the service exposer expose the services to the domain
@@ -96,7 +96,7 @@ in {
             proxy_pass ${upstream};
             proxy_timeout 1h;
             ${
-            if proxyConf.udp
+            if p.portCfg.udp
             then ''
               listen ${toString p.portCfg.port} udp;
               proxy_requests 8640000;

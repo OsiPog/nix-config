@@ -23,10 +23,8 @@ in {
       };
       configEnable.ports.hytale = {
         port = mkDefault 5520;
-        reverseProxy = {
-          method = "stream";
-          udp = true;
-        };
+        udp = true;
+        reverseProxy.method = "stream";
       };
     }))
 

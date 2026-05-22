@@ -35,6 +35,8 @@ in {
               description = "The protocol used on this port.";
             };
 
+            udp = mkEnableOption "udp version of this port.";
+
             host = mkOption {
               type = types.str;
               default = name;
@@ -102,8 +104,6 @@ in {
                       - When method is 'stream': applied as additional configuration in the stream server block
                     '';
                   };
-
-                  udp = mkEnableOption "UDP stream instead of TCP. Only relevant when method is 'stream'";
                 };
               });
               default = {};
