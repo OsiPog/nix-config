@@ -21,7 +21,8 @@
     ;
 
   stateDir = "/var/lib/headscale"; # hardcoded in nixpkgs, not configurable
-  address = getAddress {inherit hostName portName;};
+
+  tailscaleServer = cfg.provide.tailscale-server;
 in {
   imports = [
     (mkNetworkHostServiceModule {
@@ -29,32 +30,44 @@ in {
         enforceSingleInstance = true;
       } ({name, ...}: {
         configEnable = {
-          ports.${portName} = {
+          ports.headscale = {
             protocol = "http";
             port = mkDefault 8081;
           };
         };
-        provideEnable.oidc-clients = [
-          rec {
-            secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
-            clientId = "headscale";
-            clientName = "Headscale";
-            hashedClientSecret = "$pbkdf2-sha512$310000$OM.pbqoXjN0sV3ePThP93A$DqJvD5pH5D65CC48UVV2amlinmsQN078kWapJWtn4JUr369PHh/Ce/0TZyx1gbFcOBeFo2Kr8IkUvkQx2fwUYQ";
-            clientSecretName = "headscale/oidc-secret";
-            redirectUris = let
-              address = getAddress {
-                hostName = name;
-                portName = serviceName;
-              };
-            in ["${address "proxyProtocol://domain"}/oidc/callback"];
-            scopes = ["openid" "profile" "email" "groups"];
-            pkce = {
-              enabled = true;
-              method = "S256";
+        provideEnable = {
+          tailscale-server = rec {
+            secrets = mkSharedSecrets [authKeySecretName] ./secrets.yaml;
+            address = getAddress {
+              portName = "headscale";
+              hostName = name;
             };
-            idTokenClaims = ["email" "groups"];
-          }
-        ];
+            ip4Space = "100.64.0.0/10";
+            authKeySecretName = "headscale/auth-key";
+          };
+
+          oidc-clients = [
+            rec {
+              secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
+              clientId = "headscale";
+              clientName = "Headscale";
+              hashedClientSecret = "$pbkdf2-sha512$310000$OM.pbqoXjN0sV3ePThP93A$DqJvD5pH5D65CC48UVV2amlinmsQN078kWapJWtn4JUr369PHh/Ce/0TZyx1gbFcOBeFo2Kr8IkUvkQx2fwUYQ";
+              clientSecretName = "headscale/oidc-secret";
+              redirectUris = let
+                address = getAddress {
+                  hostName = name;
+                  portName = serviceName;
+                };
+              in ["${address "proxyProtocol://domain"}/oidc/callback"];
+              scopes = ["openid" "profile" "email" "groups"];
+              pkce = {
+                enabled = true;
+                method = "S256";
+              };
+              idTokenClaims = ["email" "groups"];
+            }
+          ];
+        };
       }))
   ];
   config = mkMerge [
@@ -66,7 +79,7 @@ in {
         settings = {
           # allow all policy
           policy.path = toFile "file.json" (toJSON {});
-          server_url = address "proxyProtocol://domain";
+          server_url = tailscaleServer.address "proxyProtocol://domain";
           dns = {
             override_local_dns = true;
             # can be overriden ;)
@@ -78,7 +91,7 @@ in {
             ];
             # Magic DNS
             magic_dns = true;
-            base_domain = "dns." + (address "domain");
+            base_domain = "dns." + (tailscaleServer.address "domain");
           };
         };
       };

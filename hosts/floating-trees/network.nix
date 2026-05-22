@@ -57,9 +57,14 @@
       "jellyfin"
     ];
   };
-  ports.ldaps.reverseProxy.domain = "ldap.axelhax.net";
-  # ports.ldaps.reverseProxy.hidden = true; # TODO: currently broken
-  ports.lldap.reverseProxy.domain = "users.axelhax.net";
+  ports.ldaps.reverseProxy = {
+    domain = "ldap.axelhax.net";
+    hidden = true;
+  };
+  ports.lldap.reverseProxy = {
+    domain = "users.axelhax.net";
+    hidden = true;
+  };
 
   # --- NGINX HTTP
   services.staticWebsites = {

@@ -71,7 +71,7 @@ in {
     ./importHosts.nix
 
     ./ports.nix
-    ./vpn
+    ./services/tailscale
 
     ./services/authelia
     # ./services/backup.nix
