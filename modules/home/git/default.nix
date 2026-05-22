@@ -6,7 +6,7 @@
 }: {
   home.packages = with pkgs; [
     lazygit
-    inputs.worktrunk.packages.${pkgs.system}.default
+    # inputs.worktrunk.packages.${pkgs.system}.default
   ];
 
   programs.fish.functions.git-smart-clone =

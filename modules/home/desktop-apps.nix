@@ -36,7 +36,7 @@ in {
     discord
     arduino-ide
     transmission_4-gtk
-    bottles
+    # bottles
     thunderbird
   ];
 

@@ -57,7 +57,7 @@
 
   home-manager.sharedModules = [
     ({...}: {
-      programs.lutris.enable = true;
+      # programs.lutris.enable = true;
 
       xdg.desktopEntries.steam-gamescope = {
         icon = "steam";
