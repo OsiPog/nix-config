@@ -7,8 +7,8 @@
 }: let
   inherit (builtins) toFile toJSON head;
   inherit (lib) mkIf mkDefault mkMerge mkForce mkBefore;
-  inherit (lib.attrsets) getAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers;
+  inherit (lib.attrsets) getAttrs genAttrs;
+  inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers nixosHostNames;
   inherit (config.lib.network) getAddress getServiceVariables;
 
   inherit
@@ -69,6 +69,8 @@ in {
           ];
         };
       }))
+
+    flake.nixosModules.headscaleDeclarativePolicy
   ];
   config = mkIf (networkCfg.enable && cfg.enable) (mkMerge [
     {
@@ -76,9 +78,8 @@ in {
         enable = true;
         address = "0.0.0.0";
         port = ports.${serviceName}.port;
+        policy.hosts = genAttrs nixosHostNames (hostName: networkCfg.hosts.${hostName}.vpn.ip + "/32");
         settings = {
-          # allow all policy
-          policy.path = toFile "file.json" (toJSON {});
           server_url = tailscaleServer.address "proxyProtocol://domain";
           dns = {
             override_local_dns = true;
