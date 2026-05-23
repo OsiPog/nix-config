@@ -26,6 +26,7 @@
     podman
     nix-access-tokens
     gaming
+    hoglin-drive
 
     ../../users/osi
   ];

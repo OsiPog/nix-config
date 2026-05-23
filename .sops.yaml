@@ -49,6 +49,11 @@ creation_rules:
   - age:
     - *biome-fest
     - *dead-voxel
+- path_regex: modules/nixos/hoglin-drive/secrets.yaml$
+  key_groups:
+  - age:
+    - *biome-fest
+    - *dead-voxel
 - path_regex: modules/nixos/llm-tools/secrets.yaml$
   key_groups:
   - age:

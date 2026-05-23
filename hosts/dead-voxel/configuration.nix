@@ -23,6 +23,7 @@
     podman
     nix-access-tokens
     tuigreet
+    hoglin-drive
 
     ../../users/osi
 
