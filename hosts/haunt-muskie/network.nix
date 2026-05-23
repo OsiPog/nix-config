@@ -18,7 +18,11 @@
   # };
 
   # --- NGINX REVERSE PROXY
-  services.reverseProxy.enable = true;
+  services.reverseProxy = {
+    id = "proxy";
+    enable = true;
+    require.tailscale-server = servicesById.headscale.provide.tailscale-server;
+  };
 
   # --- MAIL
   services.mailserver = {
@@ -37,6 +41,7 @@
     id = "headscale";
     enable = true;
     require.oidc-server = servicesById.authelia.provide.oidc-server;
+    require.dns-server = servicesById.dnsmasq.provide.dns-server;
   };
   ports.headscale.reverseProxy.domain = "vpn.axelhax.net";
 }

@@ -6,7 +6,7 @@
   ...
 }: let
   inherit (builtins) toFile toJSON head;
-  inherit (lib) mkIf mkDefault mkMerge mkForce;
+  inherit (lib) mkIf mkDefault mkMerge mkForce mkBefore;
   inherit (lib.attrsets) getAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers;
   inherit (config.lib.network) getAddress getServiceVariables;
@@ -21,7 +21,8 @@
     ;
 
   stateDir = "/var/lib/headscale"; # hardcoded in nixpkgs, not configurable
-  address = getAddress {inherit hostName portName;};
+
+  tailscaleServer = cfg.provide.tailscale-server;
 in {
   imports = [
     (mkNetworkHostServiceModule {
@@ -29,36 +30,48 @@ in {
         enforceSingleInstance = true;
       } ({name, ...}: {
         configEnable = {
-          ports.${portName} = {
+          ports.headscale = {
             protocol = "http";
             port = mkDefault 8081;
           };
         };
-        provideEnable.oidc-clients = [
-          rec {
-            secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
-            clientId = "headscale";
-            clientName = "Headscale";
-            hashedClientSecret = "$pbkdf2-sha512$310000$OM.pbqoXjN0sV3ePThP93A$DqJvD5pH5D65CC48UVV2amlinmsQN078kWapJWtn4JUr369PHh/Ce/0TZyx1gbFcOBeFo2Kr8IkUvkQx2fwUYQ";
-            clientSecretName = "headscale/oidc-secret";
-            redirectUris = let
-              address = getAddress {
-                hostName = name;
-                portName = serviceName;
-              };
-            in ["${address "proxyProtocol://domain"}/oidc/callback"];
-            scopes = ["openid" "profile" "email" "groups"];
-            pkce = {
-              enabled = true;
-              method = "S256";
+        provideEnable = {
+          tailscale-server = rec {
+            secrets = mkSharedSecrets [authKeySecretName] ./secrets.yaml;
+            address = getAddress {
+              portName = "headscale";
+              hostName = name;
             };
-            idTokenClaims = ["email" "groups"];
-          }
-        ];
+            ip4Space = "100.64.0.0/10";
+            authKeySecretName = "headscale/auth-key";
+          };
+
+          oidc-clients = [
+            rec {
+              secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
+              clientId = "headscale";
+              clientName = "Headscale";
+              hashedClientSecret = "$pbkdf2-sha512$310000$OM.pbqoXjN0sV3ePThP93A$DqJvD5pH5D65CC48UVV2amlinmsQN078kWapJWtn4JUr369PHh/Ce/0TZyx1gbFcOBeFo2Kr8IkUvkQx2fwUYQ";
+              clientSecretName = "headscale/oidc-secret";
+              redirectUris = let
+                address = getAddress {
+                  hostName = name;
+                  portName = serviceName;
+                };
+              in ["${address "proxyProtocol://domain"}/oidc/callback"];
+              scopes = ["openid" "profile" "email" "groups"];
+              pkce = {
+                enabled = true;
+                method = "S256";
+              };
+              idTokenClaims = ["email" "groups"];
+            }
+          ];
+        };
       }))
   ];
-  config = mkMerge [
-    (mkIf (networkCfg.enable && cfg.enable) {
+  config = mkIf (networkCfg.enable && cfg.enable) (mkMerge [
+    {
       services.headscale = {
         enable = true;
         address = "0.0.0.0";
@@ -66,10 +79,9 @@ in {
         settings = {
           # allow all policy
           policy.path = toFile "file.json" (toJSON {});
-          server_url = address "proxyProtocol://domain";
+          server_url = tailscaleServer.address "proxyProtocol://domain";
           dns = {
             override_local_dns = true;
-            # can be overriden ;)
             nameservers.global = mkDefault [
               "1.1.1.1"
               "1.0.0.1"
@@ -78,18 +90,18 @@ in {
             ];
             # Magic DNS
             magic_dns = true;
-            base_domain = "dns." + (address "domain");
+            base_domain = "dns." + (tailscaleServer.address "domain");
           };
         };
       };
-    })
+    }
     # OIDC SERVER INTEGRATION
     (let
       oidcServer = cfg.require.oidc-server;
       oidcClient = head cfg.provide.oidc-clients;
       secrets = getAttrs [oidcClient.clientSecretName] oidcClient.secrets;
     in
-      mkIf (networkCfg.enable && cfg.enable && oidcServer != null) {
+      mkIf (oidcServer != null) {
         sops = {inherit secrets;};
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.headscale.user];
         services.headscale.settings.oidc = {
@@ -104,5 +116,13 @@ in {
           };
         };
       })
-  ];
+
+    # DNS SERVER
+    (let
+      dnsServer = cfg.require.dns-server;
+    in
+      mkIf (dnsServer != null) {
+        services.headscale.settings.dns.nameservers.global = [(dnsServer.address "ip")];
+      })
+  ]);
 }

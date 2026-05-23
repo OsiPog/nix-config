@@ -2,14 +2,15 @@
   flake,
   lib,
   config,
+  hostName,
   ...
 }: let
   inherit (builtins) filter listToAttrs typeOf;
-  inherit (lib) mkIf pipe;
-  inherit (lib.attrsets) recursiveUpdate;
+  inherit (lib) mkIf pipe mkMerge;
+  inherit (lib.attrsets) recursiveUpdate optionalAttrs;
   inherit (lib.strings) concatLines hasSuffix;
 
-  inherit (config.lib.network) getAddress allPorts getServiceVariables;
+  inherit (config.lib.network) allPorts getServiceVariables;
   inherit (flake.lib) mkNetworkHostServiceModule;
 
   inherit
@@ -31,11 +32,23 @@
 
   relevantVirtualHostPorts = filter (e: e.portCfg.reverseProxy.method == "virtual-host") relevantPorts;
   relevantStreamPorts = filter (e: e.portCfg.reverseProxy.method == "stream") relevantPorts;
+
+  tailscaleServer = cfg.require.tailscale-server;
 in {
   imports = [
     flake.nixosModules.porkbunAcme
 
-    (mkNetworkHostServiceModule {inherit serviceName;} null)
+    (mkNetworkHostServiceModule {inherit serviceName;} ({config, ...}: let
+      relevantPorts = filter (p: p.portCfg.reverseProxy.enable && (hasSuffix config.domain p.portCfg.reverseProxy.domain)) allPorts;
+    in {
+      provideEnable.dns-overrides = pipe relevantPorts [
+        (filter (p: p.portCfg.reverseProxy.hidden))
+        (map (p: {
+          query = p.portCfg.reverseProxy.domain;
+          response = config.vpn.ip;
+        }))
+      ];
+    }))
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     networking.firewall = {
@@ -54,29 +67,40 @@ in {
         (map
           (p: let
             proxyConf = p.portCfg.reverseProxy;
-            virtualHostsConfig = {
-              useACMEHost = hostCfg.domain;
-              forceSSL = true;
-              locations = let
-                common = {
-                  proxyPass = p.portCfg.address "http://host:port";
-                  proxyWebsockets = true;
-                };
-              in {
-                "/" = common;
-                ".well-known/" =
-                  common
-                  // {
-                    extraConfig = ''
-                      add_header Access-Control-Allow-Origin "*";
-                      add_header Access-Control-Allow-Methods "*";
-                    '';
-                  };
-              };
-            };
           in {
             name = proxyConf.domain;
-            value = recursiveUpdate virtualHostsConfig proxyConf.extraConfig;
+            value = mkMerge [
+              # merge with extra config given from port
+              proxyConf.extraConfig
+              {
+                useACMEHost = hostCfg.domain;
+                forceSSL = true;
+                locations = let
+                  common =
+                    {
+                      proxyPass = p.portCfg.address "http://host:port";
+                      proxyWebsockets = true;
+                    }
+                    // (optionalAttrs proxyConf.hidden {
+                      extraConfig = ''
+                        allow ${tailscaleServer.ip4Space};
+                        deny all;
+                      '';
+                    });
+                in {
+                  "/" = common;
+                  ".well-known/" = mkMerge [
+                    common
+                    {
+                      extraConfig = ''
+                        add_header Access-Control-Allow-Origin "*";
+                        add_header Access-Control-Allow-Methods "*";
+                      '';
+                    }
+                  ];
+                };
+              }
+            ];
           }))
         listToAttrs
       ];
@@ -110,7 +134,7 @@ in {
             ${
             if p.portCfg.reverseProxy.hidden
             then ''
-              allow 100.64.0.0/10;
+              allow ${tailscaleServer.ip4Space};
               deny all;
             ''
             else ""

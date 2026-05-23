@@ -63,8 +63,6 @@ in {
             secretName = mkOption {type = types.str;};
           };
 
-          namedUserSubmodule = types.submodule {options = namedUserOptions;};
-
           secretsOpt = mkOption {
             description = "Same type as sops.secrets but trust me bro";
             default = {};
@@ -201,6 +199,53 @@ in {
               default = null;
               type = types.nullOr (types.submodule {
                 options.address = addressOpt;
+              });
+            };
+
+            tailscale-server = mkOption {
+              default = null;
+              type = types.nullOr (types.submodule {
+                options = {
+                  secrets = secretsOpt;
+                  address = addressOpt;
+                  ip4Space = mkOption {
+                    type = types.str;
+                  };
+                  authKeySecretName = mkOption {
+                    type = types.str;
+                  };
+                };
+              });
+            };
+
+            tailscale-client = mkOption {
+              default = null;
+              type = types.nullOr (types.submodule {
+                options = {
+                  ip = mkOption {
+                    type = types.str;
+                  };
+                  magicDns = mkOption {
+                    type = types.str;
+                  };
+                };
+              });
+            };
+
+            dns-server = mkOption {
+              default = null;
+              type = types.nullOr (types.submodule {
+                options.address = addressOpt;
+              });
+            };
+
+            dns-overrides = mkOption {
+              default = [];
+              type = types.listOf (types.submodule {
+                options = {
+                  query = mkOption {type = types.str;};
+                  response = mkOption {type = types.str;};
+                };
               });
             };
           };

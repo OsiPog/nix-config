@@ -6,7 +6,7 @@
   pkgs,
   ...
 }: let
-  inherit (lib) mkIf;
+  inherit (lib) mkIf mkMerge;
   inherit (flake.lib) mkNetworkHostServiceModule;
   inherit (config.lib.network) getServiceVariables;
 
@@ -15,6 +15,8 @@
     serviceName
     networkCfg
     cfg
+    portName
+    ports
     ;
 
   stateDir = "/var/lib/dnsmasq"; # hardcoded in nixpkgs
@@ -23,33 +25,50 @@
   blocklistUrl = "https://big.oisd.nl/dnsmasq2"; # See https://oisd.nl/setup/dnsmasq
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} null)
+    (mkNetworkHostServiceModule {inherit serviceName;} ({config, ...}: {
+      configEnable.ports.${portName} = {
+        port = 53;
+        protocol = throw "dns server does not have a protocol";
+        reverseProxy.method = "stream";
+      };
+      provideEnable.dns-server.address = config.ports.${portName}.address;
+    }))
   ];
-  config = mkIf (networkCfg.enable && cfg.enable) {
-    services.dnsmasq = {
-      enable = true;
-      resolveLocalQueries = false;
-      settings = {
-        no-resolv = true;
-        server = ["1.1.1.1" "8.8.8.8"];
-        conf-file = blocklistPath;
-      };
-    };
-
-    systemd = {
-      services.dnsmasq-update-blocklist = {
-        after = ["dnsmasq.service"];
-        path = [pkgs.wget];
-        script = "wget '${blocklistUrl}' -O ${blocklistPath}";
-        serviceConfig.Type = "oneshot";
-      };
-      timers.dnsmasq-update-blocklist = {
-        wantedBy = ["timers.target"];
-        timerConfig = {
-          OnCalendar = "hourly";
-          Unit = "dnsmasq-update-blocklist.service";
+  config = mkIf (networkCfg.enable && cfg.enable) (mkMerge [
+    {
+      services.dnsmasq = {
+        enable = true;
+        resolveLocalQueries = false;
+        settings = {
+          no-resolv = true;
+          server = ["1.1.1.1" "8.8.8.8"];
+          conf-file = blocklistPath;
         };
       };
-    };
-  };
+
+      systemd = {
+        services.dnsmasq-update-blocklist = {
+          after = ["dnsmasq.service"];
+          path = [pkgs.wget];
+          script = "wget '${blocklistUrl}' -O ${blocklistPath}";
+          serviceConfig.Type = "oneshot";
+        };
+        timers.dnsmasq-update-blocklist = {
+          wantedBy = ["timers.target"];
+          timerConfig = {
+            OnCalendar = "hourly";
+            Unit = "dnsmasq-update-blocklist.service";
+          };
+        };
+      };
+    }
+    # DNS OVERRIDES
+    {
+      services.dnsmasq.settings.address = map ({
+        query,
+        response,
+      }: "/${query}/${response}")
+      cfg.require.dns-overrides;
+    }
+  ]);
 }
