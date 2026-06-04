@@ -2,6 +2,7 @@ keys:
 - &biome-fest age1ak36zs98fj3eu3ysuc7krzh44fx5t6sf0plvqmmg3z0mqpg2vp5qqkvr4y
 - &blind-spots age1r3yll2yy4mpf7s6wew8ywsw4lxkfvmk73acsmpjnrqgunnnunsfqgtddxh
 - &dead-voxel age1he8wrq7e7ae52rf7r2pjanyexcy9ku02hxwqctuz8fzujlx5tswqxln7cm
+- &dreiton age1fd03mf7k5xcmzh4gjx903z6z92ydx2yqwndhakgh585cdqjrgscqt5pnph
 - &floating-trees age1h5pt2695wwlgv6n703araqy4gphmwry9uz7udwqvezwftqtzt9squcefj4
 - &haunt-muskie age18ay0p4gm2jqam6zgz9pxk27jtft3fnz3560m6naz47j2yaf0hadq0za492
 - &wet-hands age1yusne4xuc6du0qgfumrr6pxj5htq38ug806tda4tkg7du48dlcjqymr086
@@ -18,6 +19,10 @@ creation_rules:
   key_groups:
   - age:
     - *dead-voxel
+- path_regex: hosts/dreiton/secrets.yaml$
+  key_groups:
+  - age:
+    - *dreiton
 - path_regex: hosts/floating-trees/drives/secrets.yaml$
   key_groups:
   - age:
@@ -92,6 +97,7 @@ creation_rules:
     - *biome-fest
     - *blind-spots
     - *dead-voxel
+    - *dreiton
     - *floating-trees
     - *haunt-muskie
     - *wet-hands
