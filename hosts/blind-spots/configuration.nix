@@ -1,9 +1,15 @@
-{flake, ...}: {
+{
+  flake,
+  pkgs,
+  ...
+}: {
   imports = with flake.nixosModules; [
     ./hardware-configuration.nix
     shared
 
     disko-basic
+
+    makemkv
   ];
 
   # Disable suspend on lid close (this is an old laptop)
@@ -12,6 +18,8 @@
     HandleLidSwitchExternalPower = "ignore";
     HandleLidSwitchDocked = "ignore";
   };
+
+  nixpkgs.config.allowUnfree = true;
 
   # Don't change, will break things!
   system.stateVersion = "25.11";

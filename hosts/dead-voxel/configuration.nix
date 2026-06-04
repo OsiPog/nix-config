@@ -24,6 +24,7 @@
     nix-access-tokens
     tuigreet
     hoglin-drive
+    makemkv
 
     ../../users/osi
 
@@ -78,12 +79,8 @@
   virtualisation.waydroid.enable = true;
 
   environment.systemPackages = with pkgs; [
-    makemkv
     sbctl
   ];
-
-  # for makemkv
-  boot.kernelModules = ["sg"];
 
   # for nfs
   users.extraGroups.husk.members = ["osi"];

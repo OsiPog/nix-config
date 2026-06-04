@@ -12,6 +12,8 @@
 
     pcspkr
 
+    makemkv
+
     ./jellyfin.nix
     ./drives
   ];
