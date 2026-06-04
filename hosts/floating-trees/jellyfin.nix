@@ -23,6 +23,11 @@
         libraryOptions.pathInfos = [{path = "${config.services.jellyfin.dataDir}/data/media/Shows";}];
       }
       {
+        name = "Movies";
+        collectionType = "movies";
+        libraryOptions.pathInfos = [{path = "${config.services.jellyfin.dataDir}/data/media/Movies";}];
+      }
+      {
         name = "Books";
         collectionType = "books";
         libraryOptions.pathInfos = [{path = "${config.services.jellyfin.dataDir}/data/media/Books";}];
@@ -33,6 +38,16 @@
   services.jellarr.config.encoding = {
     enableHardwareEncoding = true;
     hardwareAccelerationType = "vaapi";
+  };
+
+  hardware.graphics = {
+    enable = true;
+    extraPackages = with pkgs; [
+      mesa
+      libva-utils
+      libva-vdpau-driver
+      libvdpau-va-gl
+    ];
   };
 
   nixpkgs.config.allowUnfree = true;
