@@ -12,7 +12,7 @@ in {
   };
 
   environment.etc.crypttab.text = ''
-    ${name} /dev/disk/by-id/${id} ${config.getSopsFile "drives/${name}"}
+    ${name} /dev/disk/by-id/${id} ${config.getSopsFile "drives/${name}"} noauto
   '';
 
   fileSystems."/mnt/${name}" = {
