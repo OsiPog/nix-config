@@ -91,6 +91,11 @@
       url = "github:nix-community/lanzaboote/v1.0.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # build aosp with nix
+    robotnix = {
+      url = "github:nix-community/robotnix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # --- Packages
     # Development environments the easy nix way
