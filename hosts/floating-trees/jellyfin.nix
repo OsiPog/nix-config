@@ -15,7 +15,17 @@
     device = "/mnt/zombie-horse/media";
   };
   services.jellarr.config = {
-    plugins = [{name = "bookshelf";}];
+    system.pluginRepositories = [
+      {
+        name = "Intro Skipper";
+        url = "https://intro-skipper.org/manifest.json";
+        enabled = true;
+      }
+    ];
+    plugins = [
+      {name = "bookshelf";}
+      {name = "Intro Skipper";}
+    ];
     library.virtualFolders = [
       {
         name = "Shows";
