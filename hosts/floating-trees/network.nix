@@ -1,6 +1,7 @@
 # This is a special nix module. It is imported into `networking.hosts.<name>` of every nixos configuration.
 # So that each host can see the network configuration of all other hosts.
 {servicesById, ...}: {
+  domain = "axelhax.net"; # on my home router this domain resolves here
   vpn.ip = "100.64.0.4";
   ssh = {
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDYdr33vJvtTnrSDiEhCUkc0fL7GyrZG9UEL8zjaKJpU root@floating-trees";
@@ -12,11 +13,18 @@
     reverseProxy.domain = "vmu.axelhax.net";
   };
 
-  # --- DNSMASQ
+  # --- REVERSE PROXY
+  services.reverseProxy = {
+    id = "home-proxy";
+    enable = true;
+    ignoreHidden = true;
+    ipAddress = "10.12.21.41";
+  };
+  # --- DNSMASQ, directly connect devices to server on home network without outside traffic
   services.dnsmasq = {
     id = "dnsmasq";
     enable = true;
-    require.dns-overrides = servicesById.proxy.provide.dns-overrides;
+    require.dns-overrides = servicesById.home-proxy.provide.dns-overrides;
   };
 
   # --- RESTIC

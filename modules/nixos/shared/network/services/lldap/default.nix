@@ -21,6 +21,7 @@
     ;
 
   ldapServer = cfg.provide.ldap-server;
+  baseDomain = let splitted = splitString "." (ldapServer.address "domain"); in "${lib.last (lib.init splitted)}.${lib.last splitted}";
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
@@ -100,8 +101,9 @@ in {
       # TLS
       services.porkbunAcme = {
         enable = true;
-        domain = ldapServer.address "domain";
+        domain = baseDomain;
       };
+      security.acme.certs."${baseDomain}".extraDomainNames = [(ldapServer.address "domain")];
 
       users.users.lldap = {
         group = "lldap";
@@ -126,7 +128,7 @@ in {
           database_url = "sqlite://${stateDir}/users.db?mode=rwc";
           force_ldap_user_pass_reset = "always";
           ldaps_options = let
-            acmeDirectory = config.security.acme.certs.${ldapServer.address "domain"}.directory;
+            acmeDirectory = config.security.acme.certs.${baseDomain}.directory;
           in {
             enabled = true;
             port = ports.ldaps.port;

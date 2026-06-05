@@ -31,28 +31,41 @@
     allPorts;
 
   relevantVirtualHostPorts = filter (e: e.portCfg.reverseProxy.method == "virtual-host") relevantPorts;
-  relevantStreamPorts = filter (e: e.portCfg.reverseProxy.method == "stream") relevantPorts;
+  relevantStreamPorts = filter (e: e.portCfg.reverseProxy.method == "stream" && (e.portCfg.address "host" != "localhost")) relevantPorts;
 
   tailscaleServer = cfg.require.tailscale-server;
 in {
   imports = [
     flake.nixosModules.porkbunAcme
 
-    (mkNetworkHostServiceModule {inherit serviceName;} ({config, ...}: let
+    (mkNetworkHostServiceModule {inherit serviceName;} ({
+      config,
+      cfg,
+      ...
+    }: let
       relevantPorts = filter (p: p.portCfg.reverseProxy.enable && (hasSuffix config.domain p.portCfg.reverseProxy.domain)) allPorts;
     in {
-      provideEnable.dns-overrides = pipe relevantPorts [
-        (filter (p: p.portCfg.reverseProxy.hidden))
-        (map (p: {
+      optionsService = {
+        ignoreHidden = lib.mkEnableOption "the hiding of hidding ports";
+        ipAddress = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+        };
+      };
+      provideEnable.dns-overrides =
+        map (p: {
           query = p.portCfg.reverseProxy.domain;
-          response = config.vpn.ip;
-        }))
-      ];
+          response =
+            if cfg.ipAddress == null
+            then config.vpn.ip
+            else cfg.ipAddress;
+        })
+        relevantPorts;
     }))
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     networking.firewall = {
-      allowedTCPPorts = [443] ++ (map (p: p.port) (filter (p: !p.portCfg.udp && !p.portCfg.reverseProxy.hidden) relevantStreamPorts));
+      allowedTCPPorts = [443] ++ (map (p: p.port) (filter (p: !p.portCfg.udp && (!p.portCfg.reverseProxy.hidden || cfg.ignoreHidden)) relevantStreamPorts));
       allowedUDPPorts = map (p: p.port) (filter (p: p.portCfg.udp) relevantStreamPorts);
     };
 
@@ -81,7 +94,7 @@ in {
                       proxyPass = p.portCfg.address "http://host:port";
                       proxyWebsockets = true;
                     }
-                    // (optionalAttrs proxyConf.hidden {
+                    // (optionalAttrs (proxyConf.hidden && !cfg.ignoreHidden) {
                       extraConfig = ''
                         allow ${tailscaleServer.ip4Space};
                         deny all;
@@ -132,7 +145,7 @@ in {
             ''
           }
             ${
-            if p.portCfg.reverseProxy.hidden
+            if p.portCfg.reverseProxy.hidden && !cfg.ignoreHidden
             then ''
               allow ${tailscaleServer.ip4Space};
               deny all;

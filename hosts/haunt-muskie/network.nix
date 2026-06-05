@@ -23,6 +23,20 @@
     enable = true;
     require.tailscale-server = servicesById.headscale.provide.tailscale-server;
   };
+  # --- DNSMASQ, directly connect axelhax.net traffic through vpn
+  services.dnsmasq = {
+    id = "dnsmasq";
+    enable = true;
+    require.dns-overrides = servicesById.proxy.provide.dns-overrides;
+  };
+  # --- HEADSCALE VPN
+  services.headscale = {
+    id = "headscale";
+    enable = true;
+    require.oidc-server = servicesById.authelia.provide.oidc-server;
+    require.dns-server = servicesById.dnsmasq.provide.dns-server;
+  };
+  ports.headscale.reverseProxy.domain = "vpn.axelhax.net";
 
   # --- MAIL
   services.mailserver = {
@@ -35,13 +49,4 @@
       ];
     };
   };
-
-  # --- HEADSCALE VPN
-  services.headscale = {
-    id = "headscale";
-    enable = true;
-    require.oidc-server = servicesById.authelia.provide.oidc-server;
-    require.dns-server = servicesById.dnsmasq.provide.dns-server;
-  };
-  ports.headscale.reverseProxy.domain = "vpn.axelhax.net";
 }

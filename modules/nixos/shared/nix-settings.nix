@@ -24,10 +24,14 @@
         "cache.flakehub.com-3:hJuILl5sVK4iKm86JzgdXW12Y2Hwd5G07qKtHTOcDCM="
       ];
 
-      # For AOSP building
       sandbox-paths = [
-        "/var/cache/ccache"
+        # some nix packages assume /bin/sh to exist see: https://discourse.nixos.org/t/unable-to-build-ruby-packages-with-native-extensions/71558
         "/bin/sh=${pkgs.busybox-sandbox-shell.out}/bin/busybox"
+      ];
+
+      extra-sandbox-paths = [
+        # For AOSP building
+        "/var/cache/ccache"
       ];
     };
     # Automatic garbage collection
