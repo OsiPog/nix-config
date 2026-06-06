@@ -22,7 +22,7 @@
   };
   # --- DNSMASQ, directly connect devices to server on home network without outside traffic
   services.dnsmasq = {
-    id = "dnsmasq";
+    id = "home-dns";
     enable = true;
     require.dns-overrides = servicesById.home-proxy.provide.dns-overrides;
   };

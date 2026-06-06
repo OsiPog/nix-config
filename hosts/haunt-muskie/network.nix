@@ -25,7 +25,7 @@
   };
   # --- DNSMASQ, directly connect axelhax.net traffic through vpn
   services.dnsmasq = {
-    id = "dnsmasq";
+    id = "headscale-dns";
     enable = true;
     require.dns-overrides = servicesById.proxy.provide.dns-overrides;
   };
@@ -34,7 +34,7 @@
     id = "headscale";
     enable = true;
     require.oidc-server = servicesById.authelia.provide.oidc-server;
-    require.dns-server = servicesById.dnsmasq.provide.dns-server;
+    require.dns-server = servicesById.headscale-dns.provide.dns-server;
   };
   ports.headscale.reverseProxy.domain = "vpn.axelhax.net";
 
