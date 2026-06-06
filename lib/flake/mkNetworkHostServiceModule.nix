@@ -11,10 +11,20 @@ flake: {
   inherit (lib) mkEnableOption mkIf mkOption types;
   inherit (lib.lists) optional;
 in {
-  assertions = optional enforceSingleInstance {
-    assertion = length (filter (e: e.serviceName == serviceName) config.lib.network.allEnabledServices) == 1;
-    message = "Network service '${serviceName}' must be enabled on exactly one host.";
-  };
+  assertions =
+    (optional enforceSingleInstance {
+      assertion = length (filter (e: e.serviceName == serviceName) config.lib.network.allEnabledServices) == 1;
+      message = "Network service '${serviceName}' must be enabled on exactly one host.";
+    })
+    ++ (let
+      allServices = config.lib.network.allEnabledServices;
+      thisServiceInstances = filter (e: e.serviceName == serviceName) allServices;
+    in
+      map (service: {
+        assertion = length (filter (e: e.serviceCfg.id == service.serviceCfg.id) allServices) == 1;
+        message = "Network service ID '${service.serviceCfg.id}' must be unique network-wide, but is used by ${service.hostName}:${service.serviceName} and at least one other service.";
+      })
+      thisServiceInstances);
 
   network.sharedModules = [
     ({
