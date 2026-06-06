@@ -85,6 +85,7 @@ in {
     # ./services/nfs.nix
     ./services/opencloud
     # ./services/portunus
+    ./services/home-assistant.nix
     ./services/reverseProxy.nix
     ./services/staticWebsites.nix
   ];

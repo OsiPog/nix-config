@@ -103,6 +103,13 @@
   };
   ports.jellyfin.reverseProxy.domain = "media.axelhax.net";
 
+  # --- HOME ASSISTANT
+  services.home-assistant.enable = true;
+  ports.home-assistant.reverseProxy = {
+    domain = "home.axelhax.net";
+    hidden = true;
+  };
+
   # --- NFS
   # services.nfs = {
   #   enable = true;

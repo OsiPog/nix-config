@@ -77,6 +77,33 @@
   #   OC_EXCLUDE_RUN_SERVICES = "idp,nats";
   # };
   # networking.firewall.allowedTCPPorts = [9200];
+
+  services.home-assistant = {
+    config = {
+      "automation ui" = "!include automations.yaml";
+      "scene ui" = "!include scenes.yaml";
+      "script ui" = "!include scripts.yaml";
+    };
+    extraComponents = [
+      "default_config"
+      "isal"
+    ];
+    customComponents = [
+      (pkgs.buildHomeAssistantComponent rec {
+        owner = "damacus";
+        domain = "robovac";
+        version = "v2.4.3-beta.1";
+
+        src = pkgs.fetchFromGitHub {
+          inherit owner;
+          repo = domain;
+          rev = version;
+          hash = "sha256-iQNXHghUznCqc0FNx4rUb6o9JicK8IvAhFG95hm0DkQ=";
+        };
+      })
+    ];
+  };
+
   # Don't change, will break things!
   system.stateVersion = "25.11";
 }
