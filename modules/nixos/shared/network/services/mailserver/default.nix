@@ -31,6 +31,7 @@ in {
         ports.submissions = {
           protocol = "submissions";
           port = 465;
+          reverseProxy.method = "stream";
         };
       };
       provideEnable = {
@@ -70,13 +71,6 @@ in {
 
   config = mkIf (networkCfg.enable && cfg.enable) (mkMerge [
     {
-      assertions = [
-        {
-          assertion = !ports.submissions.reverseProxy.enable;
-          message = "Due to mail protocol requirements, mailserver cannot be reverse proxied.";
-        }
-      ];
-
       services.porkbunAcme.enable = true;
 
       mailserver = {

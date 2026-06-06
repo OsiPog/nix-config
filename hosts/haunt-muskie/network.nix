@@ -49,4 +49,5 @@
       ];
     };
   };
+  ports.submissions.reverseProxy.domain = "axelhax.net";
 }
