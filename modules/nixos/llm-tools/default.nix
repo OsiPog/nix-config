@@ -3,20 +3,12 @@
   lib,
   config,
   inputs,
+  flake,
   ...
 }: let
   claudeModel = "claude-sonnet-4-6";
 in {
-  sops = {
-    secrets."api-keys/anthropic" = {
-      sopsFile = ./secrets.yaml;
-    };
-    # templates.litellm-env = {
-    #   content = ''
-    #     ANTHROPIC_API_KEY=${config.sops.placeholder."api-keys/anthropic"}
-    #   '';
-    # };
-  };
+  imports = [./container.nix];
 
   # proxy for gemini cli to use claude models
   # services.litellm = {
@@ -59,24 +51,23 @@ in {
 
   home-manager.sharedModules = [
     ({
-      nixosConfig,
       config,
       pkgs,
       ...
     }: let
-      heygptWrapper = pkgs.writeShellApplication {
-        name = "heygpt";
-        runtimeInputs = [pkgs.heygpt];
-        text = ''
-          OPENAI_API_BASE="https://api.openai.com/v1" \
-          OPENAI_API_KEY=$(cat ${config.getSopsFile "api-keys/open-ai"}) \
-          heygpt --model "''${HEYGPT_MODEL:-gpt-4o}" "$@"
-        '';
-      };
+      # heygptWrapper = pkgs.writeShellApplication {
+      #   name = "heygpt";
+      #   runtimeInputs = [pkgs.heygpt];
+      #   text = ''
+      #     OPENAI_API_BASE="https://api.openai.com/v1" \
+      #     OPENAI_API_KEY=$(cat ${config.getSopsFile "api-keys/open-ai"}) \
+      #     heygpt --model "''${HEYGPT_MODEL:-gpt-4o}" "$@"
+      #   '';
+      # };
     in {
       home = {
         packages = [
-          heygptWrapper # terminal gpt integration
+          # heygptWrapper # terminal gpt integration
         ];
 
         # sessionVariables = {
@@ -86,9 +77,9 @@ in {
       };
 
       sops.secrets = {
-        "api-keys/open-ai" = {
-          sopsFile = ./secrets.yaml;
-        };
+        # "api-keys/open-ai" = {
+        #   sopsFile = ./secrets.yaml;
+        # };
         "api-keys/anthropic" = {
           sopsFile = ./secrets.yaml;
         };
