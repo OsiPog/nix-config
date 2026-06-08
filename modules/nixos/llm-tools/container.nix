@@ -16,11 +16,16 @@
     (pkgs.writeShellApplication {
       name = "git-sync-agents-data";
       text = ''
-        cd "/mnt/agents-data/$1"
-        git fetch
-        git checkout $2 --ignore-other-worktrees
-        git pull
-        git push
+        export PREK_ALLOW_NO_CONFIG=1
+        repo="$1"
+        cd "/mnt/agents-data/$repo"
+        git fetch --all
+        branch="$2"
+        set +e
+          git checkout "$branch" --ignore-other-worktrees
+          git pull --rebase origin "$branch"
+          git push origin "$branch"
+        set -e
       '';
     })
   ];
@@ -145,6 +150,8 @@
             Any network request will be rejected.
 
             In every session, always load the 'caveman' skill.
+
+            AFTER EVERY CHANGE: commit your changes!
           '';
           settings = {
             apiKeyHelper = "cat /api-key";
