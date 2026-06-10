@@ -4,30 +4,12 @@
   config,
   pkgs,
   ...
-}: {
+}: let
+  inherit (flake.lib.${pkgs.system}) mkBashScript;
+in {
   environment.systemPackages = [
-    (pkgs.writeShellApplication {
-      name = "enter-claude-container";
-      text = ''
-        sudo nixos-container start agents
-        sudo nixos-container run agents -- bash -c 'cd /data;su claude'
-      '';
-    })
-    (pkgs.writeShellApplication {
-      name = "git-sync-agents-data";
-      text = ''
-        export PREK_ALLOW_NO_CONFIG=1
-        repo="$1"
-        cd "/mnt/agents-data/$repo"
-        git fetch --all
-        branch="$2"
-        set +e
-          git checkout "$branch" --ignore-other-worktrees
-          git pull --rebase origin "$branch"
-          git push origin "$branch"
-        set -e
-      '';
-    })
+    (mkBashScript {file = ./enter-claude-container.sh;})
+    (mkBashScript {file = ./git-sync-agents-data.sh;})
   ];
 
   sops.secrets."api-keys/anthropic" = {
