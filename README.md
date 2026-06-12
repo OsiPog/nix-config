@@ -7,8 +7,6 @@ This is the NixOS flake which defines the system on all of my devices running Ni
 ### Hosts
 
 - `biome-fest` - My main laptop
-  - Hyprland
-  - acts as my workstation until I actually have one
 
 - `haunt-muskie` - Small Hetzner VPS
   - that's where https://axelhax.net points to
@@ -20,11 +18,13 @@ This is the NixOS flake which defines the system on all of my devices running Ni
 
 - `dead-voxel` - Gaming PC
   - Hyprland
-  - AMD Radeon RX 9060 XT with AMD Ryzen 3600
+  - AMD Radeon RX 9060 XT with AMD Ryzen 7 5700G
 
 - `floating-trees` - Home Server
   - runs all services
   - backup server for all other hosts
+  - jellyfin
+  - Intel Arc A380
 
 - `blind-spots` - External Backup Server (just an old laptop)
   - backup of the backup in a different geographical location

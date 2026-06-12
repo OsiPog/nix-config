@@ -56,6 +56,17 @@
   # setup husk group
   users.groups.husk = {};
 
+  # intel gpu
+  hardware.graphics = {
+    enable = true;
+    extraPackages = with pkgs; [
+      intel-media-driver
+      intel-ocl
+      intel-vaapi-driver
+      intel-compute-runtime
+    ];
+  };
+
   # --- OPENCLOUD read husk
   # users.users.opencloud.extraGroups = ["husk"];
   # fileSystems."${config.services.opencloud.stateDir}/storage/users/users/osi/written-mind" = {
@@ -69,14 +80,6 @@
     FRONTEND_ARCHIVER_MAX_SIZE = "10000000000";
   };
   systemd.services.opencloud.path = [pkgs.inotify-tools];
-
-  # services.opencloud.url = pkgs.lib.mkForce "http://10.12.21.41:9200";
-  # services.opencloud.environment = {
-  #   OC_INSECURE = "true";
-  #   PROXY_TLS = "false";
-  #   OC_EXCLUDE_RUN_SERVICES = "idp,nats";
-  # };
-  # networking.firewall.allowedTCPPorts = [9200];
 
   services.home-assistant = {
     config = {
