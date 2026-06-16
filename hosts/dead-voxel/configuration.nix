@@ -25,6 +25,7 @@
     tuigreet
     hoglin-drive
     makemkv
+    optnix
 
     ../../users/osi
 

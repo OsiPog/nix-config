@@ -96,6 +96,11 @@
       url = "github:nix-community/robotnix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # crawl nixos options nicely
+    optnix = {
+      url = "sourcehut:~watersucks/optnix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # --- Packages
     # Development environments the easy nix way
