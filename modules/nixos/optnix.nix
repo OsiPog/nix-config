@@ -10,15 +10,6 @@
     inputs.optnix.nixosModules.optnix
   ];
 
-  # surface options defined by home-manager modules from inputs too
-  home-manager.sharedModules = [
-    {
-      imports = [
-        inputs.nvf.homeManagerModules.default
-      ];
-    }
-  ];
-
   nix.settings = {
     substituters = ["https://watersucks.cachix.org"];
     trusted-public-keys = [
