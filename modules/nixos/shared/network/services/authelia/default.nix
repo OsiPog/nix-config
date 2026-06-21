@@ -154,7 +154,10 @@ in {
               claims_policy = client.clientId;
               public = client.public;
               require_pkce = client.pkce.enabled;
-              pkce_challenge_method = client.pkce.method;
+              pkce_challenge_method =
+                if client.pkce.enabled
+                then client.pkce.method
+                else "";
               redirect_uris = client.redirectUris;
               scopes = client.scopes;
               response_types = ["code"];

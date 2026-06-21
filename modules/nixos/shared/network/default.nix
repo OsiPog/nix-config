@@ -88,6 +88,7 @@ in {
     ./services/home-assistant.nix
     ./services/reverseProxy.nix
     ./services/staticWebsites.nix
+    ./services/vikunja
   ];
 
   config = mkIf networkCfg.enable {

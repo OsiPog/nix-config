@@ -54,6 +54,7 @@
     require.oidc-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.oidc-clients) [] [
       "headscale"
       "opencloud"
+      "vikunja"
     ];
   };
   ports.authelia.reverseProxy.domain = "auth.axelhax.net";
@@ -110,9 +111,11 @@
     hidden = true;
   };
 
-  # --- NFS
-  # services.nfs = {
-  #   enable = true;
-  #   serve.husk = "/mnt/husk";
-  # };
+  # --- VIKUNJA
+  services.vikunja = {
+    id = "vikunja";
+    enable = true;
+    require.oidc-server = servicesById.authelia.provide.oidc-server;
+  };
+  ports.vikunja.reverseProxy.domain = "tasks.axelhax.net";
 }
