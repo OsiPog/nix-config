@@ -91,6 +91,10 @@ creation_rules:
   - age:
     - *floating-trees
     - *haunt-muskie
+- path_regex: modules/nixos/shared/network/services/vikunja/secrets.yaml$
+  key_groups:
+  - age:
+    - *floating-trees
 - path_regex: modules/nixos/shared/network/vpn/secrets.yaml$
   key_groups:
   - age:
