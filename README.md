@@ -51,3 +51,72 @@ Here I use [nixos-anywhere](https://github.com/nix-community/nixos-anywhere) to 
 2. `manage-hosts install <hostname> root@<ip-address>`
   - this is what calls `nixos-anywhere`
   - add `--build-on remote` to build on remote machine
+
+
+### Add OIDC to network service
+
+1. Create client secret
+
+```bash
+nix run nixpkgs#authelia -- crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
+```
+
+2. Create `secrets.yaml` next to service (might need to move `services/<name>.nix` to `services/<name>/default.nix`)
+
+Add the client secret there
+
+3. Add `oidc-clients` provide (Open the OIDC guide of the service to find out what should be configured here)
+
+```nix
+provideEnable = {
+  oidc-clients = [
+    rec {
+      secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
+      clientId = "<very unique client ID>";
+      clientName = "<name visible in oidc prompt>";
+      hashedClientSecret = "$pbkdf2-sha512$310000$OM....."; # the digest generated before
+      clientSecretName = "<name>/oidc-secret";
+      redirectUris = ["${ports.${portName}.address "proxyProtocol://domain"}/oidc/callback"];
+      scopes = ["openid" "profile" "email" "groups"];
+      pkce = {
+        enabled = true;
+        method = "S256";
+      };
+      idTokenClaims = ["email" "groups"];
+    }
+  ];
+};
+```
+
+4. Add the provide to `services.authelia.require.oidc-clients` in `hosts/floating-trees/network.nix`, also the `oidc-server` provide to the require of your service
+
+5. configure the service using their OIDC guide. Add a mkIf block into the mkMerge list like so:
+
+```nix
+config = mkIf (networkCfg.enable && cfg.enable) (mkMerge [
+  {
+    # usual config here
+    # services.<name>.enable = true;
+  }
+
+  # ... other integrations
+
+  # OIDC SERVER INTEGRATION
+  (let
+    oidcServer = cfg.require.oidc-server;
+    oidcClient = head cfg.provide.oidc-clients;
+    secrets = getAttrs [oidcClient.clientSecretName] oidcClient.secrets;
+  in
+    mkIf (oidcServer != null) {
+      sops = {inherit secrets;};
+      users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.myService.user];
+      services.myService.config.oidc = {
+        # issuer = oidcServer.address "proxyProtocol://domain";
+        # client_id = oidcClient.clientId;
+        # client_secret_path = config.getSopsFile oidcClient.clientSecretName;
+        # ....
+      };
+    })
+]);
+```
+
