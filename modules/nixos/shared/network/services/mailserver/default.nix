@@ -43,7 +43,7 @@ in {
         ldap-clients =
           [
             {
-              groups.email = {};
+              groups.${serviceName} = {};
               extraUserAttributes = {
                 mail-aliases = {
                   dataType = "string";
@@ -59,7 +59,7 @@ in {
               secrets = getAttrs [mailClient.mailAccount.secretName] mailClient.secrets;
               users.${mailClient.mailAccount.uid} = {
                 inherit (mailClient.mailAccount) display email secretName;
-                groups = ["email"];
+                groups = [serviceName];
               };
             })
             cfg.require.mail-clients);
@@ -98,7 +98,7 @@ in {
       secrets = getAttrs [ldapServer.users.search.secretName] ldapServer.secrets;
     in
       mkIf (ldapServer != null) (let
-        usersFilter = username: "(&(|(${ldapServer.attributes.email}=${username})(mail-aliases=${username}))(${ldapServer.attributes.memberof}=cn=email,ou=groups,${ldapServer.baseDN}))";
+        usersFilter = username: "(&(|(${ldapServer.attributes.email}=${username})(mail-aliases=${username}))(${ldapServer.attributes.memberof}=cn=${serviceName},ou=groups,${ldapServer.baseDN}))";
       in {
         sops = {inherit secrets;};
 

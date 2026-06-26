@@ -33,7 +33,7 @@ in {
           port = mkDefault 8096;
         };
       };
-      provideEnable.ldap-clients = [{groups.media = {};}];
+      provideEnable.ldap-clients = [{groups.${serviceName} = {};}];
     }))
 
     flake.inputs.jellarr.nixosModules.default
@@ -125,7 +125,7 @@ in {
                 LdapProfileImageAttribute = ldapServer.attributes.icon;
                 LdapProfileImageFormat = "Default";
                 LdapSearchAttributes = "uid,cn,mail,displayName";
-                LdapSearchFilter = "(|(memberof=cn=media,ou=groups,${ldapServer.baseDN})(uid=${ldapServer.users.admin.dn}))";
+                LdapSearchFilter = "(|(memberof=cn=${serviceName},ou=groups,${ldapServer.baseDN})(uid=${ldapServer.users.admin.dn}))";
                 LdapUidAttribute = ldapServer.attributes.uid;
                 LdapUsernameAttribute = "cn";
 

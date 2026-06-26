@@ -31,7 +31,7 @@ in {
         protocol = "http";
         port = mkDefault 9200;
       };
-      provideEnable.ldap-clients = [{groups.cloud = {};}];
+      provideEnable.ldap-clients = [{groups.${serviceName} = {};}];
       provideEnable.oidc-clients = let
         ocAddress = getAddress {
           hostName = name;
@@ -144,7 +144,7 @@ in {
           OC_ADMIN_USER_ID = ldapServer.users.admin.dn;
 
           OC_LDAP_USER_BASE_DN = "ou=people,${ldapServer.baseDN}";
-          OC_LDAP_USER_FILTER = "(|(memberof=cn=cloud,ou=groups,${ldapServer.baseDN})(uid=${ldapServer.users.admin.dn}))";
+          OC_LDAP_USER_FILTER = "(|(memberof=cn=${serviceName},ou=groups,${ldapServer.baseDN})(uid=${ldapServer.users.admin.dn}))";
           OC_LDAP_USER_ENABLED_ATTRIBUTE = "uid";
           OC_LDAP_USER_SCHEMA_ID = "uid";
           OC_LDAP_USER_SCHEMA_USER_TYPE = "";
