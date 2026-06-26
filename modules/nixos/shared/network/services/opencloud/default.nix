@@ -42,6 +42,7 @@ in {
         {
           clientId = "web";
           clientName = "OpenCloud Web";
+          allowedGroup = serviceName;
           redirectUris = [
             "${baseUrl}/"
             "${baseUrl}/oidc-callback.html"
@@ -56,6 +57,7 @@ in {
         {
           clientId = "OpenCloudDesktop";
           clientName = "OpenCloud Desktop";
+          allowedGroup = serviceName;
           redirectUris = ["http://127.0.0.1" "http://localhost"];
           public = true;
           pkce = {
@@ -66,6 +68,7 @@ in {
         {
           clientId = "OpenCloudAndroid";
           clientName = "OpenCloud Android";
+          allowedGroup = serviceName;
           redirectUris = ["oc://android.opencloud.eu"];
           public = true;
           pkce = {
@@ -76,6 +79,7 @@ in {
         {
           clientId = "OpenCloudIOS";
           clientName = "OpenCloud iOS";
+          allowedGroup = serviceName;
           redirectUris = ["oc://ios.opencloud.eu"];
           public = true;
           pkce = {
@@ -86,6 +90,7 @@ in {
         {
           clientId = "Cyberduck";
           clientName = "Cyberduck";
+          allowedGroup = serviceName;
           redirectUris = [
             "x-cyberduck-action:oauth"
             "x-mountainduck-action:oauth"

@@ -5,9 +5,9 @@
   hostName,
   ...
 }: let
-  inherit (builtins) head elem;
+  inherit (builtins) head elem getAttr;
   inherit (lib) mkIf mkMerge mkDefault;
-  inherit (lib.attrsets) getAttrs;
+  inherit (lib.attrsets) getAttrs genAttrs;
 
   inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets mkMergeTopLevel;
   inherit (config.lib.network) getAddress getServiceVariables;
@@ -51,6 +51,12 @@ in {
       };
 
       provideEnable = {
+        ldap-clients = [
+          {
+            groups = genAttrs (map (getAttr "allowedGroup") cfg.require.oidc-clients) (_: {});
+          }
+        ];
+
         mail-clients = [
           rec {
             secrets = mkSharedSecrets [mailAccount.secretName] ./secrets.yaml;
@@ -111,7 +117,7 @@ in {
               authelia_url = address "proxyProtocol://domain";
             }
           ];
-          access_control.default_policy = "two_factor";
+          access_control.default_policy = mkDefault "two_factor";
         };
       };
     }
@@ -143,6 +149,15 @@ in {
         services.authelia.instances.default.settings.identity_providers.oidc = {
           cors.allowed_origins_from_client_redirect_uris = true;
           claims_policies.${client.clientId}.id_token = client.idTokenClaims;
+          authorization_policies.${client.clientId} = {
+            default_policy = "deny";
+            rules = [
+              {
+                policy = config.services.authelia.instances.default.settings.access_control.default_policy;
+                subject = "group:${client.allowedGroup}";
+              }
+            ];
+          };
           clients = [
             {
               client_id = client.clientId;
@@ -152,6 +167,7 @@ in {
                 then ""
                 else client.hashedClientSecret;
               claims_policy = client.clientId;
+              authorization_policy = client.clientId;
               public = client.public;
               require_pkce = client.pkce.enabled;
               pkce_challenge_method =

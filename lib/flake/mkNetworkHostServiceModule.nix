@@ -174,7 +174,7 @@ in {
 
             oidc-clients = mkOption {
               default = [];
-              type = types.listOf (types.submodule {
+              type = types.listOf (types.submodule ({config, ...}: {
                 options = {
                   secrets = secretsOpt;
                   clientId = mkOption {type = types.str;};
@@ -201,8 +201,13 @@ in {
                     type = types.listOf types.str;
                     default = [];
                   };
+                  allowedGroup = mkOption {
+                    type = types.str;
+                    description = "LDAP group required to access this OIDC client.";
+                    default = config.clientId;
+                  };
                 };
-              });
+              }));
             };
 
             oidc-server = mkOption {
