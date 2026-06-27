@@ -91,7 +91,9 @@
       "default_config"
       "isal"
     ];
-    customComponents = [
+    customComponents = with pkgs.home-assistant-custom-components; [
+      tuya_local
+
       (pkgs.buildHomeAssistantComponent rec {
         owner = "damacus";
         domain = "robovac";
