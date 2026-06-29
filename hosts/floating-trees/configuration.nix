@@ -86,6 +86,7 @@
       "automation ui" = "!include automations.yaml";
       "scene ui" = "!include scenes.yaml";
       "script ui" = "!include scripts.yaml";
+      recorder = {};
     };
     extraComponents = [
       "default_config"
