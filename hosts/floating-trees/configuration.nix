@@ -109,6 +109,9 @@
     ];
   };
 
+  # this is fine
+  services.authelia.instances.default.settings.access_control.default_policy = "one_factor";
+
   # Don't change, will break things!
   system.stateVersion = "25.11";
 }
