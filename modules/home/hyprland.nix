@@ -12,6 +12,7 @@
       hyprpolkitagent
       ydotool
       hyprmon
+      handy
     ];
     sessionVariables = {
       XDG_SESSION_TYPE = "wayland";
@@ -89,6 +90,7 @@
       exec-once = [
         # Auth agent for gui apps
         "systemctl --user start hyprpolkitagent"
+        "handy --start-hidden"
       ];
 
       # --- Keyboard settings ---
@@ -162,6 +164,9 @@
           # Taking screenshots
           "$meta, A, exec, pidof hyprshot || hyprshot -m region --clipboard-only --freeze"
           "$meta_CTRL, A, exec, pidof hyprshot || hyprshot -m region --freeze -o ~/Pictures"
+
+          "$meta, O, exec, handy --toggle-transcription"
+          "$meta_SHIFT, O, exec, handy --toggle-post-process"
         ];
 
       # Binds here will be repeated on press
