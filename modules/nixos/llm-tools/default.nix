@@ -92,7 +92,7 @@ in {
           Run any command that is not part of core linux with `nix run nixpkgs#<package-name>`
         '';
         settings = {
-          apiKeyHelper = "cat " + (config.getSopsFile "api-keys/anthropic");
+          # apiKeyHelper = "cat " + (config.getSopsFile "api-keys/anthropic");
           hooks = let
             focusWindowAndBell = {
               type = "command";

@@ -86,8 +86,8 @@ in {
         isReadOnly = false;
       };
       apiKey = {
-        hostPath = config.getSopsFile "api-keys/anthropic";
-        mountPoint = "/api-key";
+        # hostPath = config.getSopsFile "api-keys/anthropic";
+        # mountPoint = "/api-key";
       };
     };
     config = {
@@ -135,9 +135,9 @@ in {
 
             AFTER EVERY CHANGE: commit your changes!
           '';
-          settings = {
-            apiKeyHelper = "cat /api-key";
-          };
+          # settings = {
+          #   apiKeyHelper = "cat /api-key";
+          # };
         };
 
         home.file.".claude/skills/caveman".source = "${inputs.caveman}/skills/caveman";
