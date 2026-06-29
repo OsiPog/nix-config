@@ -14,6 +14,7 @@
     fsType = "fuse.bindfs";
     device = "/mnt/zombie-horse/media";
   };
+  services.jellyfin.openFirewall = true; # to utilize raw WLAN speed at home
   services.jellarr.config = {
     system.pluginRepositories = [
       {
