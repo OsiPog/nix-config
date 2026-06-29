@@ -12,7 +12,7 @@
     spotify-player # player for spotify
     # Tools
     wl-clipboard-rs # copy to clipboard from terminal
-    serpl # global find and replace as tui
+    # serpl # global find and replace as tui
     # Scripts
     android-tools
   ];
