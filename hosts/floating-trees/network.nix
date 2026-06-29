@@ -102,7 +102,11 @@
   ports.jellyfin.reverseProxy.domain = "media.axelhax.net";
 
   # --- HOME ASSISTANT
-  services.home-assistant.enable = true;
+  services.home-assistant = {
+    enable = true;
+    require.ldap-server = servicesById.lldap.provide.ldap-server;
+  };
+
   ports.home-assistant.reverseProxy = {
     domain = "home.axelhax.net";
     hidden = true;
