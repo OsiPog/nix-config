@@ -47,7 +47,6 @@
 
   # --- AUTHELIA
   services.authelia = {
-    id = "authelia";
     enable = true;
     require.ldap-server = servicesById.lldap.provide.ldap-server;
     require.mail-server = servicesById.snm.provide.mail-server;
@@ -61,13 +60,13 @@
 
   # --- LLDAP
   services.lldap = {
-    id = "lldap";
     enable = true;
     require.ldap-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.ldap-clients) [] [
       "snm"
       "authelia"
       "opencloud"
       "jellyfin"
+      "home-assistant"
     ];
   };
   ports.ldaps.reverseProxy = {
@@ -89,7 +88,6 @@
 
   # --- OPENCLOUD
   services.opencloud = {
-    id = "opencloud";
     enable = true;
     require.ldap-server = servicesById.lldap.provide.ldap-server;
     require.oidc-server = servicesById.authelia.provide.oidc-server;
@@ -98,7 +96,6 @@
 
   # --- JELLYFIN
   services.jellyfin = {
-    id = "jellyfin";
     enable = true;
     require.ldap-server = servicesById.lldap.provide.ldap-server;
   };
@@ -113,7 +110,6 @@
 
   # --- VIKUNJA
   services.vikunja = {
-    id = "vikunja";
     enable = true;
     require.oidc-server = servicesById.authelia.provide.oidc-server;
   };

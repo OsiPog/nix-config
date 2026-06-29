@@ -22,7 +22,10 @@ in {
     in
       map (service: {
         assertion = length (filter (e: e.serviceCfg.id == service.serviceCfg.id) allServices) == 1;
-        message = "Network service ID '${service.serviceCfg.id}' must be unique network-wide, but is used by ${service.hostName}:${service.serviceName} and at least one other service.";
+        message = ''
+          Network service ID '${service.serviceCfg.id}' must be unique network-wide, but is used by ${service.hostName}:${service.serviceName} and at least one other service.
+          By default, a service's ID is it's name. That breaks when the same service runs on multiple hosts. Then use services.<name>.id to give each their own ID.
+        '';
       })
       thisServiceInstances);
 
@@ -60,7 +63,7 @@ in {
             id = mkOption {
               description = "ID of the server to decouple from host and service name. Can be referenced by config.lib.network.servicesById";
               type = types.str;
-              default = name + "-" + serviceName;
+              default = serviceName;
             };
           };
         })
