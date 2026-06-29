@@ -85,10 +85,10 @@ in {
         mountPoint = "/data";
         isReadOnly = false;
       };
-      apiKey = {
-        # hostPath = config.getSopsFile "api-keys/anthropic";
-        # mountPoint = "/api-key";
-      };
+      # apiKey = {
+      #   hostPath = config.getSopsFile "api-keys/anthropic";
+      #   mountPoint = "/api-key";
+      # };
     };
     config = {
       pkgs,
