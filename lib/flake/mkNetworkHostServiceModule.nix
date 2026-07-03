@@ -8,7 +8,7 @@ flake: {
 }: let
   inherit (builtins) filter length;
   inherit (flake.lib) mkModuleWithExtraMetaAttrs;
-  inherit (lib) mkEnableOption mkIf mkOption types;
+  inherit (lib) mkEnableOption mkIf mkOption types mkDefault;
   inherit (lib.lists) optional;
 in {
   assertions =
@@ -207,8 +207,10 @@ in {
                   allowedGroup = mkOption {
                     type = types.str;
                     description = "LDAP group required to access this OIDC client.";
-                    default = config.clientId;
                   };
+                };
+                config = {
+                  allowedGroup = mkDefault config.clientId;
                 };
               }));
             };
