@@ -31,7 +31,7 @@
 
     # ./vm-gpu-passthrough.nix
 
-    inputs.lanzaboote.nixosModules.lanzaboote
+    # inputs.lanzaboote.nixosModules.lanzaboote
   ];
 
   boot.initrd = {
@@ -95,17 +95,19 @@
   #   default = "saved"; # select the previously selected entry, (allows windows to reboot without intervention)
   # };
   # boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.systemd-boot.enable = false;
-  boot.lanzaboote = {
-    enable = true;
-    pkiBundle = "/var/lib/sbctl";
-  };
+  # boot.loader.systemd-boot.enable = false;
+  # boot.lanzaboote = {
+  #   enable = true;
+  #   pkiBundle = "/var/lib/sbctl";
+  # };
 
   services.sunshine = {
     autoStart = true;
     enable = true;
     capSysAdmin = true;
   };
+
+  networking.firewall.allowedTCPPorts = [7999];
 
   # Don't change, will break things!
   system.stateVersion = "25.11";
