@@ -91,6 +91,7 @@
         # Auth agent for gui apps
         "systemctl --user start hyprpolkitagent"
         "handy --start-hidden"
+        "ydotoold"
       ];
 
       # --- Keyboard settings ---
