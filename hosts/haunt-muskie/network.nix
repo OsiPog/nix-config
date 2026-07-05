@@ -46,6 +46,7 @@
       inherit (servicesById.lldap.provide) ldap-server;
       mail-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.mail-clients) [] [
         "authelia"
+        "vikunja"
       ];
     };
   };

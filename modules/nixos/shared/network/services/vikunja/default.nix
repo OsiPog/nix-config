@@ -29,6 +29,18 @@ in {
       };
 
       provideEnable = {
+        mail-clients = [
+          rec {
+            secrets = mkSharedSecrets [mailAccount.secretName] ./secrets.yaml;
+            mailAccount = {
+              uid = "vikunja-mail";
+              email = "noreply.vikunja@${cfg.require.mail-server.address "domain"}";
+              display = "Vikunja";
+              secretName = "vikunja/mail-pass";
+            };
+          }
+        ];
+
         oidc-clients = [
           rec {
             secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
@@ -56,6 +68,26 @@ in {
         frontendHostname = ports.${portName}.address "domain";
       };
     }
+
+    # MAIL SERVER INTEGRATION
+    (let
+      mailServer = cfg.require.mail-server;
+      mailClient = head cfg.provide.mail-clients;
+      secrets = getAttrs [mailClient.mailAccount.secretName] mailClient.secrets;
+    in
+      mkIf (mailServer != null) {
+        sops = {inherit secrets;};
+        users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.vikunja.database.user];
+        services.vikunja.settings.mailer = {
+          enabled = true;
+          host = mailServer.address "domain";
+          port = mailServer.address "port";
+          forcessl = true;
+          username = mailClient.mailAccount.email;
+          fromemail = mailClient.mailAccount.email;
+          password.file = config.getSopsFile mailClient.mailAccount.secretName;
+        };
+      })
 
     # OIDC SERVER INTEGRATION
     (let
