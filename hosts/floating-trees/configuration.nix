@@ -14,8 +14,10 @@
 
     makemkv
 
-    ./jellyfin.nix
-    ./drives
+    ./modules/jellyfin.nix
+    ./modules/home-assistant.nix
+    ./modules/drives
+    ./modules/vikunja.nix
   ];
 
   disko.devices.disk.disk1.device = "/dev/disk/by-id/ata-EDILOCA_ES106_1TB_AA000000000000050186";
@@ -78,37 +80,9 @@
     OC_SHARING_PUBLIC_SHARE_MUST_HAVE_PASSWORD = "false";
     STORAGE_USERS_POSIX_WATCH_FS = "true";
     FRONTEND_ARCHIVER_MAX_SIZE = "10000000000";
+    OC_LOG_LEVEL = "WARN";
   };
   systemd.services.opencloud.path = [pkgs.inotify-tools];
-
-  services.home-assistant = {
-    config = {
-      "automation ui" = "!include automations.yaml";
-      "scene ui" = "!include scenes.yaml";
-      "script ui" = "!include scripts.yaml";
-      recorder = {};
-    };
-    extraComponents = [
-      "default_config"
-      "isal"
-    ];
-    customComponents = with pkgs.home-assistant-custom-components; [
-      tuya_local
-
-      (pkgs.buildHomeAssistantComponent rec {
-        owner = "damacus";
-        domain = "robovac";
-        version = "v2.4.3-beta.1";
-
-        src = pkgs.fetchFromGitHub {
-          inherit owner;
-          repo = domain;
-          rev = version;
-          hash = "sha256-iQNXHghUznCqc0FNx4rUb6o9JicK8IvAhFG95hm0DkQ=";
-        };
-      })
-    ];
-  };
 
   # this is fine
   services.authelia.instances.default.settings.access_control.default_policy = "one_factor";

@@ -15,6 +15,8 @@ pkgs.mkShell {
     get-hypr-monitors-conf
     # vdfplus
     vdfplus
+    # generate PostgreSQL SCRAM-SHA-256 password hashes
+    pg-scram-sha256
   ];
 
   shellHook = ''
