@@ -67,6 +67,17 @@
 
   environment.systemPackages = [pkgs.moonlight-qt];
 
+  systemd.services.fix-touchpad-after-resume = {
+    description = "Rebind Synaptics touchpad after resume to restore multitouch";
+    wantedBy = ["post-resume.target"];
+    after = ["post-resume.target"];
+    script = ''
+      echo i2c-SYNA2BA6:00 > /sys/bus/i2c/drivers/i2c_hid_acpi/unbind
+      echo i2c-SYNA2BA6:00 > /sys/bus/i2c/drivers/i2c_hid_acpi/bind
+    '';
+    serviceConfig.Type = "oneshot";
+  };
+
   # Don't change, will break things.
   system.stateVersion = "23.11"; # Did you read the comment?
 }
