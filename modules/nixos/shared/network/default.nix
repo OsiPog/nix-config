@@ -89,6 +89,7 @@ in {
     ./services/reverseProxy.nix
     ./services/staticWebsites.nix
     ./services/vikunja
+    ./services/actual
   ];
 
   config = mkIf networkCfg.enable {

@@ -54,6 +54,7 @@
       "headscale"
       "opencloud"
       "vikunja"
+      "actual"
     ];
   };
   ports.authelia.reverseProxy.domain = "auth.axelhax.net";
@@ -116,6 +117,16 @@
   services.vikunja = {
     enable = true;
     require.oidc-server = servicesById.authelia.provide.oidc-server;
+    require.mail-server = servicesById.snm.provide.mail-server;
   };
   ports.vikunja.reverseProxy.domain = "tasks.axelhax.net";
+  # --- ACTUAL
+  services.actual = {
+    enable = true;
+    require.oidc-server = servicesById.authelia.provide.oidc-server;
+  };
+  ports.actual.reverseProxy = {
+    domain = "budget.axelhax.net";
+    hidden = true;
+  };
 }
