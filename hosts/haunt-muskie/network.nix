@@ -8,7 +8,7 @@
   vpn.ip = "100.64.0.1";
   ssh = {
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAcSqngrHbdtiCGzPmt6peImIQfYek/WLcaXIwrhN5oS root@haunt-muskie";
-    allowConnectionsFrom = ["biome-fest" "dead-voxel"];
+    allowConnectionsFrom = ["biome-fest" "dead-voxel" "floating-trees"];
   };
 
   # --- RESTIC BACKUP

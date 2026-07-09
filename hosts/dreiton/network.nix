@@ -4,7 +4,7 @@
   vpn.ip = "100.64.0.7";
   ssh = {
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK44GxBLg68sWe2OFiX69Mx4mP7WLI7NqJtspzWj2isi root@dreiton";
-    allowConnectionsFrom = ["dead-voxel"];
+    allowConnectionsFrom = ["dead-voxel" "floating-trees"];
   };
   services = {
     # ...
