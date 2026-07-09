@@ -6,11 +6,11 @@
   pkgs,
   ...
 }: let
-  inherit (builtins) filter attrValues length mapAttrs foldl';
-  inherit (lib) types mkIf mkOption mkEnableOption mkMerge pipe;
-  inherit (lib.attrsets) filterAttrs attrsToList recursiveUpdate;
+  inherit (builtins) mapAttrs;
+  inherit (lib) pipe types mkIf mkOption mkMerge groupBy concatMapStringsSep;
+  inherit (lib.attrsets) filterAttrs mapAttrs';
 
-  inherit (flake.lib) mkNetworkHostServiceModule nixosHostNames;
+  inherit (flake.lib) mkNetworkHostServiceModule;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -19,142 +19,93 @@
     networkCfg
     cfg
     ;
+
+  # common restic backup options, only depends on the repo path
+  commonBackupOptions = {
+    repository = cfg.repoPath;
+    # we assume that the password sits in the repo
+    passwordFile = "${cfg.repoPath}/password";
+    inhibitsSleep = true;
+    timerConfig = {
+      OnCalendar = "15:05";
+      Persistent = true;
+      RandomizedDelaySec = "5h";
+    };
+  };
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
       optionsService = {
-        exclude = mkOption {
-          type = with types; listOf str;
-          description = "Patterns of files to exclude";
-          default = [];
+        repoPath = mkOption {
+          type = types.pathWith {absolute = true;};
+          description = "Path where the restic backup repository is located. The repo password is expected at <repoPath>/password.";
         };
-        host = mkOption {
-          type = types.str;
-          default = hostName;
-          description = "The host where a backup server is running.";
-        };
-        server = {
-          enable = mkEnableOption "the backup server";
-          repository = mkOption {
-            type = types.pathWith {absolute = true;};
-          };
+        mirrorPath = mkOption {
+          type = types.pathWith {absolute = true;};
+          description = "Path where remote hosts' backup paths are mirrored (via rsync) before being backed up.";
         };
       };
     }))
   ];
-  config = mkMerge [
-    # config for clients
-    (mkIf (networkCfg.enable && cfg.enable) {
-      # Allow all backup servers access to current host
-      users.users.root.openssh.authorizedKeys.keys = pipe networkCfg.hosts [
-        attrValues
-        (filter (host: host.services.backup.enable && host.services.backup.host == hostName))
-        (map (host: host.ssh.publicKey))
-      ];
-    })
-    # config for backup server
-    (mkIf (networkCfg.enable && cfg.server.enable) (let
-      backupMount = "/mnt/backup";
 
-      commonBackupOptions = {
-        inherit (cfg.server) repository;
-        # we assume that the password sits in the repo
-        passwordFile = "${cfg.server.repository}/password";
-        inhibitsSleep = true;
-        timerConfig = {
-          OnCalendar = "15:05";
-          Persistent = true;
-          RandomizedDelaySec = "5h";
-        };
-      };
-
-      relevantHosts = (filterAttrs (_: host: host.services.backup.enable && host.services.backup.host == hostName)) networkCfg.hosts;
-    in {
-      services.restic.backups =
-        (mapAttrs (hostName: host:
-          commonBackupOptions
-          // {
-            paths =
-              map (
-                path:
-                  if hostName != host.services.backup.host
-                  then "${backupMount}/${hostName}${path}"
-                  else path
-              )
-              (networkCfg.hosts.${hostName}.stateDirs);
-            extraBackupArgs = ["--host ${hostName}"];
-          })
-        relevantHosts)
+  config = mkIf (networkCfg.enable && cfg.enable) (mkMerge [
+    # a stub `command` backup to allow repo access (also enables restic itself)
+    {
+      # only exists to have a common command to access the repo
+      services.restic.backups.command =
+        commonBackupOptions
         // {
-          # prune job
-          prune =
-            commonBackupOptions
-            // {
-              pruneOpts = let
-                perHost = 2;
-                countStr = toString ((length nixosHostNames) * perHost);
-              in [
-                "--keep-daily ${countStr}"
-                "--keep-weekly ${countStr}"
-                "--keep-monthly ${countStr}"
-                "--keep-yearly ${countStr}"
-              ];
-            };
-          # only exists to have a common command to access the repo
-          command =
-            commonBackupOptions
-            // {
-              createWrapper = true;
-            };
+          createWrapper = true;
         };
+    }
 
-      # Make services automatically restart when failed (hosts might be offline)
-      systemd.services = pipe relevantHosts [
-        attrsToList
-        # only remote hosts
-        (filter (host: host.name != hostName))
-        (map (host: {
-          # Service that mounts the remote host via SSHFS
-          "sshfs-${host.name}" = {
-            path = with pkgs; [
-              sshfs
-              openssh
-            ];
-            script = ''
-              # 1. check connection is possible at all
-              ssh -o ConnectTimeout=3 -i /etc/ssh/id_ed25519 "root@${host.name}" echo "Connection succeeded!"
-              # 2. mount
-              mkdir -p ${backupMount}/${host.name}
-              sshfs root@${host.name}:/ ${backupMount}/${host.name} \
-                -o IdentityFile=/etc/ssh/id_ed25519 \
-                -o auto_unmount \
-                -o allow_root \
-                -f
-            '';
-          };
-          # Additional options to restic backup service
-          "restic-backups-${host.name}" = {
-            path = with pkgs; [
-              systemd
-            ];
-            preStart = ''
-              systemctl start sshfs-${host.name}
-              sleep 5
-              systemctl is-active sshfs-${host.name}
-            '';
-            postStop = ''
-              # After backup unmount sshfs
-              systemctl stop sshfs-${host.name}
-            '';
-            serviceConfig = {
-              Restart = "on-failure";
-              RestartSec = "15min";
+    # configure the actual backups once services provide paths to back up
+    (mkIf (cfg.require.backup-paths != []) (let
+      # one backup per host
+      pathsByHost = groupBy (p: p.host) cfg.require.backup-paths;
+    in {
+      services.restic.backups = mapAttrs (backupHost: paths: let
+        isRemote = backupHost != hostName;
+        mirrorOf = p: "${cfg.mirrorPath}/${backupHost}${p.path}";
+      in
+        commonBackupOptions
+        // {
+          paths =
+            map (p:
+              if isRemote
+              then mirrorOf p # remote: back up the mirrored copy
+              else p.path) # local: no post processing
+            
+            paths;
+          # tag snapshots with the origin host, not the backup server
+          extraBackupArgs = ["--host ${backupHost}"];
+          # remote hosts: mirror before backup, fail (and retry next interval) if unreachable
+          backupPrepareCommand = mkIf isRemote ''
+            ${pkgs.openssh}/bin/ssh -o ConnectTimeout=3 root@${backupHost} echo "Connection succeeded!"
+            ${concatMapStringsSep "\n" (p: ''
+                mkdir -p "${mirrorOf p}"
+                ${pkgs.rsync}/bin/rsync -a --delete --info=progress2 "root@${backupHost}:${p.path}/" "${mirrorOf p}/"
+              '')
+              paths}
+          '';
+        })
+      pathsByHost;
+
+      # remote-host backups should retry when the host is offline
+      systemd.services = pipe pathsByHost [
+        (filterAttrs (backupHost: _: backupHost != hostName))
+        (
+          mapAttrs' (backupHost: _: {
+            name = "restic-backups-${backupHost}";
+            value = {
+              serviceConfig = {
+                Restart = "on-failure";
+                RestartSec = "15min";
+              };
             };
-          };
-        }))
-        # concat all these attrsets
-        (foldl' recursiveUpdate {})
+          })
+        )
       ];
     }))
-  ];
+  ]);
 }

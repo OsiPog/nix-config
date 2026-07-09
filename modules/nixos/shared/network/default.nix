@@ -74,7 +74,7 @@ in {
     ./vpn
 
     ./services/authelia
-    # ./services/backup.nix
+    ./services/backup.nix
     ./services/dnsmasq.nix
     ./services/headscale
     # ./services/hytale-server.nix
