@@ -1,6 +1,6 @@
 # This is a special nix module. It is imported into `networking.hosts.<name>` of every nixos configuration.
 # So that each host can see the network configuration of all other hosts.
-{servicesById, ...}: {
+{servicesById, lib, ...}: {
   domain = "axelhax.net"; # on my home router this domain resolves here
   vpn.ip = "100.64.0.4";
   ssh = {
@@ -28,13 +28,13 @@
   };
 
   # --- RESTIC
-  # services.backup = {
-  #   enable = true;
-  #   server = {
-  #     enable = true;
-  #     repository = "/mnt/blaze";
-  #   };
-  # };
+  services.backup = {
+    enable = true;
+    repoPath = "/mnt/mob-farm";
+    mirrorPath = "/mnt/zombie-horse/mirror";
+    # all backup paths
+    require.backup-paths = lib.flatten (lib.mapAttrsToList (_: service: service.provide.backup-paths) servicesById);
+  };
 
   # --- MINECRAFT
   # services.minecraft-server.enable = true;
