@@ -36,6 +36,7 @@ in {
           };
         };
         provideEnable = {
+          backup-paths = [{path = stateDir;}];
           tailscale-server = rec {
             secrets = mkSharedSecrets [authKeySecretName] ./secrets.yaml;
             address = getAddress {

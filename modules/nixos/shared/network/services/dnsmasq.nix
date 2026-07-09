@@ -31,7 +31,10 @@ in {
         protocol = throw "dns server does not have a protocol";
         reverseProxy.method = "stream";
       };
-      provideEnable.dns-server.address = config.ports.${portName}.address;
+      provideEnable = {
+        dns-server.address = config.ports.${portName}.address;
+        backup-paths = [{path = stateDir;}];
+      };
     }))
   ];
   config = mkIf (networkCfg.enable && cfg.enable) (mkMerge [

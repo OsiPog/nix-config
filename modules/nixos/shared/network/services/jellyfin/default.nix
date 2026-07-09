@@ -33,7 +33,10 @@ in {
           port = mkDefault 8096;
         };
       };
-      provideEnable.ldap-clients = [{groups.${serviceName} = {};}];
+      provideEnable = {
+        ldap-clients = [{groups.${serviceName} = {};}];
+        backup-paths = [{path = stateDir;}];
+      };
     }))
 
     flake.inputs.jellarr.nixosModules.default

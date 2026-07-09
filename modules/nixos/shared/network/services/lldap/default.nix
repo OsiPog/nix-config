@@ -38,43 +38,46 @@ in {
           };
         };
       };
-      provideEnable.ldap-server = rec {
-        secrets =
-          mkSharedSecrets [
-            users.admin.secretName
-            users.search.secretName
-            users.manage.secretName
-          ]
-          ./secrets.yaml;
-        address = getAddress {
-          hostName = name;
-          portName = "ldaps";
-        };
-        baseDN = pipe (address "domain") [
-          (splitString ".")
-          (map (e: "dc=${e}"))
-          (concatStringsSep ",")
-        ];
-        users = {
-          admin = {
-            dn = "admin";
-            secretName = "lldap/admin-pass";
+      provideEnable = {
+        backup-paths = [{path = stateDir;}];
+        ldap-server = rec {
+          secrets =
+            mkSharedSecrets [
+              users.admin.secretName
+              users.search.secretName
+              users.manage.secretName
+            ]
+            ./secrets.yaml;
+          address = getAddress {
+            hostName = name;
+            portName = "ldaps";
           };
-          search = {
-            dn = "search-user";
-            secretName = "lldap/search-pass";
+          baseDN = pipe (address "domain") [
+            (splitString ".")
+            (map (e: "dc=${e}"))
+            (concatStringsSep ",")
+          ];
+          users = {
+            admin = {
+              dn = "admin";
+              secretName = "lldap/admin-pass";
+            };
+            search = {
+              dn = "search-user";
+              secretName = "lldap/search-pass";
+            };
+            manage = {
+              dn = "manager";
+              secretName = "lldap/manager-pass";
+            };
           };
-          manage = {
-            dn = "manager";
-            secretName = "lldap/manager-pass";
+          attributes = {
+            email = "mail";
+            uid = "uid";
+            password = "password";
+            icon = "avatar";
+            memberof = "memberof";
           };
-        };
-        attributes = {
-          email = "mail";
-          uid = "uid";
-          password = "password";
-          icon = "avatar";
-          memberof = "memberof";
         };
       };
     }))

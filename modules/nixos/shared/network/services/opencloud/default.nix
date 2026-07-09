@@ -31,77 +31,80 @@ in {
         protocol = "http";
         port = mkDefault 9200;
       };
-      provideEnable.ldap-clients = [{groups.${serviceName} = {};}];
-      provideEnable.oidc-clients = let
-        ocAddress = getAddress {
-          hostName = name;
-          portName = serviceName;
-        };
-        baseUrl = ocAddress "proxyProtocol://domain";
-      in [
-        {
-          clientId = "web";
-          clientName = "OpenCloud Web";
-          allowedGroup = serviceName;
-          redirectUris = [
-            "${baseUrl}/"
-            "${baseUrl}/oidc-callback.html"
-            "${baseUrl}/oidc-silent-redirect.html"
-          ];
-          public = true;
-          pkce = {
-            enabled = true;
-            method = "S256";
+      provideEnable = {
+        ldap-clients = [{groups.${serviceName} = {};}];
+        backup-paths = [{path = stateDir;}];
+        oidc-clients = let
+          ocAddress = getAddress {
+            hostName = name;
+            portName = serviceName;
           };
-        }
-        {
-          clientId = "OpenCloudDesktop";
-          clientName = "OpenCloud Desktop";
-          allowedGroup = serviceName;
-          redirectUris = ["http://127.0.0.1" "http://localhost"];
-          public = true;
-          pkce = {
-            enabled = true;
-            method = "S256";
-          };
-        }
-        {
-          clientId = "OpenCloudAndroid";
-          clientName = "OpenCloud Android";
-          allowedGroup = serviceName;
-          redirectUris = ["oc://android.opencloud.eu"];
-          public = true;
-          pkce = {
-            enabled = true;
-            method = "S256";
-          };
-        }
-        {
-          clientId = "OpenCloudIOS";
-          clientName = "OpenCloud iOS";
-          allowedGroup = serviceName;
-          redirectUris = ["oc://ios.opencloud.eu"];
-          public = true;
-          pkce = {
-            enabled = true;
-            method = "S256";
-          };
-        }
-        {
-          clientId = "Cyberduck";
-          clientName = "Cyberduck";
-          allowedGroup = serviceName;
-          redirectUris = [
-            "x-cyberduck-action:oauth"
-            "x-mountainduck-action:oauth"
-          ];
-          public = true;
-          pkce = {
-            enabled = true;
-            method = "S256";
-          };
-        }
-      ];
+          baseUrl = ocAddress "proxyProtocol://domain";
+        in [
+          {
+            clientId = "web";
+            clientName = "OpenCloud Web";
+            allowedGroup = serviceName;
+            redirectUris = [
+              "${baseUrl}/"
+              "${baseUrl}/oidc-callback.html"
+              "${baseUrl}/oidc-silent-redirect.html"
+            ];
+            public = true;
+            pkce = {
+              enabled = true;
+              method = "S256";
+            };
+          }
+          {
+            clientId = "OpenCloudDesktop";
+            clientName = "OpenCloud Desktop";
+            allowedGroup = serviceName;
+            redirectUris = ["http://127.0.0.1" "http://localhost"];
+            public = true;
+            pkce = {
+              enabled = true;
+              method = "S256";
+            };
+          }
+          {
+            clientId = "OpenCloudAndroid";
+            clientName = "OpenCloud Android";
+            allowedGroup = serviceName;
+            redirectUris = ["oc://android.opencloud.eu"];
+            public = true;
+            pkce = {
+              enabled = true;
+              method = "S256";
+            };
+          }
+          {
+            clientId = "OpenCloudIOS";
+            clientName = "OpenCloud iOS";
+            allowedGroup = serviceName;
+            redirectUris = ["oc://ios.opencloud.eu"];
+            public = true;
+            pkce = {
+              enabled = true;
+              method = "S256";
+            };
+          }
+          {
+            clientId = "Cyberduck";
+            clientName = "Cyberduck";
+            allowedGroup = serviceName;
+            redirectUris = [
+              "x-cyberduck-action:oauth"
+              "x-mountainduck-action:oauth"
+            ];
+            public = true;
+            pkce = {
+              enabled = true;
+              method = "S256";
+            };
+          }
+        ];
+      };
     }))
   ];
 

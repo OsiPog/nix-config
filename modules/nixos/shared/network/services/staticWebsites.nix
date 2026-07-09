@@ -40,6 +40,7 @@ in {
           })
           cfg.sites);
       };
+      provideEnable.backup-paths = [{path = stateDir;}];
     }))
   ];
 
