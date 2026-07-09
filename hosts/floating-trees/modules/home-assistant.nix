@@ -36,6 +36,11 @@
       serial = {
         port = "/dev/ttyUSB0";
       };
+      frontend = {
+        enabled = true;
+        port = 8091;
+        host = "0.0.0.0";
+      };
     };
   };
 
