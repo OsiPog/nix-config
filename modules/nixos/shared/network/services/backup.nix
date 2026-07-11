@@ -81,10 +81,10 @@ in {
           extraBackupArgs = ["--host ${backupHost}"];
           # remote hosts: mirror before backup, fail (and retry next interval) if unreachable
           backupPrepareCommand = mkIf isRemote ''
-            ${pkgs.openssh}/bin/ssh -o ConnectTimeout=3 root@${backupHost} echo "Connection succeeded!"
+            ${pkgs.openssh}/bin/ssh -o ConnectTimeout=3 -i /etc/ssh/id_ed25519 root@${backupHost} echo "Connection succeeded!"
             ${concatMapStringsSep "\n" (p: ''
                 mkdir -p "${mirrorOf p}"
-                ${pkgs.rsync}/bin/rsync -a --delete --info=progress2 "root@${backupHost}:${p.path}/" "${mirrorOf p}/"
+                ${pkgs.rsync}/bin/rsync -a --delete --info=progress2 -e "ssh -i /etc/ssh/id_ed25519" "root@${backupHost}:${p.path}/" "${mirrorOf p}/"
               '')
               paths}
           '';

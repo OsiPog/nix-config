@@ -268,6 +268,23 @@ in {
                 };
               });
             };
+
+            backup-paths = mkOption {
+              default = [];
+              type = types.listOf (types.submodule {
+                options = {
+                  host = mkOption {
+                    type = types.str;
+                    description = "the host name of the host the path is located on. This assumes that the backup host has root ssh access on the hosts to be backupped.";
+                    default = name;
+                  };
+                  path = mkOption {
+                    type = types.pathWith {absolute = true;};
+                    description = "An absolute path that should be backupped.";
+                  };
+                };
+              });
+            };
           };
         in {
           options.services.${serviceName} = {
