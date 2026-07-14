@@ -24,7 +24,7 @@
     "application/x-perl"
   ] (type: "codium.desktop");
 
-  programs.vscode = {
+  programs.vscodium = {
     enable = true;
     package = pkgs.vscodium.overrideAttrs (
       prev:
