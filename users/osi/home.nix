@@ -2,6 +2,7 @@
   flake,
   lib,
   inputs,
+  nixosConfig,
   ...
 }: {
   home.stateVersion = lib.mkDefault "25.11";
@@ -66,4 +67,17 @@
       "m[${second}], layoutopt:direction:down, layout:scrolling"
     ];
   };
+
+  programs.firefox.policies.Bookmarks = lib.pipe nixosConfig.lib.network.allPorts [
+    (lib.filter (p: p.portCfg.protocol == "http"))
+    (
+      map (p: {
+        Title = p.portName;
+        URL =
+          if p.portCfg.reverseProxy.enable
+          then p.portCfg.address "https://domain"
+          else p.portCfg.address "http://host:port";
+      })
+    )
+  ];
 }

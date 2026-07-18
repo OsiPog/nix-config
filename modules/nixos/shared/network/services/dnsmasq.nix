@@ -28,7 +28,7 @@ in {
     (mkNetworkHostServiceModule {inherit serviceName;} ({config, ...}: {
       configEnable.ports.${portName} = {
         port = 53;
-        protocol = throw "dns server does not have a protocol";
+        protocol = null;
         reverseProxy.method = "stream";
       };
       provideEnable = {
