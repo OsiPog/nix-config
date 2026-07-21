@@ -22,6 +22,8 @@
 
   disko.devices.disk.disk1.device = "/dev/disk/by-id/ata-EDILOCA_ES106_1TB_AA000000000000050186";
 
+  hardware.bluetooth.enable = true;
+
   # systemd.services.beep-unlocked = {
   #   path = [pkgs.beep];
   #   wantedBy = ["basic.target"];
