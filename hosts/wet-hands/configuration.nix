@@ -2,6 +2,7 @@
   flake,
   pkgs,
   lib,
+  config,
   ...
 }: {
   imports = with flake.nixosModules; [
@@ -22,6 +23,28 @@
   };
 
   stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/evenok-dark.yaml";
+  stylix.image = config.lib.stylix.pixel "base00";
+
+  home-manager.users.steam = {
+    programs.kodi = {
+      enable = true;
+      package = pkgs.kodi-wayland.withPackages (kodiPkgs:
+        with kodiPkgs; [
+          jellyfin
+          (kodiPkgs.buildKodiBinaryAddon rec {
+            pname = "pvr.magenta";
+            version = "21.8.0-Omega";
+
+            src = pkgs.fetchFromGitHub {
+              owner = "nirvana-7777";
+              repo = pname;
+              inherit version;
+              sha256 = lib.fakeHash;
+            };
+          })
+        ]);
+    };
+  };
 
   system.stateVersion = "25.11";
 }
