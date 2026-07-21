@@ -31,7 +31,8 @@
 
     # ./vm-gpu-passthrough.nix
 
-    # inputs.lanzaboote.nixosModules.lanzaboote
+    # for secure boot and windows option in bootloader
+    ./modules/limine.nix
   ];
 
   boot.initrd = {
@@ -79,27 +80,8 @@
   # init with: sudo waydroid init -s GAPPS -f
   virtualisation.waydroid.enable = true;
 
-  environment.systemPackages = with pkgs; [
-    sbctl
-  ];
-
   # for nfs
   users.extraGroups.husk.members = ["osi"];
-
-  # we use grub for dual-booting windows
-  # boot.loader.grub = {
-  #   enable = true;
-  #   devices = ["nodev"];
-  #   efiSupport = true;
-  #   useOSProber = true;
-  #   default = "saved"; # select the previously selected entry, (allows windows to reboot without intervention)
-  # };
-  # boot.loader.efi.canTouchEfiVariables = true;
-  # boot.loader.systemd-boot.enable = false;
-  # boot.lanzaboote = {
-  #   enable = true;
-  #   pkiBundle = "/var/lib/sbctl";
-  # };
 
   services.sunshine = {
     autoStart = true;
