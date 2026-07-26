@@ -5,6 +5,14 @@
     allowConnectionsFrom = ["biome-fest" "floating-trees"];
   };
 
+  services.llamacpp.enable = true;
+  ports.llamacpp.reverseProxy = {
+    domain = "llm.axelhax.net";
+    hidden = true;
+  };
+
+  
+
   # services.backup = {
   #   enable = true;
   #   host = "floating-trees";

@@ -222,6 +222,17 @@ in {
               });
             };
 
+            openai-api = mkOption {
+              default = null;
+              type = types.nullOr (types.submodule {
+                options = {
+                  url = mkOption {type = types.str;};
+                  secrets = secretsOpt;
+                  apiKeySecretName = mkOption {type = types.str;};
+                };
+              });
+            };
+
             tailscale-server = mkOption {
               default = null;
               type = types.nullOr (types.submodule {
