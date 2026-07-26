@@ -18,18 +18,18 @@
   };
 
   # --- REVERSE PROXY
-  services.reverseProxy = {
-    id = "home-proxy";
-    enable = true;
-    ignoreHidden = true;
-    ipAddress = "10.12.21.41";
-  };
+  # services.reverseProxy = {
+  #   id = "home-proxy";
+  #   enable = true;
+  #   ignoreHidden = true;
+  #   ipAddress = "10.12.21.41";
+  # };
   # --- DNSMASQ, directly connect devices to server on home network without outside traffic
-  services.dnsmasq = {
-    id = "home-dns";
-    enable = true;
-    require.dns-overrides = servicesById.home-proxy.provide.dns-overrides;
-  };
+  # services.dnsmasq = {
+  #   id = "home-dns";
+  #   enable = true;
+  #   require.dns-overrides = servicesById.home-proxy.provide.dns-overrides;
+  # };
 
   # --- RESTIC
   services.backup = {
@@ -66,6 +66,7 @@
       "opencloud"
       "vikunja"
       "actual"
+      "librechat"
     ];
   };
   ports.authelia.reverseProxy.domain = "auth.axelhax.net";

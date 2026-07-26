@@ -3,6 +3,7 @@
   pkgs,
   lib,
   inputs,
+  config,
   ...
 }: {
   imports = with flake.nixosModules; [
@@ -89,7 +90,26 @@
     capSysAdmin = true;
   };
 
-  networking.firewall.allowedTCPPorts = [7999];
+  networking.firewall.allowedTCPPorts = [7999 3080];
+
+  # llama.cpp model/runtime config. host/port/api-key are set by the llamacpp
+  # network module; these are the model-specific runtime flags.
+  services.llama-cpp = {
+    package = pkgs.llama-cpp-vulkan;
+    settings = {
+      hf-repo = "unsloth/Qwen3.6-35B-A3B-GGUF";
+      main-gpu = 0;
+      n-gpu-layers = 999;
+      n-cpu-moe = 19;
+      no-mmap = true;
+      ctx-size = 262144;
+      reasoning = "off";
+      cache-type-k = "q8_0";
+      cache-type-v = "q4_0";
+      flash-attn = "on";
+      fit = "off";
+    };
+  };
 
   # Don't change, will break things!
   system.stateVersion = "25.11";

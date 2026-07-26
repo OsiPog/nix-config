@@ -208,6 +208,11 @@ in {
                     type = types.str;
                     description = "LDAP group required to access this OIDC client.";
                   };
+                  endpointAuthMethod = mkOption {
+                    type = types.str;
+                    description = "Which method is used to get the access token.";
+                    default = "client_secret_basic";
+                  };
                 };
                 config = {
                   allowedGroup = mkDefault config.clientId;
@@ -227,6 +232,7 @@ in {
               type = types.nullOr (types.submodule {
                 options = {
                   url = mkOption {type = types.str;};
+                  displayName = mkOption {type = types.str;};
                   secrets = secretsOpt;
                   apiKeySecretName = mkOption {type = types.str;};
                 };

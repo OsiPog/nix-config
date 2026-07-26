@@ -90,6 +90,14 @@ creation_rules:
     key_groups:
       - age:
           - *floating-trees
+  - path_regex: modules/nixos/shared/network/services/librechat/secrets.yaml$
+    key_groups:
+      - age:
+          - *dead-voxel
+  - path_regex: modules/nixos/shared/network/services/llamacpp/secrets.yaml$
+    key_groups:
+      - age:
+          - *dead-voxel
   - path_regex: modules/nixos/shared/network/services/lldap/secrets.yaml$
     key_groups:
       - age:

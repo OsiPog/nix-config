@@ -79,6 +79,7 @@ in {
     ./services/headscale
     # ./services/hytale-server.nix
     ./services/jellyfin
+    ./services/librechat
     ./services/llamacpp
     ./services/lldap
     ./services/mailserver

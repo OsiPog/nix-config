@@ -32,6 +32,7 @@ in {
           secrets = mkSharedSecrets [apiKeySecretName] ./secrets.yaml;
           url = ports.${portName}.address "proxyProtocol://domain/v1";
           apiKeySecretName = "llamacpp/api-key";
+          displayName = "llama.cpp";
         };
       };
     }))

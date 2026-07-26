@@ -181,6 +181,10 @@ in {
               access_token_signed_response_alg = "none";
               userinfo_signed_response_alg = "none";
               consent_mode = "pre-configured";
+              token_endpoint_auth_method =
+                if client.public
+                then "none"
+                else client.endpointAuthMethod;
             }
           ];
         };

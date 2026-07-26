@@ -1,4 +1,4 @@
-{...}: {
+{servicesById, ...}: {
   vpn.ip = "100.64.0.7";
   ssh = {
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICoAlhl10PYwDxDLVhCZVru3AmAbGTdITdoGcrklDaTx root@dead-voxel";
@@ -10,6 +10,13 @@
     domain = "llm.axelhax.net";
     hidden = true;
   };
+
+  services.librechat = {
+    enable = true;
+    require.openai-api = servicesById.llamacpp.provide.openai-api;
+    require.oidc-server = servicesById.authelia.provide.oidc-server;
+  };
+  ports.librechat.reverseProxy.domain = "ai.axelhax.net";
 
   
 
