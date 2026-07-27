@@ -69,7 +69,11 @@ in {
           }
         ];
 
-        oidc-server = {inherit address;};
+        oidc-server = {
+          inherit address;
+          adminGroup = cfg.require.ldap-server.adminGroup or "admin";
+          name = "Authelia";
+        };
       };
     }))
   ];

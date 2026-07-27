@@ -140,7 +140,7 @@ in {
         services.librechat = {
           env = {
             ALLOW_SOCIAL_LOGIN = true;
-            OPENID_BUTTON_LABEL = "Login with SSO";
+            OPENID_BUTTON_LABEL = "Login with ${oidcServer.name}";
             OPENID_ISSUER = "${oidcServer.address "proxyProtocol://domain"}/.well-known/openid-configuration";
             OPENID_CLIENT_ID = oidcClient.clientId;
             OPENID_CALLBACK_URL = "/oauth/openid/callback";

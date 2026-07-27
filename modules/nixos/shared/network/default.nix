@@ -83,6 +83,7 @@ in {
     ./services/llamacpp
     ./services/lldap
     ./services/mailserver
+    ./services/mealie
     # ./services/minecraft-server.nix
     # ./services/nfs.nix
     ./services/opencloud

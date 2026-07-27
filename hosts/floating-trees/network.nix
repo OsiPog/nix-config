@@ -67,6 +67,7 @@
       "vikunja"
       "actual"
       "librechat"
+      "mealie"
     ];
   };
   ports.authelia.reverseProxy.domain = "auth.axelhax.net";
@@ -141,4 +142,11 @@
     domain = "budget.axelhax.net";
     hidden = true;
   };
+
+  # --- MEALIE
+  services.mealie = {
+    enable = true;
+    require.oidc-server = servicesById.authelia.provide.oidc-server;
+  };
+  ports.mealie.reverseProxy.domain = "kochen.axelhax.net";
 }

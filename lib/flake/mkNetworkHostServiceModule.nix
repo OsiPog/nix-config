@@ -99,6 +99,7 @@ in {
                     secrets = secretsOpt;
                     baseDN = mkOption {type = types.str;};
                     address = addressOpt;
+                    adminGroup = mkOption {type = types.str;};
                     users = {
                       admin = mkUser;
                       search = mkUser;
@@ -223,7 +224,11 @@ in {
             oidc-server = mkOption {
               default = null;
               type = types.nullOr (types.submodule {
-                options.address = addressOpt;
+                options = {
+                  address = addressOpt;
+                  adminGroup = mkOption {type = types.str;};
+                  name = mkOption {type = types.str;};
+                };
               });
             };
 

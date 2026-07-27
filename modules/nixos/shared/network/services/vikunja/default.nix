@@ -103,7 +103,7 @@ in {
           auth.openid = {
             enabled = true;
             providers.oidc = {
-              name = "Single-Sign-On";
+              inherit (oidcServer) name;
               authurl = oidcServer.address "proxyProtocol://domain";
               clientid = oidcClient.clientId;
               clientsecret.file = config.getSopsFile oidcClient.clientSecretName;

@@ -52,6 +52,7 @@ in {
             hostName = name;
             portName = "ldaps";
           };
+          adminGroup = "lldap_admin";
           baseDN = pipe (address "domain") [
             (splitString ".")
             (map (e: "dc=${e}"))
