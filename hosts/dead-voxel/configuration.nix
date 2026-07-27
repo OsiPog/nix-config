@@ -91,6 +91,10 @@
   };
 
   networking.firewall.allowedTCPPorts = [7999 3080];
+  programs.ausweisapp = {
+    enable = true;
+    openFirewall = true;
+  };
 
   # llama.cpp model/runtime config. host/port/api-key are set by the llamacpp
   # network module; these are the model-specific runtime flags.
