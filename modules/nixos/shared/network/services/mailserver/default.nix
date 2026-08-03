@@ -35,7 +35,7 @@ in {
         };
       };
       provideEnable = {
-        mail-server.address = getAddress {
+        mail-server.getAddress = getAddress {
           portName = "submissions";
           hostName = name;
         };
@@ -107,7 +107,7 @@ in {
           enable = true;
           scope = "one";
           base = ldapServer.baseDN;
-          uris = [(ldapServer.address "proxyProtocol://domain:port")];
+          uris = [(ldapServer.getAddress "<protocol>://<domain>:<port>")];
           bind = {
             dn = "cn=${ldapServer.users.search.dn},ou=people,${ldapServer.baseDN}";
             passwordFile = config.getSopsFile ldapServer.users.search.secretName;
@@ -134,7 +134,7 @@ in {
         sops.templates = let
           cfg = config.mailserver;
           ldapAuthBlock = ''
-            server_host = ${ldapServer.address "proxyProtocol://domain:port"}
+            server_host = ${ldapServer.getAddress "<protocol>://<domain>:<port>"}
             start_tls = no
             version = 3
             tls_ca_cert_file = ${cfg.ldap.caFile}

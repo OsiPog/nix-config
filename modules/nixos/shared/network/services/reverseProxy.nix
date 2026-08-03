@@ -31,7 +31,7 @@
     allPorts;
 
   relevantVirtualHostPorts = filter (e: e.portCfg.reverseProxy.method == "virtual-host") relevantPorts;
-  relevantStreamPorts = filter (e: e.portCfg.reverseProxy.method == "stream" && (e.portCfg.address "host" != "localhost")) relevantPorts;
+  relevantStreamPorts = filter (e: e.portCfg.reverseProxy.method == "stream" && (e.portCfg.getAddress "<host>" != "localhost")) relevantPorts;
 
   tailscaleServer = cfg.require.tailscale-server;
 in {
@@ -91,7 +91,7 @@ in {
                 locations = let
                   common =
                     {
-                      proxyPass = p.portCfg.address "http://host:port";
+                      proxyPass = p.portCfg.getAddress "http://<host>:<port>";
                       proxyWebsockets = true;
                     }
                     // (optionalAttrs (proxyConf.hidden && !cfg.ignoreHidden) {
@@ -127,7 +127,7 @@ in {
             else "";
         in ''
           upstream ${upstream} {
-            server ${p.portCfg.address "host:port"};
+            server ${p.portCfg.getAddress "<host>:<port>"};
           }
           server {
             proxy_pass ${upstream};
@@ -161,6 +161,6 @@ in {
 
     services.porkbunAcme.enable = true;
     users.users.nginx.extraGroups = ["acme"];
-    security.acme.certs."${hostCfg.domain}".extraDomainNames = map (p: p.portCfg.address "domain") relevantVirtualHostPorts;
+    security.acme.certs."${hostCfg.domain}".extraDomainNames = map (p: p.portCfg.getAddress "<domain>") relevantVirtualHostPorts;
   };
 }

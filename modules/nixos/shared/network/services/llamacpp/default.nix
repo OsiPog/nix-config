@@ -30,7 +30,7 @@ in {
       provideEnable = {
         openai-api = rec {
           secrets = mkSharedSecrets [apiKeySecretName] ./secrets.yaml;
-          url = config.ports.${portName}.address "proxyProtocol://domain/v1";
+          url = config.ports.${portName}.getAddress "https://<domain>/v1";
           apiKeySecretName = "llamacpp/api-key";
           displayName = "llama.cpp";
         };

@@ -75,8 +75,8 @@
         Title = p.portName;
         URL =
           if p.portCfg.reverseProxy.enable
-          then p.portCfg.address "https://domain"
-          else p.portCfg.address "http://host:port";
+          then p.portCfg.getAddress "https://<domain>"
+          else p.portCfg.getAddress "http://<host>:<port>";
       })
     )
   ];

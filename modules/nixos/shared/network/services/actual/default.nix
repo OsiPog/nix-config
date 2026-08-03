@@ -36,7 +36,7 @@ in {
             clientName = "Actual Budget";
             hashedClientSecret = "$pbkdf2-sha512$310000$tw6ED7vMohjuwO/tGM.lwA$a4QLPEcRC/EIwxqvIravhn7LSxwKmEM9.s1uTqn1Ud2S1gzA0Sc20ZOry4M4gEvpy0X5eqZJHLGBGoj1/drFZw";
             clientSecretName = "actual/oidc-secret";
-            redirectUris = ["${ports.${portName}.address "proxyProtocol://domain"}/openid/callback"];
+            redirectUris = [ports.${portName}.getAddress "https://<domain>/openid/callback"];
             scopes = ["openid" "profile" "email" "groups"];
             public = false;
             pkce.enabled = false;
@@ -75,9 +75,9 @@ in {
         systemd.services.actual.serviceConfig.EnvironmentFile = config.sops.templates.actual-env.path;
 
         services.actual.settings.openId = {
-          discoveryURL = oidcServer.address "proxyProtocol://domain";
+          discoveryURL = oidcServer.getAddress "https://<domain>";
           client_id = oidcClient.clientId;
-          server_hostname = ports.${portName}.address "proxyProtocol://domain";
+          server_hostname = ports.${portName}.getAddress "https://<domain>";
           authMethod = "oauth2";
         };
       })

@@ -34,7 +34,7 @@ in {
             secrets = mkSharedSecrets [mailAccount.secretName] ./secrets.yaml;
             mailAccount = {
               uid = "vikunja-mail";
-              email = "noreply.vikunja@${cfg.require.mail-server.address "domain"}";
+              email = "noreply.vikunja@${cfg.require.mail-server.getAddress "<domain>"}";
               display = "Vikunja";
               secretName = "vikunja/mail-pass";
             };
@@ -48,7 +48,7 @@ in {
             clientName = "Vikunja";
             hashedClientSecret = "$pbkdf2-sha512$310000$baAB81Q4y84KbUg3Jec0lQ$70yiYI0PsFXxD74Is0u1R4bIgS8BeYEXN7zlSe1YmROyjsQ/Z9iGDKnez.HlyIbHXSmk64AoAClOZepm4Yct0A";
             clientSecretName = "vikunja/oidc-secret";
-            redirectUris = ["${ports.${portName}.address "proxyProtocol://domain"}/auth/openid/oidc"];
+            redirectUris = [ports.${portName}.getAddress "https://<domain>/auth/openid/oidc"];
             scopes = ["openid" "profile" "email"];
             public = false;
             pkce.enabled = false;
@@ -65,7 +65,7 @@ in {
         enable = true;
         port = ports.${portName}.port;
         frontendScheme = "https";
-        frontendHostname = ports.${portName}.address "domain";
+        frontendHostname = ports.${portName}.getAddress "<domain>";
       };
     }
 
@@ -80,8 +80,8 @@ in {
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.vikunja.database.user];
         services.vikunja.settings.mailer = {
           enabled = true;
-          host = mailServer.address "domain";
-          port = mailServer.address "port";
+          host = mailServer.getAddress "<domain>";
+          port = mailServer.getAddress "<port>";
           forcessl = true;
           username = mailClient.mailAccount.email;
           fromemail = mailClient.mailAccount.email;
@@ -104,7 +104,7 @@ in {
             enabled = true;
             providers.oidc = {
               inherit (oidcServer) name;
-              authurl = oidcServer.address "proxyProtocol://domain";
+              authurl = oidcServer.getAddress "https://<domain>";
               clientid = oidcClient.clientId;
               clientsecret.file = config.getSopsFile oidcClient.clientSecretName;
               scope = concatStringsSep " " oidcClient.scopes;

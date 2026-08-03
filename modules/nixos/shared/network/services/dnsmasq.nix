@@ -32,7 +32,7 @@ in {
         reverseProxy.method = "stream";
       };
       provideEnable = {
-        dns-server.address = config.ports.${portName}.address;
+        dns-server.getAddress = config.ports.${portName}.getAddress;
         backup-paths = [{path = stateDir;}];
       };
     }))

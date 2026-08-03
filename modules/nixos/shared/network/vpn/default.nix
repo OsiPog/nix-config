@@ -10,7 +10,7 @@
 
   networkCfg = config.network;
 
-  headscaleAddress = (findFirst (e: e.portName == "headscale") null allPorts).portCfg.address;
+  headscaleAddress = (findFirst (e: e.portName == "headscale") null allPorts).portCfg.getAddress;
 in
   mkMerge [
     {
@@ -40,9 +40,9 @@ in
         extraUpFlags = [
           "--login-server=${
             headscaleAddress (
-              if headscaleAddress "host" == "localhost"
-              then "localProtocol://host:port"
-              else "proxyProtocol://domain"
+              if headscaleAddress "<host>" == "localhost"
+              then "http://<host>:<port>"
+              else "https://<domain>"
             )
           }"
           "--hostname=${hostName}"

@@ -9,7 +9,7 @@
   inherit (lib) mkIf mkMerge mkDefault;
   inherit (lib.attrsets) filterAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers;
-  inherit (config.lib.network) getServiceVariables getAddress;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "jellyfin")
@@ -20,7 +20,7 @@
     cfg
     ;
 
-  address = getAddress {
+  getAddress = config.lib.network.getAddress {
     inherit portName;
     inherit hostName;
   };
@@ -79,7 +79,7 @@ in {
         };
         config = {
           version = mkDefault 1;
-          base_url = address "proxyProtocol://domain";
+          base_url = getAddress "https://<domain>";
           system = {};
           startup.completeStartupWizard = true;
           users = [
@@ -116,7 +116,7 @@ in {
             {
               name = "LDAP Authentication";
               configuration = {
-                LdapServer = ldapServer.address "domain";
+                LdapServer = ldapServer.getAddress "<domain>";
                 LdapPort = 6360;
 
                 LdapAdminBaseDn = ldapServer.baseDN;

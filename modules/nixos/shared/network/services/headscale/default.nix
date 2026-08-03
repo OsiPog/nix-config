@@ -9,7 +9,7 @@
   inherit (lib) mkIf mkDefault mkMerge mkForce mkBefore;
   inherit (lib.attrsets) getAttrs genAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers nixosHostNames;
-  inherit (config.lib.network) getAddress getServiceVariables;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "headscale")
@@ -37,14 +37,16 @@ in {
         };
         provideEnable = {
           backup-paths = [{path = stateDir;}];
-          tailscale-server = rec {
+          tailscale-server = let
+            authKeySecretName = "headscale/auth-key";
+          in {
             secrets = mkSharedSecrets [authKeySecretName] ./secrets.yaml;
-            address = getAddress {
+            getAddress = config.lib.network.getAddress {
               portName = "headscale";
               hostName = name;
             };
             ip4Space = "100.64.0.0/10";
-            authKeySecretName = "headscale/auth-key";
+            inherit authKeySecretName;
           };
 
           oidc-clients = [
@@ -55,11 +57,11 @@ in {
               hashedClientSecret = "$pbkdf2-sha512$310000$OM.pbqoXjN0sV3ePThP93A$DqJvD5pH5D65CC48UVV2amlinmsQN078kWapJWtn4JUr369PHh/Ce/0TZyx1gbFcOBeFo2Kr8IkUvkQx2fwUYQ";
               clientSecretName = "headscale/oidc-secret";
               redirectUris = let
-                address = getAddress {
+                getAddress = config.lib.network.getAddress {
                   hostName = name;
                   portName = serviceName;
                 };
-              in ["${address "proxyProtocol://domain"}/oidc/callback"];
+              in [getAddress "https://<domain>/oidc/callback"];
               scopes = ["openid" "profile" "email" "groups"];
               pkce = {
                 enabled = true;
@@ -81,7 +83,7 @@ in {
         port = ports.${serviceName}.port;
         policy.hosts = genAttrs nixosHostNames (hostName: networkCfg.hosts.${hostName}.vpn.ip + "/32");
         settings = {
-          server_url = tailscaleServer.address "proxyProtocol://domain";
+          server_url = tailscaleServer.getAddress "https://<domain>";
           dns = {
             override_local_dns = true;
             nameservers.global = mkDefault [
@@ -92,7 +94,7 @@ in {
             ];
             # Magic DNS
             magic_dns = true;
-            base_domain = "dns." + (tailscaleServer.address "domain");
+            base_domain = "dns." + (tailscaleServer.getAddress "<domain>");
           };
         };
       };
@@ -108,7 +110,7 @@ in {
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.headscale.user];
         services.headscale.settings.oidc = {
           only_start_if_oidc_is_available = mkDefault false;
-          issuer = oidcServer.address "proxyProtocol://domain";
+          issuer = oidcServer.getAddress "https://<domain>";
           client_id = oidcClient.clientId;
           client_secret_path = config.getSopsFile oidcClient.clientSecretName;
           scope = oidcClient.scopes;
@@ -124,7 +126,7 @@ in {
       dnsServer = cfg.require.dns-server;
     in
       mkIf (dnsServer != null) {
-        services.headscale.settings.dns.nameservers.global = [(dnsServer.address "ip")];
+        services.headscale.settings.dns.nameservers.global = [(dnsServer.getAddress "<ip>")];
       })
   ]);
 }

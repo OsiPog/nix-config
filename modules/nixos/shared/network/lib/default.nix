@@ -69,43 +69,6 @@
       listToAttrs
     ];
 
-    getAddress = {
-      portName,
-      hostName,
-    }: let
-      hostCfg = cfg.hosts.${hostName} or null;
-      portCfg =
-        if hostCfg == null
-        then throw "getAddress: host ${hostName} is not defined"
-        else if (hostCfg.ports.${portName} or null) == null
-        then throw "getAddress: port ${portName} is not defined on host ${hostName}"
-        else hostCfg.ports.${portName};
-
-      address = rec {
-        localProtocol =
-          if portCfg.protocol != null
-          then portCfg.protocol
-          else throw "getAddress: ${hostName}: ${portName}: Protocol is null. It cannot be referenced.";
-        proxyProtocol =
-          if portCfg.reverseProxy.method == "virtual-host"
-          then "https"
-          else localProtocol;
-        port = toString portCfg.port;
-        domain =
-          if portCfg.reverseProxy.enable
-          then portCfg.reverseProxy.domain
-          else if hostCfg.domain != null
-          then hostCfg.domain
-          else throw "getAddress: ${hostName}: ${portName}: Domain cannot be referenced because port is not reverse proxied.";
-        host =
-          if hostName == config.networking.hostName
-          then "localhost"
-          else hostName;
-        ip = hostCfg.vpn.ip;
-      };
-    in
-      replaceStrings (attrNames address) (attrValues address);
-
     serviceEnabledAnywhere = serviceName: (filter (e: e.serviceName == serviceName) allEnabledServices) != [];
 
     # Variables useful to network modules

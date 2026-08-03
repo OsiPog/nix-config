@@ -10,7 +10,7 @@
   inherit (lib.attrsets) getAttrs genAttrs;
 
   inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets mkMergeTopLevel;
-  inherit (config.lib.network) getAddress getServiceVariables;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "authelia")
@@ -22,7 +22,7 @@
     ;
 
   stateDir = "/var/lib/authelia-default";
-  address = getAddress {
+  getAddress = config.lib.network.getAddress {
     inherit hostName;
     portName = "authelia";
   };
@@ -33,7 +33,7 @@ in {
       name,
       ...
     }: let
-      address = getAddress {
+      getAddress = config.lib.network.getAddress {
         portName = "authelia";
         hostName = name;
       };
@@ -42,7 +42,7 @@ in {
         protocol = "https";
         port = 9091;
         reverseProxy.extraConfig.locations."/api/oidc" = {
-          proxyPass = address "http://host:port";
+          proxyPass = getAddress "http://<host>:<port>";
           extraConfig = ''
             add_header Access-Control-Allow-Origin "*";
             add_header Access-Control-Allow-Methods "*";
@@ -62,7 +62,7 @@ in {
             secrets = mkSharedSecrets [mailAccount.secretName] ./secrets.yaml;
             mailAccount = {
               uid = "authelia-mail-notifier";
-              email = "noreply.authelia@${cfg.require.mail-server.address "domain"}";
+              email = "noreply.authelia@${cfg.require.mail-server.getAddress "<domain>"}";
               display = "Authelia";
               secretName = "authelia/mail-pass";
             };
@@ -70,7 +70,7 @@ in {
         ];
 
         oidc-server = {
-          inherit address;
+          inherit getAddress;
           adminGroup = cfg.require.ldap-server.adminGroup or "admin";
           name = "Authelia";
         };
@@ -117,8 +117,8 @@ in {
           storage.local.path = "${stateDir}/db.sqlite3";
           session.cookies = [
             {
-              domain = address "domain";
-              authelia_url = address "proxyProtocol://domain";
+              domain = getAddress "<domain>";
+              authelia_url = getAddress "https://<domain>";
             }
           ];
           access_control.default_policy = mkDefault "two_factor";
@@ -140,7 +140,7 @@ in {
             refresh_interval = mkDefault "1m";
             ldap = {
               implementation = "lldap";
-              address = ldapServer.address "proxyProtocol://domain:port";
+              address = ldapServer.getAddress "<protocol>://<domain>:<port>";
               base_dn = ldapServer.baseDN;
               user = "uid=${ldapServer.users.manage.dn},ou=people,${ldapServer.baseDN}";
             };
@@ -210,7 +210,7 @@ in {
           };
           settings = {
             notifier.smtp = {
-              address = mailServer.address "proxyProtocol://domain:port";
+              address = mailServer.getAddress "<protocol>://<domain>:<port>";
               sender = "${mailClient.mailAccount.display} <${mailClient.mailAccount.email}>";
               username = mailClient.mailAccount.email;
             };

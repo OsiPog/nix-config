@@ -9,7 +9,7 @@
   inherit (lib.strings) splitString;
 
   inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers mkMergeTopLevel;
-  inherit (config.lib.network) getServiceVariables getAddress;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "lldap")
@@ -21,7 +21,7 @@
     ;
 
   ldapServer = cfg.provide.ldap-server;
-  baseDomain = let splitted = splitString "." (ldapServer.address "domain"); in "${lib.last (lib.init splitted)}.${lib.last splitted}";
+  baseDomain = let splitted = splitString "." (ldapServer.getAddress "<domain>"); in "${lib.last (lib.init splitted)}.${lib.last splitted}";
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
@@ -40,7 +40,12 @@ in {
       };
       provideEnable = {
         backup-paths = [{path = stateDir;}];
-        ldap-server = rec {
+        ldap-server = let
+          getAddress = config.lib.network.getAddress {
+            hostName = name;
+            portName = "ldaps";
+          };
+        in {
           secrets =
             mkSharedSecrets [
               users.admin.secretName
@@ -48,12 +53,9 @@ in {
               users.manage.secretName
             ]
             ./secrets.yaml;
-          address = getAddress {
-            hostName = name;
-            portName = "ldaps";
-          };
+          inherit getAddress;
           adminGroup = "lldap_admin";
-          baseDN = pipe (address "domain") [
+          baseDN = pipe (getAddress "<domain>") [
             (splitString ".")
             (map (e: "dc=${e}"))
             (concatStringsSep ",")
@@ -107,7 +109,7 @@ in {
         enable = true;
         domain = baseDomain;
       };
-      security.acme.certs."${baseDomain}".extraDomainNames = [(ldapServer.address "domain")];
+      security.acme.certs."${baseDomain}".extraDomainNames = [(ldapServer.getAddress "<domain>")];
 
       users.users.lldap = {
         group = "lldap";
@@ -149,12 +151,12 @@ in {
           };
           users.configs = {
             "${ldapServer.users.search.dn}" = {
-              email = "search@${ldapServer.address "domain"}";
+              email = "search@${ldapServer.getAddress "<domain>"}";
               password_file = config.getSopsFile ldapServer.users.search.secretName;
               groups = ["lldap_strict_readonly"];
             };
             "${ldapServer.users.manage.dn}" = {
-              email = "manage@${ldapServer.address "domain"}";
+              email = "manage@${ldapServer.getAddress "<domain>"}";
               password_file = config.getSopsFile ldapServer.users.manage.secretName;
               groups = ["lldap_password_manager"];
             };

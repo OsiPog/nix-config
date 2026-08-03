@@ -6,7 +6,7 @@ flake: {
   config,
   ...
 }: let
-  inherit (builtins) filter length;
+  inherit (builtins) filter length replaceStrings attrNames attrValues;
   inherit (flake.lib) mkModuleWithExtraMetaAttrs;
   inherit (lib) mkEnableOption mkIf mkOption types mkDefault;
   inherit (lib.lists) optional;
@@ -36,6 +36,8 @@ in {
       ...
     }: let
       cfg = config.services.${serviceName};
+      hostCfg = config;
+      hostName = name;
     in {
       imports = [
         (mkModuleWithExtraMetaAttrs {
@@ -98,7 +100,7 @@ in {
                   options = {
                     secrets = secretsOpt;
                     baseDN = mkOption {type = types.str;};
-                    address = addressOpt;
+                    getAddress = addressOpt;
                     adminGroup = mkOption {type = types.str;};
                     users = {
                       admin = mkUser;
@@ -155,7 +157,7 @@ in {
             mail-server = mkOption {
               default = null;
               type = types.nullOr (types.submodule {
-                options.address = addressOpt;
+                options.getAddress = addressOpt;
               });
             };
 
@@ -277,7 +279,7 @@ in {
             dns-server = mkOption {
               default = null;
               type = types.nullOr (types.submodule {
-                options.address = addressOpt;
+                options.getAddress = addressOpt;
               });
             };
 
@@ -306,6 +308,100 @@ in {
                   };
                 };
               });
+            };
+
+            ports = mkOption {
+              default = {};
+              type = types.attrsOf (types.submodule ({name, ...}: let
+                portName = name;
+              in {
+                options = {
+                  port = mkOption {
+                    type = types.nullOr types.port;
+                    default = null;
+                    description = "Single port number";
+                  };
+
+                  protocol = mkOption {
+                    type = types.nullOr types.str;
+                    default = null;
+                    description = "The protocol used on this port.";
+                  };
+
+                  udp = mkEnableOption "udp version of this port.";
+
+                  host = mkOption {
+                    type = types.str;
+                    default = name;
+                    readOnly = true;
+                    description = "The host name of the host the port belongs to.";
+                  };
+
+                  getAddress = mkOption {
+                    type = types.functionTo types.str;
+                    description = "return value of getAddress on this port";
+                    readOnly = true;
+                    default = let
+                      address = {
+                        inherit (config) protocol;
+                        port = toString config.port;
+                        domain =
+                          if config.reverseProxy.enable
+                          then config.reverseProxy.domain
+                          else if hostCfg.domain != null
+                          then hostCfg.domain
+                          else throw "getAddress: ${hostName}: ${portName}: Domain cannot be referenced because port is not reverse proxied.";
+                        host =
+                          if hostName == config.networking.hostName
+                          then "localhost"
+                          else hostName;
+                        ip = hostCfg.vpn.ip;
+                      };
+                    in
+                      # e.g. "<host>" gets replaced with "localhost"
+                      replaceStrings (map (e: "<${e}>") (attrNames address)) (attrValues address);
+                  };
+
+                  proxy = mkOption {
+                    type = types.submodule (_proxyModule: {
+                      options = {
+                        hidden = mkEnableOption "that the service is only accessable in the VPN";
+
+                        method = mkOption {
+                          type = types.enum ["virtual-host" "stream"];
+                          default =
+                            if (_proxyModule.config.domain == null)
+                            then "stream"
+                            else "virtual-host";
+                          description = ''
+                            The reverse proxy method to use:
+                            - "virtual-host": HTTP(S) virtual host (subdomain-based routing)
+                            - "stream": TCP/UDP stream forwarding (for non-HTTP protocols)
+                          '';
+                        };
+
+                        domain = mkOption {
+                          type = with types; nullOr str;
+                          default = null;
+                          description = "If set the service will be reverse proxied through HTTPS a virtual host on the reverse proxy.";
+                        };
+
+                        extraConfig = mkOption {
+                          type = with types; either attrs str;
+                          default = {};
+                          description = ''
+                            Extra configuration options:
+                            - When method is 'virtual-host': merged into services.nginx.virtualHosts.<name>
+                            - When method is 'stream': applied as additional configuration in the stream server block
+                          '';
+                        };
+                      };
+                    });
+                    default = {};
+                    description = "Reverse proxy configuration for this port.";
+                  };
+                };
+              }));
             };
           };
         in {

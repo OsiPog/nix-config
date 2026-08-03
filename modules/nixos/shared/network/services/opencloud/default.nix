@@ -9,7 +9,7 @@
   inherit (lib) mkIf mkMerge mkDefault;
   inherit (lib.attrsets) filterAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers;
-  inherit (config.lib.network) getServiceVariables getAddress;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "opencloud")
@@ -20,7 +20,7 @@
     portName
     stateDir
     ;
-  address = getAddress {
+  getAddress = config.lib.network.getAddress {
     inherit portName;
     inherit hostName;
   };
@@ -35,11 +35,11 @@ in {
         ldap-clients = [{groups.${serviceName} = {};}];
         backup-paths = [{path = stateDir;}];
         oidc-clients = let
-          ocAddress = getAddress {
+          getAddress = config.lib.network.getAddress {
             hostName = name;
             portName = serviceName;
           };
-          baseUrl = ocAddress "proxyProtocol://domain";
+          baseUrl = getAddress "https://<domain>";
         in [
           {
             clientId = "web";
@@ -115,7 +115,7 @@ in {
         enable = true;
         address = "0.0.0.0";
         port = ports.opencloud.port;
-        url = address "proxyProtocol://domain";
+        url = getAddress "https://<domain>";
         environment = {
           PROXY_TLS = "false"; # TLS handled by reverse proxy
         };
@@ -142,7 +142,7 @@ in {
         };
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.opencloud.user];
         services.opencloud.environment = {
-          OC_LDAP_URI = ldapServer.address "proxyProtocol://domain:port";
+          OC_LDAP_URI = ldapServer.getAddress "<protocol>://<domain>:<port>";
           OC_LDAP_BIND_DN = "uid=${ldapServer.users.search.dn},ou=people,${ldapServer.baseDN}";
           OC_ADMIN_USER_ID = ldapServer.users.admin.dn;
 
@@ -166,7 +166,7 @@ in {
     # OIDC SERVER INTEGRATION
     (let
       oidcServer = cfg.require.oidc-server;
-      serverAddress = oidcServer.address "proxyProtocol://domain";
+      serverAddress = oidcServer.getAddress "https://<domain>";
     in
       mkIf (oidcServer != null) {
         services.opencloud = {

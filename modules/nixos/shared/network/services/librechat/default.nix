@@ -8,7 +8,7 @@
   inherit (lib) mkIf mkDefault mkMerge concatStringsSep;
   inherit (lib.attrsets) getAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers;
-  inherit (config.lib.network) getServiceVariables getAddress;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "librechat")
@@ -38,11 +38,11 @@ in {
           hashedClientSecret = "$pbkdf2-sha512$310000$v3IyMCC9JJDTjzMPQ8UQeQ$YI3HawEirlKEWUvjk0.WIBxbqP1hnaneJrQzVP9S9fIvfT/xhYxvpR9yh7/HfJSxdfw5N3kx9yvRKVyPbnZm3Q";
           clientSecretName = "librechat/oidc-secret";
           redirectUris = let
-            address = getAddress {
+            getAddress = config.lib.network.getAddress {
               hostName = name;
               portName = serviceName;
             };
-          in ["${address "proxyProtocol://domain"}/oauth/openid/callback"];
+          in [getAddress "https://<domain>/oauth/openid/callback"];
           scopes = ["openid" "profile" "email"];
           public = false;
           pkce.enabled = false;
@@ -80,8 +80,8 @@ in {
           HOST = "0.0.0.0";
           PORT = ports.${portName}.port;
           TRUST_PROXY = 2;
-          DOMAIN_SERVER = ports.${portName}.address "proxyProtocol://domain";
-          DOMAIN_CLIENT = ports.${portName}.address "proxyProtocol://domain";
+          DOMAIN_SERVER = ports.${portName}.getAddress "https://<domain>";
+          DOMAIN_CLIENT = ports.${portName}.getAddress "https://<domain>";
         };
         credentials = {
           CREDS_KEY = config.getSopsFile "librechat/creds_key";
@@ -141,7 +141,7 @@ in {
           env = {
             ALLOW_SOCIAL_LOGIN = true;
             OPENID_BUTTON_LABEL = "Login with ${oidcServer.name}";
-            OPENID_ISSUER = "${oidcServer.address "proxyProtocol://domain"}/.well-known/openid-configuration";
+            OPENID_ISSUER = oidcServer.getAddress "https://<domain>/.well-known/openid-configuration";
             OPENID_CLIENT_ID = oidcClient.clientId;
             OPENID_CALLBACK_URL = "/oauth/openid/callback";
             OPENID_SCOPE = concatStringsSep " " oidcClient.scopes;

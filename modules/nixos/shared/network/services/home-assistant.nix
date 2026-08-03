@@ -40,7 +40,7 @@ in {
           server_port = ports.${portName}.port;
           use_x_forwarded_for = true;
           trusted_proxies = [
-            (ports.${portName}.address "ip")
+            (ports.${portName}.getAddress "<ip>")
             "100.64.0.1" # TODO: remove when fixed
             "127.0.0.1"
             "::1"
@@ -71,7 +71,7 @@ in {
                 if [ -z "$password" ]; then exit 1; fi
 
                 searchOut=$(ldapsearch \
-                  -H ${ldapServer.address "proxyProtocol://domain:port"} \
+                  -H ${ldapServer.getAddress "<protocol>://<domain>:<port>"} \
                   -b "${ldapServer.baseDN}" \
                   -D "cn=$username,ou=people,${ldapServer.baseDN}" \
                   -x -w "$password" \

@@ -8,7 +8,7 @@
   inherit (lib) mkIf mkForce mkDefault mkMerge;
   inherit (lib.attrsets) getAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets;
-  inherit (config.lib.network) getServiceVariables getAddress;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "mealie")
@@ -37,11 +37,11 @@ in {
           hashedClientSecret = "$pbkdf2-sha512$310000$Idxsql8lKgSLmKJObbe6.A$3fzRS8rt3/.ZaZs.wj7twZMmhIlAiDryqPx.LO8prLVZQnVzCXiB.rcKEsBr6V6Nq/eNSAG3q4EonsqTdjBldA";
           clientSecretName = "mealie/oidc-secret";
           redirectUris = let
-            address = getAddress {
+            getAddress = config.lib.network.getAddress {
               hostName = name;
               portName = serviceName;
             };
-          in ["${address "proxyProtocol://domain"}/login"];
+          in [getAddress "https://<domain>/login"];
           scopes = ["openid" "email" "profile" "groups"];
           public = false;
           pkce.enabled = true;
@@ -56,7 +56,7 @@ in {
       services.mealie = {
         enable = true;
         port = ports.${portName}.port;
-        settings.BASE_URL = ports.${portName}.address "proxyProtocol://domain";
+        settings.BASE_URL = ports.${portName}.getAddress "https://<domain>";
       };
 
       # static user so the raw oidc client secret can be group-owned (no DynamicUser)
@@ -95,7 +95,7 @@ in {
           OIDC_AUTH_ENABLED = "true";
           OIDC_SIGNUP_ENABLED = "true";
           OIDC_AUTO_REDIRECT = "false";
-          OIDC_CONFIGURATION_URL = "${oidcServer.address "proxyProtocol://domain"}/.well-known/openid-configuration";
+          OIDC_CONFIGURATION_URL = oidcServer.getAddress "https://<domain>/.well-known/openid-configuration";
           OIDC_CLIENT_ID = oidcClient.clientId;
           OIDC_ADMIN_GROUP = oidcServer.adminGroup;
           OIDC_PROVIDER_NAME = oidcServer.name;
