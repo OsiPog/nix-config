@@ -35,18 +35,18 @@
   boot.loader.limine.resolution = "2560x1440x32";
 
   # on switch, we want the selected boot entry to be the latest generation, so we delete the remembered entry
-  system.activationScripts.limineClearStaleEntry.text =
-    /*
-    bash
-    */
-    ''
-      if [ "$NIXOS_ACTION" = "switch" ]; then
-        for efivar in /sys/firmware/efi/efivars/LimineLastBootedEntry-*; do
-          [ -e "$efivar" ] || continue
-          echo "limine: clearing remembered boot entry on switch ($efivar)"
-          chattr -i "$efivar" || true
-          rm -f "$efivar"
-        done
-      fi
-    '';
+  # system.activationScripts.limineClearStaleEntry.text =
+  #   /*
+  #   bash
+  #   */
+  #   ''
+  #     if [ "$NIXOS_ACTION" = "switch" ]; then
+  #       for efivar in /sys/firmware/efi/efivars/LimineLastBootedEntry-*; do
+  #         [ -e "$efivar" ] || continue
+  #         echo "limine: clearing remembered boot entry on switch ($efivar)"
+  #         chattr -i "$efivar" || true
+  #         rm -f "$efivar"
+  #       done
+  #     fi
+  #   '';
 }
