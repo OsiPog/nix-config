@@ -120,6 +120,7 @@ in {
           };
           postfix.filter = usersFilter "%S";
           dovecot.passFilter = usersFilter "%{user}";
+          dovecot.userFilter = usersFilter "%{user}";
         };
 
         # TODO: remove when fixed upstream
