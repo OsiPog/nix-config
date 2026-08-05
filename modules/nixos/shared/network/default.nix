@@ -87,6 +87,7 @@ in {
     # ./services/minecraft-server.nix
     # ./services/nfs.nix
     ./services/opencloud
+    ./services/paperless
     # ./services/portunus
     ./services/home-assistant.nix
     ./services/reverseProxy.nix

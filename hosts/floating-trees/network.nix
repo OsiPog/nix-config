@@ -68,6 +68,7 @@
       "actual"
       "librechat"
       "mealie"
+      "paperless"
     ];
   };
   ports.authelia.reverseProxy.domain = "auth.axelhax.net";
@@ -149,4 +150,12 @@
     require.oidc-server = servicesById.authelia.provide.oidc-server;
   };
   ports.mealie.reverseProxy.domain = "kochen.axelhax.net";
+
+  # --- PAPERLESS
+  services.paperless = {
+    enable = true;
+    require.oidc-server = servicesById.authelia.provide.oidc-server;
+  };
+  ports.paperless.reverseProxy.domain = "papier.axelhax.net";
+
 }

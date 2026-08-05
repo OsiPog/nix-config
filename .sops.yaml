@@ -107,6 +107,10 @@ creation_rules:
     key_groups:
       - age:
           - *floating-trees
+  - path_regex: modules/nixos/shared/network/services/paperless/secrets.yaml$
+    key_groups:
+      - age:
+          - *floating-trees
   - path_regex: modules/nixos/shared/network/services/vikunja/secrets.yaml$
     key_groups:
       - age:

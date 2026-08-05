@@ -158,7 +158,7 @@ in {
             rules = [
               {
                 policy = config.services.authelia.instances.default.settings.access_control.default_policy;
-                subject = "group:${client.allowedGroup}";
+                subject = ["group:${client.allowedGroup}" "user:admin"];
               }
             ];
           };
