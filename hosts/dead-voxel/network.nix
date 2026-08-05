@@ -10,14 +10,6 @@
     domain = "llm.axelhax.net";
     hidden = true;
   };
-
-  services.librechat = {
-    enable = true;
-    require.openai-api = servicesById.llamacpp.provide.openai-api;
-    require.oidc-server = servicesById.authelia.provide.oidc-server;
-  };
-  ports.librechat.reverseProxy.domain = "ai.axelhax.net";
-
   
 
   # services.backup = {

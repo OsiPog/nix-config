@@ -19,7 +19,7 @@
     ;
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({config, ...}: {
       configEnable = {
         ports.${portName} = {
           protocol = "http";
@@ -30,7 +30,7 @@ in {
       provideEnable = {
         openai-api = rec {
           secrets = mkSharedSecrets [apiKeySecretName] ./secrets.yaml;
-          url = ports.${portName}.address "proxyProtocol://domain/v1";
+          url = config.ports.${portName}.address "proxyProtocol://domain/v1";
           apiKeySecretName = "llamacpp/api-key";
           displayName = "llama.cpp";
         };
