@@ -13,6 +13,7 @@
       ydotool
       hyprmon
       handy
+      wtype
     ];
     sessionVariables = {
       XDG_SESSION_TYPE = "wayland";
