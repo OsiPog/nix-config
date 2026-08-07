@@ -33,7 +33,7 @@
       # 1. reset usb for a fresh connection
       usbreset 04b8:112a
       # 2. start printing with timeout guard
-      timeout 15 scanimage \
+      timeout --signal=KILL 20 scanimage \
         --format=tiff \
         --transfer-format=no \
         --resolution=300 \
