@@ -12,10 +12,8 @@
     allowConnectionsFrom = ["dead-voxel" "biome-fest"];
   };
 
-  ports.vmu = {
-    port = 8080;
-    reverseProxy.domain = "vmu.axelhax.net";
-  };
+  # NOTE: orphan bare port (no owning service); parked until the home proxy returns.
+  # services.<svc>.provide.ports.vmu = { port = 8080; proxy.domain = "vmu.axelhax.net"; };
 
   # --- REVERSE PROXY
   # services.reverseProxy = {
@@ -71,7 +69,7 @@
       "paperless"
     ];
   };
-  ports.authelia.reverseProxy.domain = "auth.axelhax.net";
+  services.authelia.provide.ports.authelia.proxy.domain = "auth.axelhax.net";
 
   # --- LLDAP
   services.lldap = {
@@ -84,13 +82,15 @@
       "home-assistant"
     ];
   };
-  ports.ldaps.reverseProxy = {
-    domain = "ldap.axelhax.net";
-    hidden = true;
-  };
-  ports.lldap.reverseProxy = {
-    domain = "users.axelhax.net";
-    hidden = true;
+  services.lldap.provide.ports = {
+    ldaps.proxy = {
+      domain = "ldap.axelhax.net";
+      hidden = true;
+    };
+    lldap.proxy = {
+      domain = "users.axelhax.net";
+      hidden = true;
+    };
   };
 
   # --- NGINX HTTP
@@ -98,8 +98,10 @@
     enable = true;
     sites = ["axelhax" "transit-vis"];
   };
-  ports.staticWebsites-axelhax.reverseProxy.domain = "axelhax.net";
-  ports.staticWebsites-transit-vis.reverseProxy.domain = "transit-vis.axelhax.net";
+  services.staticWebsites.provide.ports = {
+    "staticWebsites-axelhax".proxy.domain = "axelhax.net";
+    "staticWebsites-transit-vis".proxy.domain = "transit-vis.axelhax.net";
+  };
 
   # --- OPENCLOUD
   services.opencloud = {
@@ -107,14 +109,14 @@
     require.ldap-server = servicesById.lldap.provide.ldap-server;
     require.oidc-server = servicesById.authelia.provide.oidc-server;
   };
-  ports.opencloud.reverseProxy.domain = "cloud.axelhax.net";
+  services.opencloud.provide.ports.opencloud.proxy.domain = "cloud.axelhax.net";
 
   # --- JELLYFIN
   services.jellyfin = {
     enable = true;
     require.ldap-server = servicesById.lldap.provide.ldap-server;
   };
-  ports.jellyfin.reverseProxy.domain = "media.axelhax.net";
+  services.jellyfin.provide.ports.jellyfin.proxy.domain = "media.axelhax.net";
 
   # --- HOME ASSISTANT
   services.home-assistant = {
@@ -122,7 +124,7 @@
     require.ldap-server = servicesById.lldap.provide.ldap-server;
   };
 
-  ports.home-assistant.reverseProxy = {
+  services.home-assistant.provide.ports.home-assistant.proxy = {
     domain = "home.axelhax.net";
     hidden = true;
   };
@@ -133,13 +135,13 @@
     require.oidc-server = servicesById.authelia.provide.oidc-server;
     require.mail-server = servicesById.snm.provide.mail-server;
   };
-  ports.vikunja.reverseProxy.domain = "tasks.axelhax.net";
+  services.vikunja.provide.ports.vikunja.proxy.domain = "tasks.axelhax.net";
   # --- ACTUAL
   services.actual = {
     enable = true;
     require.oidc-server = servicesById.authelia.provide.oidc-server;
   };
-  ports.actual.reverseProxy = {
+  services.actual.provide.ports.actual.proxy = {
     domain = "budget.axelhax.net";
     hidden = true;
   };
@@ -149,14 +151,14 @@
     enable = true;
     require.oidc-server = servicesById.authelia.provide.oidc-server;
   };
-  ports.mealie.reverseProxy.domain = "kochen.axelhax.net";
+  services.mealie.provide.ports.mealie.proxy.domain = "kochen.axelhax.net";
 
   # --- PAPERLESS
   services.paperless = {
     enable = true;
     require.oidc-server = servicesById.authelia.provide.oidc-server;
   };
-  ports.paperless.reverseProxy.domain = "papier.axelhax.net";
+  services.paperless.provide.ports.paperless.proxy.domain = "papier.axelhax.net";
 
   # --- LLM CHAT
   services.librechat = {
@@ -164,5 +166,5 @@
     require.openai-api = servicesById.llamacpp.provide.openai-api;
     require.oidc-server = servicesById.authelia.provide.oidc-server;
   };
-  ports.librechat.reverseProxy.domain = "ai.axelhax.net";
+  services.librechat.provide.ports.librechat.proxy.domain = "ai.axelhax.net";
 }

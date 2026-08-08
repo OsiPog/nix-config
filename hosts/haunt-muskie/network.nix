@@ -1,6 +1,7 @@
 {
   inputs,
   servicesById,
+  nixosConfig,
   ...
 }: {
   domain = "axelhax.net";
@@ -18,10 +19,11 @@
   # };
 
   # --- NGINX REVERSE PROXY
-  services.reverseProxy = {
+  services.nginx = {
     id = "proxy";
     enable = true;
-    require.tailscale-server = servicesById.headscale.provide.tailscale-server;
+    # proxy every reverse-proxied port declared anywhere in the network
+    require.ports = nixosConfig.lib.network.proxiedPorts;
   };
   # --- DNSMASQ, directly connect axelhax.net traffic through vpn
   services.dnsmasq = {
@@ -36,7 +38,7 @@
     require.oidc-server = servicesById.authelia.provide.oidc-server;
     require.dns-server = servicesById.headscale-dns.provide.dns-server;
   };
-  ports.headscale.reverseProxy.domain = "vpn.axelhax.net";
+  services.headscale.provide.ports.headscale.proxy.domain = "vpn.axelhax.net";
 
   # --- MAIL
   services.mailserver = {
@@ -50,5 +52,5 @@
       ];
     };
   };
-  ports.submissions.reverseProxy.domain = "axelhax.net";
+  services.mailserver.provide.ports.submissions.proxy.domain = "axelhax.net";
 }

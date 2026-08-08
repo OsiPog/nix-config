@@ -16,19 +16,16 @@
     portName
     networkCfg
     cfg
-    ports
     ;
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
-      configEnable = {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
+      provideEnable = {
         ports.${portName} = {
           protocol = "http";
           port = mkDefault 3000;
         };
-      };
 
-      provideEnable = {
         oidc-clients = [
           rec {
             secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
@@ -36,7 +33,7 @@ in {
             clientName = "Actual Budget";
             hashedClientSecret = "$pbkdf2-sha512$310000$tw6ED7vMohjuwO/tGM.lwA$a4QLPEcRC/EIwxqvIravhn7LSxwKmEM9.s1uTqn1Ud2S1gzA0Sc20ZOry4M4gEvpy0X5eqZJHLGBGoj1/drFZw";
             clientSecretName = "actual/oidc-secret";
-            redirectUris = [ports.${portName}.getAddress "https://<domain>/openid/callback"];
+            redirectUris = [(cfg.provide.ports.${portName}.getAddress "https://<domain>/openid/callback")];
             scopes = ["openid" "profile" "email" "groups"];
             public = false;
             pkce.enabled = false;
@@ -50,7 +47,7 @@ in {
     {
       services.actual = {
         enable = true;
-        settings.port = ports.${portName}.port;
+        settings.port = cfg.provide.ports.${portName}.port;
       };
     }
 
@@ -77,7 +74,7 @@ in {
         services.actual.settings.openId = {
           discoveryURL = oidcServer.getAddress "https://<domain>";
           client_id = oidcClient.clientId;
-          server_hostname = ports.${portName}.getAddress "https://<domain>";
+          server_hostname = cfg.provide.ports.${portName}.getAddress "https://<domain>";
           authMethod = "oauth2";
         };
       })

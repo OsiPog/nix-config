@@ -18,39 +18,31 @@
     portName
     networkCfg
     cfg
-    ports
     ;
 
   stateDir = "/var/lib/authelia-default";
-  getAddress = config.lib.network.getAddress {
-    inherit hostName;
-    portName = "authelia";
-  };
+  getAddress = cfg.provide.ports.${portName}.getAddress;
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({
       cfg,
-      name,
       ...
     }: let
-      getAddress = config.lib.network.getAddress {
-        portName = "authelia";
-        hostName = name;
-      };
+      getAddress = cfg.provide.ports.${portName}.getAddress;
     in {
-      configEnable.ports.${portName} = {
-        protocol = "https";
-        port = 9091;
-        reverseProxy.extraConfig.locations."/api/oidc" = {
-          proxyPass = getAddress "http://<host>:<port>";
-          extraConfig = ''
-            add_header Access-Control-Allow-Origin "*";
-            add_header Access-Control-Allow-Methods "*";
-          '';
-        };
-      };
-
       provideEnable = {
+        ports.${portName} = {
+          protocol = "https";
+          port = 9091;
+          proxy.extraConfig.locations."/api/oidc" = {
+            proxyPass = getAddress "http://<host>:<port>";
+            extraConfig = ''
+              add_header Access-Control-Allow-Origin "*";
+              add_header Access-Control-Allow-Methods "*";
+            '';
+          };
+        };
+
         ldap-clients = [
           {
             groups = genAttrs (map (getAttr "allowedGroup") cfg.require.oidc-clients) (_: {});
@@ -82,7 +74,7 @@ in {
     {
       assertions = [
         {
-          assertion = ports.authelia.reverseProxy.enable;
+          assertion = cfg.provide.ports.authelia.proxy.domain != null;
           message = "Authelia needs to be reverse proxied as https is required.";
         }
       ];
@@ -112,7 +104,7 @@ in {
           oidcIssuerPrivateKeyFile = config.getSopsFile "authelia/oidcIssuerPrivateKeyFile";
         };
         settings = {
-          server.address = "tcp://:${toString ports.${portName}.port}";
+          server.address = "tcp://:${toString cfg.provide.ports.${portName}.port}";
           log.level = "info";
           storage.local.path = "${stateDir}/db.sqlite3";
           session.cookies = [

@@ -7,7 +7,7 @@
   inherit (builtins) throw length filter head concatStringsSep foldl' replaceStrings attrNames attrValues listToAttrs;
   inherit (lib) pipe mkMerge;
   inherit (lib.attrsets) attrsToList filterAttrs mapAttrsToList mapAttrs mapAttrs';
-  inherit (lib.lists) flatten range;
+  inherit (lib.lists) flatten;
 
   cfg = config.network;
 
@@ -32,33 +32,19 @@
       flatten
     ];
 
-    # Flatten all declared ports across all hosts into a list of:
-    # {
-    #   hostName: string;
-    #
-    #   portName: string;
-    #   port: int;
-    #   portCfg: attrset;
-    # }
-    # Ports that declare ranges are flattened into individual entries.
-    allPorts = pipe cfg.hosts [
-      attrsToList
-      (
-        map (host:
-          mapAttrsToList (portName: portCfg: let
-            declaredPort = {
-              hostName = host.name;
-
-              inherit portName portCfg;
-              inherit (portCfg) port;
-            };
-          in
-            if portCfg.portRange == null
-            then declaredPort
-            else map (port: declaredPort // {inherit port;}) (range portCfg.portRange.from portCfg.portRange.to))
-          host.value.ports)
-      )
+    # Every reverse-proxied port across all enabled services, ready to be handed
+    # to the nginx service via `require.ports`. Keyed uniquely by "<id>-<portName>".
+    # A port counts as proxied when it declares a `proxy.domain`.
+    proxiedPorts = pipe allEnabledServices [
+      (map (service:
+        mapAttrsToList (portName: portCfg: {
+          name = "${service.serviceCfg.id}-${portName}";
+          value = {inherit (portCfg) port udp proxy getAddress;};
+        })
+        service.serviceCfg.provide.ports))
       flatten
+      (filter (e: e.value.proxy.domain != null))
+      listToAttrs
     ];
 
     servicesById = pipe allEnabledServices [
@@ -76,7 +62,6 @@
       hostSrvs = variables.hostCfg.services;
       networkCfg = config.network;
       hostCfg = networkCfg.hosts.${hostName};
-      ports = hostCfg.ports;
     };
 
     getServiceVariables = serviceName:

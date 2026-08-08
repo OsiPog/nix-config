@@ -8,7 +8,7 @@
   inherit (lib) mkIf mkDefault mkMerge;
   inherit (lib.attrsets) getAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets;
-  inherit (config.lib.network) getServiceVariables getAddress;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "paperless")
@@ -16,13 +16,12 @@
     portName
     networkCfg
     cfg
-    ports
     stateDir
     ;
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
-      configEnable.ports.${portName} = {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
+      provideEnable.ports.${portName} = {
         protocol = "http";
         port = mkDefault 28981;
       };
@@ -38,10 +37,7 @@ in {
           clientSecretName = "paperless/oidc-secret";
           # allauth openid_connect callback: /accounts/oidc/<provider_id>/login/callback/
           redirectUris = let
-            address = getAddress {
-              hostName = name;
-              portName = serviceName;
-            };
+            address = cfg.provide.ports.${portName}.getAddress;
           in ["${address "proxyProtocol://domain"}/accounts/oidc/authelia/login/callback/"];
           scopes = ["openid" "profile" "email"];
           public = false;
@@ -56,11 +52,11 @@ in {
     {
       services.paperless = {
         enable = true;
-        port = ports.${portName}.port;
+        port = cfg.provide.ports.${portName}.port;
         address = "0.0.0.0";
         # PAPERLESS_URL drives ALLOWED_HOSTS / CSRF_TRUSTED_ORIGINS behind the proxy
         settings = {
-          PAPERLESS_URL = ports.${portName}.address "proxyProtocol://domain";
+          PAPERLESS_URL = cfg.provide.ports.${portName}.getAddress "proxyProtocol://domain";
         };
       };
     }
@@ -90,7 +86,7 @@ in {
                       name = oidcServer.name;
                       client_id = oidcClient.clientId;
                       secret = config.sops.placeholder.${oidcClient.clientSecretName};
-                      settings.server_url = oidcServer.address "proxyProtocol://domain";
+                      settings.server_url = oidcServer.getAddress "proxyProtocol://domain";
                     }
                   ];
                 };

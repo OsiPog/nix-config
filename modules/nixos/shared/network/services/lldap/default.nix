@@ -16,7 +16,6 @@
     serviceName
     networkCfg
     cfg
-    ports
     stateDir
     ;
 
@@ -24,8 +23,8 @@
   baseDomain = let splitted = splitString "." (ldapServer.getAddress "<domain>"); in "${lib.last (lib.init splitted)}.${lib.last splitted}";
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
-      configEnable = {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
+      provideEnable = {
         ports = {
           lldap = {
             protocol = "http";
@@ -34,18 +33,13 @@ in {
           ldaps = {
             protocol = "ldaps";
             port = 6360;
-            reverseProxy.method = "stream";
+            proxy.method = "stream";
           };
         };
-      };
-      provideEnable = {
         backup-paths = [{path = stateDir;}];
         ldap-server = let
-          getAddress = config.lib.network.getAddress {
-            hostName = name;
-            portName = "ldaps";
-          };
-        in {
+          getAddress = cfg.provide.ports.ldaps.getAddress;
+        in rec {
           secrets =
             mkSharedSecrets [
               users.admin.secretName
@@ -93,11 +87,11 @@ in {
     {
       assertions = [
         {
-          assertion = ports.ldaps.reverseProxy.enable;
+          assertion = cfg.provide.ports.ldaps.proxy.domain != null;
           message = "ldaps port needs to be reverse proxied to ensure the server can be reached on a domain.";
         }
         {
-          assertion = ports.lldap.reverseProxy.enable;
+          assertion = cfg.provide.ports.lldap.proxy.domain != null;
           message = "lldap port needs to be reverse proxied to ensure the server can be reached on a domain.";
         }
       ];
@@ -127,7 +121,7 @@ in {
         settings = {
           verbose = true;
           http_host = "0.0.0.0";
-          http_port = ports.lldap.port;
+          http_port = cfg.provide.ports.lldap.port;
           ldap_base_dn = ldapServer.baseDN;
           ldap_user_dn = ldapServer.users.admin.dn;
           ldap_user_pass_file = config.getSopsFile ldapServer.users.admin.secretName;
@@ -137,7 +131,7 @@ in {
             acmeDirectory = config.security.acme.certs.${baseDomain}.directory;
           in {
             enabled = true;
-            port = ports.ldaps.port;
+            port = cfg.provide.ports.ldaps.port;
             cert_file = "${acmeDirectory}/cert.pem";
             key_file = "${acmeDirectory}/key.pem";
           };

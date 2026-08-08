@@ -6,7 +6,7 @@
   };
 
   services.llamacpp.enable = true;
-  ports.llamacpp.reverseProxy = {
+  services.llamacpp.provide.ports.llamacpp.proxy = {
     domain = "llm.axelhax.net";
     hidden = true;
   };

@@ -15,22 +15,19 @@
     portName
     networkCfg
     cfg
-    ports
     ;
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({config, ...}: {
-      configEnable = {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
+      provideEnable = {
         ports.${portName} = {
           protocol = "http";
           port = mkDefault 7999;
         };
-      };
 
-      provideEnable = {
         openai-api = rec {
           secrets = mkSharedSecrets [apiKeySecretName] ./secrets.yaml;
-          url = config.ports.${portName}.getAddress "https://<domain>/v1";
+          url = cfg.provide.ports.${portName}.getAddress "https://<domain>/v1";
           apiKeySecretName = "llamacpp/api-key";
           displayName = "llama.cpp";
         };
@@ -63,7 +60,7 @@ in {
         enable = true;
         settings = {
           host = "0.0.0.0";
-          port = ports.${portName}.port;
+          port = cfg.provide.ports.${portName}.port;
           api-key-file = config.getSopsFile openaiApi.apiKeySecretName;
           # model / hf-repo etc. configured per-host
         };

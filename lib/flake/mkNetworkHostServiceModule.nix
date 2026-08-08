@@ -33,6 +33,7 @@ in {
     ({
       config,
       name,
+      nixosConfig,
       ...
     }: let
       cfg = config.services.${serviceName};
@@ -227,7 +228,7 @@ in {
               default = null;
               type = types.nullOr (types.submodule {
                 options = {
-                  address = addressOpt;
+                  getAddress = addressOpt;
                   adminGroup = mkOption {type = types.str;};
                   name = mkOption {type = types.str;};
                 };
@@ -251,7 +252,7 @@ in {
               type = types.nullOr (types.submodule {
                 options = {
                   secrets = secretsOpt;
-                  address = addressOpt;
+                  getAddress = addressOpt;
                   ip4Space = mkOption {
                     type = types.str;
                   };
@@ -312,7 +313,11 @@ in {
 
             ports = mkOption {
               default = {};
-              type = types.attrsOf (types.submodule ({name, ...}: let
+              type = types.attrsOf (types.submodule ({
+                name,
+                config,
+                ...
+              }: let
                 portName = name;
               in {
                 options = {
@@ -332,34 +337,33 @@ in {
 
                   host = mkOption {
                     type = types.str;
-                    default = name;
-                    readOnly = true;
+                    default = hostName;
                     description = "The host name of the host the port belongs to.";
                   };
 
                   getAddress = mkOption {
                     type = types.functionTo types.str;
                     description = "return value of getAddress on this port";
-                    readOnly = true;
-                    default = let
+                    default = template: let
                       address = {
                         inherit (config) protocol;
                         port = toString config.port;
                         domain =
-                          if config.reverseProxy.enable
-                          then config.reverseProxy.domain
-                          else if hostCfg.domain != null
-                          then hostCfg.domain
-                          else throw "getAddress: ${hostName}: ${portName}: Domain cannot be referenced because port is not reverse proxied.";
+                          if config.proxy.domain != null
+                          then config.proxy.domain
+                          else throw "getAddress: ${hostName}: ${portName}: Domain cannot be referenced because port has no proxy domain.";
                         host =
-                          if hostName == config.networking.hostName
+                          if hostName == nixosConfig.networking.hostName
                           then "localhost"
                           else hostName;
                         ip = hostCfg.vpn.ip;
                       };
+                      # only substitute placeholders actually present so unused keys
+                      # (e.g. a `<domain>` on a port without one) aren't forced.
+                      used = lib.filterAttrs (key: _: lib.hasInfix "<${key}>" template) address;
                     in
                       # e.g. "<host>" gets replaced with "localhost"
-                      replaceStrings (map (e: "<${e}>") (attrNames address)) (attrValues address);
+                      replaceStrings (map (key: "<${key}>") (attrNames used)) (attrValues used) template;
                   };
 
                   proxy = mkOption {

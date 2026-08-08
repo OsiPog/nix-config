@@ -16,29 +16,21 @@
     serviceName
     networkCfg
     cfg
-    ports
     portName
     stateDir
     ;
-  getAddress = config.lib.network.getAddress {
-    inherit portName;
-    inherit hostName;
-  };
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
-      configEnable.ports.${portName} = {
-        protocol = "http";
-        port = mkDefault 9200;
-      };
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
       provideEnable = {
+        ports.${portName} = {
+          protocol = "http";
+          port = mkDefault 9200;
+        };
         ldap-clients = [{groups.${serviceName} = {};}];
         backup-paths = [{path = stateDir;}];
         oidc-clients = let
-          getAddress = config.lib.network.getAddress {
-            hostName = name;
-            portName = serviceName;
-          };
+          getAddress = cfg.provide.ports.${portName}.getAddress;
           baseUrl = getAddress "https://<domain>";
         in [
           {
@@ -114,8 +106,8 @@ in {
         inherit stateDir;
         enable = true;
         address = "0.0.0.0";
-        port = ports.opencloud.port;
-        url = getAddress "https://<domain>";
+        port = cfg.provide.ports.${portName}.port;
+        url = cfg.provide.ports.${portName}.getAddress "https://<domain>";
         environment = {
           PROXY_TLS = "false"; # TLS handled by reverse proxy
         };

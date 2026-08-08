@@ -14,10 +14,8 @@
   inherit
     (getServiceVariables "headscale")
     serviceName
-    portName
     networkCfg
     cfg
-    ports
     ;
 
   stateDir = "/var/lib/headscale"; # hardcoded in nixpkgs, not configurable
@@ -28,23 +26,18 @@ in {
     (mkNetworkHostServiceModule {
         inherit serviceName;
         enforceSingleInstance = true;
-      } ({name, ...}: {
-        configEnable = {
+      } ({cfg, ...}: {
+        provideEnable = {
           ports.headscale = {
             protocol = "http";
             port = mkDefault 8081;
           };
-        };
-        provideEnable = {
           backup-paths = [{path = stateDir;}];
           tailscale-server = let
             authKeySecretName = "headscale/auth-key";
           in {
             secrets = mkSharedSecrets [authKeySecretName] ./secrets.yaml;
-            getAddress = config.lib.network.getAddress {
-              portName = "headscale";
-              hostName = name;
-            };
+            getAddress = cfg.provide.ports.headscale.getAddress;
             ip4Space = "100.64.0.0/10";
             inherit authKeySecretName;
           };
@@ -56,12 +49,7 @@ in {
               clientName = "Headscale";
               hashedClientSecret = "$pbkdf2-sha512$310000$OM.pbqoXjN0sV3ePThP93A$DqJvD5pH5D65CC48UVV2amlinmsQN078kWapJWtn4JUr369PHh/Ce/0TZyx1gbFcOBeFo2Kr8IkUvkQx2fwUYQ";
               clientSecretName = "headscale/oidc-secret";
-              redirectUris = let
-                getAddress = config.lib.network.getAddress {
-                  hostName = name;
-                  portName = serviceName;
-                };
-              in [getAddress "https://<domain>/oidc/callback"];
+              redirectUris = [(cfg.provide.ports.headscale.getAddress "https://<domain>/oidc/callback")];
               scopes = ["openid" "profile" "email" "groups"];
               pkce = {
                 enabled = true;
@@ -80,7 +68,7 @@ in {
       services.headscale = {
         enable = true;
         address = "0.0.0.0";
-        port = ports.${serviceName}.port;
+        port = cfg.provide.ports.${serviceName}.port;
         policy.hosts = genAttrs nixosHostNames (hostName: networkCfg.hosts.${hostName}.vpn.ip + "/32");
         settings = {
           server_url = tailscaleServer.getAddress "https://<domain>";

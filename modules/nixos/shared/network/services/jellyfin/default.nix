@@ -19,21 +19,14 @@
     stateDir
     cfg
     ;
-
-  getAddress = config.lib.network.getAddress {
-    inherit portName;
-    inherit hostName;
-  };
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
-      configEnable = {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
+      provideEnable = {
         ports.${portName} = {
           protocol = "http";
           port = mkDefault 8096;
         };
-      };
-      provideEnable = {
         ldap-clients = [{groups.${serviceName} = {};}];
         backup-paths = [{path = stateDir;}];
       };
@@ -79,7 +72,7 @@ in {
         };
         config = {
           version = mkDefault 1;
-          base_url = getAddress "https://<domain>";
+          base_url = cfg.provide.ports.${portName}.getAddress "https://<domain>";
           system = {};
           startup.completeStartupWizard = true;
           users = [

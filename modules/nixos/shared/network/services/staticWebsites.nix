@@ -18,7 +18,6 @@
     portName
     networkCfg
     cfg
-    ports
     stateDir
     ;
 in {
@@ -31,15 +30,13 @@ in {
           type = with types; listOf str;
         };
       };
-      configEnable = {
-        ports = listToAttrs (map (name: {
-            name = portName + "-" + name;
-            value = {
-              port = 8050 + (findFirstIndex (x: x == name) (throw "wont happen") cfg.sites);
-            };
-          })
-          cfg.sites);
-      };
+      provideEnable.ports = listToAttrs (map (name: {
+        name = portName + "-" + name;
+        value = {
+          port = 8050 + (findFirstIndex (x: x == name) (throw "wont happen") cfg.sites);
+        };
+      })
+      cfg.sites);
       provideEnable.backup-paths = [{path = stateDir;}];
     }))
   ];
@@ -49,7 +46,7 @@ in {
       enable = true;
       appendHttpConfig = concatLines (map (name: ''
           server {
-            listen ${toString ports.${portName + "-" + name}.port};
+            listen ${toString cfg.provide.ports.${portName + "-" + name}.port};
             server_name 0.0.0.0;
             location / {
               root ${stateDir}/${name};

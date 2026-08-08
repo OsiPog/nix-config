@@ -5,12 +5,11 @@
   ...
 }: let
   inherit (lib) mkIf mkMerge mkForce mkOption types;
-  inherit (lib.lists) findFirst;
-  inherit (config.lib.network) allPorts;
+  inherit (config.lib.network) servicesById;
 
   networkCfg = config.network;
 
-  headscaleAddress = (findFirst (e: e.portName == "headscale") null allPorts).portCfg.getAddress;
+  headscaleAddress = servicesById.headscale.provide.ports.headscale.getAddress;
 in
   mkMerge [
     {

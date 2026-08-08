@@ -16,19 +16,18 @@
     portName
     networkCfg
     cfg
-    ports
     ;
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
-      configEnable = {
+      provideEnable = {
         ports.${portName} = {
           protocol = "http";
           port = mkDefault 8123;
         };
-      };
 
-      provideEnable.ldap-clients = [{groups.${serviceName} = {};}];
+        ldap-clients = [{groups.${serviceName} = {};}];
+      };
     }))
   ];
 
@@ -37,10 +36,10 @@ in {
       services.home-assistant = {
         enable = true;
         config.http = {
-          server_port = ports.${portName}.port;
+          server_port = cfg.provide.ports.${portName}.port;
           use_x_forwarded_for = true;
           trusted_proxies = [
-            (ports.${portName}.getAddress "<ip>")
+            (cfg.provide.ports.${portName}.getAddress "<ip>")
             "100.64.0.1" # TODO: remove when fixed
             "127.0.0.1"
             "::1"

@@ -16,7 +16,6 @@
     portName
     networkCfg
     cfg
-    ports
     ;
 
   # Turn a secret name into a shell-safe env var name (LibreChat exports each
@@ -24,31 +23,30 @@
   toEnvVar = replaceStrings ["/" "-" "."] ["_" "_" "_"];
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
-      configEnable.ports.${portName} = {
-        protocol = "http";
-        port = mkDefault 3080;
-      };
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
+      provideEnable = {
+        ports.${portName} = {
+          protocol = "http";
+          port = mkDefault 3080;
+        };
 
-      provideEnable.oidc-clients = [
-        rec {
-          secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
-          clientId = "librechat";
-          clientName = "LibreChat";
-          hashedClientSecret = "$pbkdf2-sha512$310000$v3IyMCC9JJDTjzMPQ8UQeQ$YI3HawEirlKEWUvjk0.WIBxbqP1hnaneJrQzVP9S9fIvfT/xhYxvpR9yh7/HfJSxdfw5N3kx9yvRKVyPbnZm3Q";
-          clientSecretName = "librechat/oidc-secret";
-          redirectUris = let
-            getAddress = config.lib.network.getAddress {
-              hostName = name;
-              portName = serviceName;
-            };
-          in [getAddress "https://<domain>/oauth/openid/callback"];
-          scopes = ["openid" "profile" "email"];
-          public = false;
-          pkce.enabled = false;
-          endpointAuthMethod = "client_secret_post";
-        }
-      ];
+        oidc-clients = [
+          rec {
+            secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
+            clientId = "librechat";
+            clientName = "LibreChat";
+            hashedClientSecret = "$pbkdf2-sha512$310000$v3IyMCC9JJDTjzMPQ8UQeQ$YI3HawEirlKEWUvjk0.WIBxbqP1hnaneJrQzVP9S9fIvfT/xhYxvpR9yh7/HfJSxdfw5N3kx9yvRKVyPbnZm3Q";
+            clientSecretName = "librechat/oidc-secret";
+            redirectUris = let
+              getAddress = cfg.provide.ports.${serviceName}.getAddress;
+            in [(getAddress "https://<domain>/oauth/openid/callback")];
+            scopes = ["openid" "profile" "email"];
+            public = false;
+            pkce.enabled = false;
+            endpointAuthMethod = "client_secret_post";
+          }
+        ];
+      };
     }))
   ];
 
@@ -78,10 +76,10 @@ in {
         enableLocalDB = true;
         env = {
           HOST = "0.0.0.0";
-          PORT = ports.${portName}.port;
+          PORT = cfg.provide.ports.${portName}.port;
           TRUST_PROXY = 2;
-          DOMAIN_SERVER = ports.${portName}.getAddress "https://<domain>";
-          DOMAIN_CLIENT = ports.${portName}.getAddress "https://<domain>";
+          DOMAIN_SERVER = cfg.provide.ports.${portName}.getAddress "https://<domain>";
+          DOMAIN_CLIENT = cfg.provide.ports.${portName}.getAddress "https://<domain>";
         };
         credentials = {
           CREDS_KEY = config.getSopsFile "librechat/creds_key";

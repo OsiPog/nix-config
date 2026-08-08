@@ -16,7 +16,6 @@
     networkCfg
     cfg
     portName
-    ports
     ;
 
   stateDir = "/var/lib/dnsmasq"; # hardcoded in nixpkgs
@@ -25,14 +24,14 @@
   blocklistUrl = "https://big.oisd.nl/dnsmasq2"; # See https://oisd.nl/setup/dnsmasq
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({config, ...}: {
-      configEnable.ports.${portName} = {
-        port = 53;
-        protocol = null;
-        reverseProxy.method = "stream";
-      };
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
       provideEnable = {
-        dns-server.getAddress = config.ports.${portName}.getAddress;
+        ports.${portName} = {
+          port = 53;
+          protocol = null;
+          proxy.method = "stream";
+        };
+        dns-server.getAddress = cfg.provide.ports.${portName}.getAddress;
         backup-paths = [{path = stateDir;}];
       };
     }))

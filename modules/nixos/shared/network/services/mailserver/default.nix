@@ -10,35 +10,28 @@
   inherit (lib) mkIf mkMerge mkForce;
   inherit (lib.attrsets) getAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkMergeTopLevel;
-  inherit (config.lib.network) getServiceVariables getAddress;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "mailserver")
     serviceName
     networkCfg
     cfg
-    ports
     ;
 in {
   imports = [
     inputs.simple-nixos-mailserver.nixosModules.default
     (mkNetworkHostServiceModule {inherit serviceName;} ({
       cfg,
-      name,
       ...
     }: {
-      configEnable = {
+      provideEnable = {
         ports.submissions = {
           protocol = "submissions";
           port = 465;
-          reverseProxy.method = "stream";
+          proxy.method = "stream";
         };
-      };
-      provideEnable = {
-        mail-server.getAddress = getAddress {
-          portName = "submissions";
-          hostName = name;
-        };
+        mail-server.getAddress = cfg.provide.ports.submissions.getAddress;
 
         ldap-clients =
           [
