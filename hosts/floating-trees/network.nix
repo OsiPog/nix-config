@@ -1,11 +1,7 @@
 # This is a special nix module. It is imported into `networking.hosts.<name>` of every nixos configuration.
 # So that each host can see the network configuration of all other hosts.
-{
-  config,
-  lib,
-  ...
-}: let
-  inherit (config.lib) require servicesById allServiceIds;
+{networkLib, ...}: let
+  inherit (networkLib) require allServiceIds;
 in {
   domain = "axelhax.net"; # on my home router this domain resolves here
   vpn.ip = "100.64.0.4";
@@ -37,15 +33,14 @@ in {
     repoPath = "/mnt/mob-farm";
     mirrorPath = "/mnt/zombie-horse/mirror";
     # all backup paths of all enabled services
-    require =
-      (require "backup-paths" allServiceIds)
+    require = require "backup-paths" {
+      ids = allServiceIds;
       # extra require
-      // {
-        backup-paths.zombie-horse-drive = {
-          host = "floating-trees";
-          path = "/mnt/zombie-horse/cloud";
-        };
+      extra.zombie-horse-drive = {
+        host = "floating-trees";
+        path = "/mnt/zombie-horse/cloud";
       };
+    };
   };
 
   # --- MINECRAFT
@@ -64,17 +59,19 @@ in {
     provide.ports.http.proxy.domain = "auth.axelhax.net";
 
     require =
-      (require "ldap-servers" ["lldap"])
-      // (require "mail-servers" ["snm"])
-      // (require "oidc-clients" [
-        "headscale"
-        "opencloud"
-        "vikunja"
-        "actual"
-        "librechat"
-        "mealie"
-        "paperless"
-      ]);
+      (require "ldap-servers" { ids = ["lldap"]; })
+      // (require "mail-servers" { ids = ["snm"]; })
+      // (require "oidc-clients" {
+        ids = [
+          "headscale"
+          "opencloud"
+          "vikunja"
+          "actual"
+          "librechat"
+          "mealie"
+          "paperless"
+        ];
+      });
   };
 
   # --- LLDAP
@@ -90,13 +87,15 @@ in {
         hidden = true;
       };
     };
-    require = require "ldap-clients" [
-      "snm"
-      "authelia"
-      "opencloud"
-      "jellyfin"
-      "home-assistant"
-    ];
+    require = require "ldap-clients" {
+      ids = [
+        "snm"
+        "authelia"
+        "opencloud"
+        "jellyfin"
+        "home-assistant"
+      ];
+    };
   };
 
   # --- NGINX HTTP
@@ -115,15 +114,15 @@ in {
     provide.ports.http.proxy.domain = "cloud.axelhax.net";
 
     require =
-      (require "ldap-servers" ["lldap"])
-      // (require "oidc-servers" ["authelia"]);
+      (require "ldap-servers" { ids = ["lldap"]; })
+      // (require "oidc-servers" { ids = ["authelia"]; });
   };
 
   # --- JELLYFIN
   services.jellyfin = {
     enable = true;
     provide.ports.http.proxy.domain = "media.axelhax.net";
-    require = require "ldap-servers" ["lldap"];
+    require = require "ldap-servers" { ids = ["lldap"]; };
   };
 
   # --- HOME ASSISTANT
@@ -133,7 +132,7 @@ in {
       domain = "home.axelhax.net";
       hidden = true;
     };
-    require = require "ldap-servers" ["lldap"];
+    require = require "ldap-servers" { ids = ["lldap"]; };
   };
 
   # --- VIKUNJA
@@ -141,8 +140,8 @@ in {
     enable = true;
     provide.ports.http.proxy.domain = "tasks.axelhax.net";
     require =
-      (require "oidc-servers" ["authelia"])
-      // (require "mail-servers" ["snm"]);
+      (require "oidc-servers" { ids = ["authelia"]; })
+      // (require "mail-servers" { ids = ["snm"]; });
   };
   # --- ACTUAL
   services.actual = {
@@ -151,21 +150,21 @@ in {
       domain = "budget.axelhax.net";
       hidden = true;
     };
-    require = require "oidc-servers" ["authelia"];
+    require = require "oidc-servers" { ids = ["authelia"]; };
   };
 
   # --- MEALIE
   services.mealie = {
     enable = true;
     provide.ports.http.proxy.domain = "kochen.axelhax.net";
-    require = require "oidc-servers" ["authelia"];
+    require = require "oidc-servers" { ids = ["authelia"]; };
   };
 
   # --- PAPERLESS
   services.paperless = {
     enable = true;
     provide.ports.http.proxy.domain = "papier.axelhax.net";
-    require = require "oidc-servers" ["authelia"];
+    require = require "oidc-servers" { ids = ["authelia"]; };
   };
 
   # --- LLM CHAT
@@ -173,7 +172,7 @@ in {
     enable = true;
     provide.ports.http.proxy.domain = "ai.axelhax.net";
     require =
-      (require "openai-apis" ["llamacpp"])
-      // (require "oidc-servers" ["authelia"]);
+      (require "openai-apis" { ids = ["llamacpp"]; })
+      // (require "oidc-servers" { ids = ["authelia"]; });
   };
 }

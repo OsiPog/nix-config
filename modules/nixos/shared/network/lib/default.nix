@@ -4,9 +4,9 @@
   hostName,
   ...
 }: let
-  inherit (builtins) throw length filter head concatStringsSep foldl' replaceStrings attrNames attrValues listToAttrs;
+  inherit (builtins) throw length filter head concatStringsSep concatMap replaceStrings attrNames attrValues listToAttrs;
   inherit (lib) pipe mkMerge;
-  inherit (lib.attrsets) attrsToList filterAttrs mapAttrsToList mapAttrs mapAttrs';
+  inherit (lib.attrsets) attrsToList filterAttrs mapAttrsToList mapAttrs;
   inherit (lib.lists) flatten;
 
   cfg = config.network;
@@ -57,21 +57,17 @@
         stateDir = "/var/lib/${serviceName}";
       };
 
-    require = interfaceName: serviceIds: {
-      ${interfaceName} = foldl' (acc: serviceId:
-        acc
-        // (mapAttrs' (name: value: {
-            name = "${serviceId}-${name}";
-            inherit value;
-          })
-          servicesById.${serviceId}.provide.${interfaceName}))
-      {}
-      serviceIds;
+    require = interfaceName: {
+      ids ? [],
+      extra ? {},
+    }: {
+      ${interfaceName} =
+        (concatMap (id: attrValues servicesById.${id}.provide.${interfaceName}) ids)
+        ++ (attrValues extra);
     };
   };
 in {
   config = {
     lib.network = networkLib;
-    network.sharedModules = [{lib = networkLib;}];
   };
 }

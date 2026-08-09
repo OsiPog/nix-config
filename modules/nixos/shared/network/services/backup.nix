@@ -6,7 +6,7 @@
   pkgs,
   ...
 }: let
-  inherit (builtins) mapAttrs attrValues;
+  inherit (builtins) mapAttrs;
   inherit (lib) pipe types mkIf mkOption mkMerge groupBy concatMapStringsSep;
   inherit (lib.attrsets) filterAttrs mapAttrs';
 
@@ -60,9 +60,9 @@ in {
     }
 
     # configure the actual backups once services provide paths to back up
-    (mkIf (cfg.require.backup-paths != {}) (let
+    (mkIf (cfg.require.backup-paths != []) (let
       # one backup per host
-      pathsByHost = groupBy (p: p.host) (attrValues cfg.require.backup-paths);
+      pathsByHost = groupBy (p: p.host) (cfg.require.backup-paths);
     in {
       services.restic.backups = mapAttrs (backupHost: paths: let
         isRemote = backupHost != hostName;

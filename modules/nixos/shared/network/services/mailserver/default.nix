@@ -7,10 +7,10 @@
   hostName,
   ...
 }: let
-  inherit (builtins) attrValues listToAttrs;
+  inherit (builtins) listToAttrs head;
   inherit (lib) mkIf mkMerge mkForce;
   inherit (lib.attrsets) getAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkMergeTopLevel headAttrs;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkMergeTopLevel;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -59,7 +59,7 @@ in {
                 };
               };
             })
-            (attrValues cfg.require.mail-clients));
+            (cfg.require.mail-clients));
       };
     }))
 
@@ -91,10 +91,10 @@ in {
 
     # LDAP INTEGRATION
     (let
-      ldapServer = headAttrs cfg.require.ldap-servers;
+      ldapServer = head cfg.require.ldap-servers;
       secrets = getAttrs [ldapServer.users.search.secretName] ldapServer.secrets;
     in
-      mkIf (cfg.require.ldap-servers != {}) (let
+      mkIf (cfg.require.ldap-servers != []) (let
         usersFilter = username: "(&(|(${ldapServer.attributes.email}=${username})(mail-aliases=${username}))(${ldapServer.attributes.memberof}=cn=${serviceName},ou=groups,${ldapServer.baseDN}))";
       in {
         sops = {inherit secrets;};
@@ -158,13 +158,13 @@ in {
       }))
 
     # MAIL CLIENTS INTEGRATION (only register mail accounts when ldap is not set)
-    (mkIf (cfg.require.ldap-servers == {}) (mkMergeTopLevel ["sops" "users" "mailserver"] (map (mailClient: {
+    (mkIf (cfg.require.ldap-servers == []) (mkMergeTopLevel ["sops" "users" "mailserver"] (map (mailClient: {
         sops.secrets = mailClient.secrets;
 
         users.groups = mkGroupsFromSecretsWithMembers mailClient.secrets ["postfix"];
 
         mailserver.accounts."${mailClient.mailAccount.email}".passwordFile = config.getSopsFile mailClient.mailAccount.secretName;
       })
-      (attrValues cfg.require.mail-clients))))
+      (cfg.require.mail-clients))))
   ]);
 }

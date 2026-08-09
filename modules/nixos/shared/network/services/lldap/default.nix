@@ -4,7 +4,7 @@
   flake,
   ...
 }: let
-  inherit (builtins) concatStringsSep mapAttrs getAttr attrValues;
+  inherit (builtins) concatStringsSep mapAttrs getAttr;
   inherit (lib) mkIf pipe mkForce mkMerge;
   inherit (lib.strings) splitString;
 
@@ -201,6 +201,6 @@ in {
           };
         };
       })
-      (attrValues cfg.require.ldap-clients)))
+      (cfg.require.ldap-clients)))
   ]);
 }

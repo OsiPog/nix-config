@@ -71,8 +71,7 @@
   programs.firefox.policies.Bookmarks = let
     net = nixosConfig.lib.network;
   in
-    lib.pipe (net.require "ports" net.allServiceIds).ports [
-      builtins.attrValues
+    lib.pipe (net.require "ports" {ids = net.allServiceIds;}).ports [
       (lib.filter (p: p.proxy.method == "virtual-host"))
       (
         map (p: {

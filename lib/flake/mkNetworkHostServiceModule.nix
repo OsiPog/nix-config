@@ -9,6 +9,7 @@ flake: {
   inherit (builtins) filter length replaceStrings attrNames attrValues;
   inherit (flake.lib) mkModuleWithExtraMetaAttrs;
   inherit (lib) mkEnableOption mkIf mkOption types mkDefault;
+  inherit (lib.attrsets) mapAttrs;
   inherit (lib.lists) optional;
 in {
   assertions =
@@ -88,12 +89,6 @@ in {
             type = types.functionTo types.str; # function: "domain"|"ip"|"host" -> str
           };
 
-          mkInterfaceOption = submodule:
-            mkOption {
-              default = {};
-              type = types.attrsOf (types.submodule submodule);
-            };
-
           interfaces = {
             ldap-servers = let
               mkUser = {
@@ -101,7 +96,7 @@ in {
                 secretName = mkOption {type = types.str;};
               };
             in
-              mkInterfaceOption {
+              {
                 options = {
                   secrets = secretsOpt;
                   baseDN = mkOption {type = types.str;};
@@ -122,7 +117,7 @@ in {
                 };
               };
 
-            ldap-clients = mkInterfaceOption {
+            ldap-clients = {
               options = {
                 secrets = secretsOpt;
                 groups = mkOption {
@@ -155,11 +150,11 @@ in {
               };
             };
 
-            mail-servers = mkInterfaceOption {
+            mail-servers = {
               options.getAddress = addressOpt;
             };
 
-            mail-clients = mkInterfaceOption {
+            mail-clients = {
               options = {
                 secrets = secretsOpt;
                 mailAccount =
@@ -173,7 +168,7 @@ in {
               };
             };
 
-            oidc-clients = mkInterfaceOption ({config, ...}: {
+            oidc-clients = ({config, ...}: {
               options = {
                 secrets = secretsOpt;
                 clientId = mkOption {type = types.str;};
@@ -215,7 +210,7 @@ in {
               };
             });
 
-            oidc-servers = mkInterfaceOption {
+            oidc-servers = {
               options = {
                 getAddress = addressOpt;
                 adminGroup = mkOption {type = types.str;};
@@ -223,7 +218,7 @@ in {
               };
             };
 
-            openai-apis = mkInterfaceOption {
+            openai-apis = {
               options = {
                 url = mkOption {type = types.str;};
                 displayName = mkOption {type = types.str;};
@@ -232,7 +227,7 @@ in {
               };
             };
 
-            tailscale-servers = mkInterfaceOption {
+            tailscale-servers = {
               options = {
                 secrets = secretsOpt;
                 getAddress = addressOpt;
@@ -245,7 +240,7 @@ in {
               };
             };
 
-            tailscale-clients = mkInterfaceOption {
+            tailscale-clients = {
               options = {
                 ip = mkOption {
                   type = types.str;
@@ -256,18 +251,18 @@ in {
               };
             };
 
-            dns-servers = mkInterfaceOption {
+            dns-servers = {
               options.getAddress = addressOpt;
             };
 
-            dns-overrides = mkInterfaceOption {
+            dns-overrides = {
               options = {
                 query = mkOption {type = types.str;};
                 response = mkOption {type = types.str;};
               };
             };
 
-            backup-paths = mkInterfaceOption {
+            backup-paths = {
               options = {
                 host = mkOption {
                   type = types.str;
@@ -281,7 +276,7 @@ in {
               };
             };
 
-            ports = mkInterfaceOption ({
+            ports = ({
               name,
               config,
               ...
@@ -377,8 +372,8 @@ in {
           };
         in {
           options.services.${serviceName} = {
-            provide = interfaces;
-            require = interfaces;
+            provide = mapAttrs (_: submodule: mkOption {default = {}; type = types.attrsOf (types.submodule submodule);}) interfaces;
+            require = mapAttrs (_: submodule: mkOption {default = []; type = types.listOf (types.submodule submodule);}) interfaces;
           };
         })
       ];

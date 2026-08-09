@@ -8,7 +8,8 @@
 }: let
   inherit (lib) mkIf mkMerge mkDefault;
   inherit (lib.attrsets) filterAttrs listToAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers headAttrs;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers;
+  inherit (builtins) head;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -122,10 +123,10 @@ in {
 
     # LDAP INTEGRATION
     (let
-      ldapServer = headAttrs cfg.require.ldap-servers;
+      ldapServer = head cfg.require.ldap-servers;
       secrets = filterAttrs (name: _: name == ldapServer.users.search.secretName) ldapServer.secrets;
     in
-      mkIf (cfg.require.ldap-servers != {}) {
+      mkIf (cfg.require.ldap-servers != []) {
         sops = {
           inherit secrets;
           templates.opencloud-env = {
@@ -160,10 +161,10 @@ in {
 
     # OIDC SERVER INTEGRATION
     (let
-      oidcServer = headAttrs cfg.require.oidc-servers;
+      oidcServer = head cfg.require.oidc-servers;
       serverAddress = oidcServer.getAddress "https://<domain>";
     in
-      mkIf (cfg.require.oidc-servers != {}) {
+      mkIf (cfg.require.oidc-servers != []) {
         services.opencloud = {
           environment = {
             OC_OIDC_ISSUER = serverAddress;

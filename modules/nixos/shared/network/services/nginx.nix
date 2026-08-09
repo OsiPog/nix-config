@@ -4,9 +4,9 @@
   config,
   ...
 }: let
-  inherit (builtins) filter listToAttrs typeOf attrValues;
+  inherit (builtins) filter listToAttrs typeOf;
   inherit (lib) mkIf pipe mkMerge;
-  inherit (lib.attrsets) optionalAttrs attrsToList mapAttrs filterAttrs;
+  inherit (lib.attrsets) optionalAttrs;
   inherit (lib.strings) concatLines;
 
   inherit (config.lib.network) getServiceVariables;
@@ -24,11 +24,9 @@
   vpnRange = "100.64.0.0/10";
 
   # Every port handed to us via `require.ports` is one we must reverse proxy.
-  relevantPorts = attrsToList cfg.require.ports;
-
-  relevantVirtualHostPorts = filter (e: e.value.proxy.method == "virtual-host") relevantPorts;
+  relevantVirtualHostPorts = filter (p: p.proxy.method == "virtual-host") cfg.require.ports;
   # A stream port on our own host is served locally, no need to proxy it.
-  relevantStreamPorts = filter (e: e.value.proxy.method == "stream" && (e.value.getAddress "<host>" != "localhost")) relevantPorts;
+  relevantStreamPorts = filter (p: p.proxy.method == "stream" && (p.getAddress "<host>" != "localhost")) cfg.require.ports;
 in {
   imports = [
     flake.nixosModules.porkbunAcme
@@ -46,20 +44,22 @@ in {
         };
       };
       provideEnable.dns-overrides =
-        mapAttrs (_: p: {
-          query = p.proxy.domain;
-          response =
-            if cfg.ipAddress == null
-            then config.vpn.ip
-            else cfg.ipAddress;
-        })
-        (filterAttrs (_: p: p.proxy.domain != null) cfg.require.ports);
+        listToAttrs (map (p: {
+          name = p.proxy.domain;
+          value = {
+            query = p.proxy.domain;
+            response =
+              if cfg.ipAddress == null
+              then config.vpn.ip
+              else cfg.ipAddress;
+          };
+        }) (filter (p: p.proxy.domain != null) cfg.require.ports));
     }))
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     networking.firewall = {
-      allowedTCPPorts = [443] ++ (map (p: p.value.port) (filter (p: !p.value.udp && (!p.value.proxy.hidden || cfg.ignoreHidden)) relevantStreamPorts));
-      allowedUDPPorts = map (p: p.value.port) (filter (p: p.value.udp) relevantStreamPorts);
+      allowedTCPPorts = [443] ++ (map (p: p.port) (filter (p: !p.udp && (!p.proxy.hidden || cfg.ignoreHidden)) relevantStreamPorts));
+      allowedUDPPorts = map (p: p.port) (filter (p: p.udp) relevantStreamPorts);
     };
 
     # If the current host is the service exposer expose the services to the domain
@@ -72,7 +72,7 @@ in {
       virtualHosts = pipe relevantVirtualHostPorts [
         (map
           (p: let
-            proxyConf = p.value.proxy;
+            proxyConf = p.proxy;
           in {
             name = proxyConf.domain;
             value = mkMerge [
@@ -84,7 +84,7 @@ in {
                 locations = let
                   common =
                     {
-                      proxyPass = p.value.getAddress "http://<host>:<port>";
+                      proxyPass = p.getAddress "http://<host>:<port>";
                       proxyWebsockets = true;
                     }
                     // (optionalAttrs (proxyConf.hidden && !cfg.ignoreHidden) {
@@ -112,29 +112,25 @@ in {
       ];
       streamConfig = pipe relevantStreamPorts [
         (map (p: let
-          upstream = p.name;
-          proxyConf = p.value.proxy;
+          proxyConf = p.proxy;
           extraStreamConfig =
             if (typeOf proxyConf.extraConfig == "string")
             then proxyConf.extraConfig
             else "";
         in ''
-          upstream ${upstream} {
-            server ${p.value.getAddress "<host>:<port>"};
-          }
           server {
-            proxy_pass ${upstream};
+            proxy_pass ${p.getAddress "<host>:<port>"};
             proxy_timeout 1h;
             ${
-            if p.value.udp
+            if p.udp
             then ''
-              listen ${toString p.value.port} udp;
+              listen ${toString p.port} udp;
               proxy_requests 8640000;
               proxy_responses 0;
               proxy_protocol on;
             ''
             else ''
-              listen ${toString p.value.port};
+              listen ${toString p.port};
             ''
           }
             ${
@@ -154,6 +150,6 @@ in {
 
     services.porkbunAcme.enable = true;
     users.users.nginx.extraGroups = ["acme"];
-    security.acme.certs."${hostCfg.domain}".extraDomainNames = map (p: p.value.getAddress "<domain>") relevantVirtualHostPorts;
+    security.acme.certs."${hostCfg.domain}".extraDomainNames = map (p: p.getAddress "<domain>") relevantVirtualHostPorts;
   };
 }

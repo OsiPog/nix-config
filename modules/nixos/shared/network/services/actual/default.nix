@@ -6,7 +6,8 @@
 }: let
   inherit (lib) mkIf mkDefault mkMerge;
   inherit (lib.attrsets) getAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets headAttrs;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets;
+  inherit (builtins) head;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -49,11 +50,11 @@ in {
 
     # OIDC SERVER INTEGRATION
     (let
-      oidcServer = headAttrs cfg.require.oidc-servers;
+      oidcServer = head cfg.require.oidc-servers;
       oidcClient = cfg.provide.oidc-clients.${serviceName};
       secrets = getAttrs [oidcClient.clientSecretName] oidcClient.secrets;
     in
-      mkIf (cfg.require.oidc-servers != {}) {
+      mkIf (cfg.require.oidc-servers != []) {
         sops = {
           inherit secrets;
           templates.actual-env = {

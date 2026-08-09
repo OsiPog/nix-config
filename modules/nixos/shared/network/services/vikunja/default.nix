@@ -4,10 +4,10 @@
   flake,
   ...
 }: let
-  inherit (builtins) concatStringsSep;
+  inherit (builtins) concatStringsSep head;
   inherit (lib) mkIf mkDefault mkMerge;
   inherit (lib.attrsets) getAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets headAttrs;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -29,7 +29,7 @@ in {
             secrets = mkSharedSecrets [mailAccount.secretName] ./secrets.yaml;
             mailAccount = {
               uid = "vikunja-mail";
-              email = "noreply.vikunja@${(headAttrs cfg.require.mail-servers).getAddress "<domain>"}";
+              email = "noreply.vikunja@${(head cfg.require.mail-servers).getAddress "<domain>"}";
               display = "Vikunja";
               secretName = "vikunja/mail-pass";
             };
@@ -63,11 +63,11 @@ in {
 
     # MAIL SERVER INTEGRATION
     (let
-      mailServer = headAttrs cfg.require.mail-servers;
+      mailServer = head cfg.require.mail-servers;
       mailClient = cfg.provide.mail-clients.vikunja-mail;
       secrets = getAttrs [mailClient.mailAccount.secretName] mailClient.secrets;
     in
-      mkIf (cfg.require.mail-servers != {}) {
+      mkIf (cfg.require.mail-servers != []) {
         sops = {inherit secrets;};
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.vikunja.database.user];
         services.vikunja.settings.mailer = {
@@ -83,11 +83,11 @@ in {
 
     # OIDC SERVER INTEGRATION
     (let
-      oidcServer = headAttrs cfg.require.oidc-servers;
+      oidcServer = head cfg.require.oidc-servers;
       oidcClient = cfg.provide.oidc-clients.${serviceName};
       secrets = getAttrs [oidcClient.clientSecretName] oidcClient.secrets;
     in
-      mkIf (cfg.require.oidc-servers != {}) {
+      mkIf (cfg.require.oidc-servers != []) {
         sops = {inherit secrets;};
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.vikunja.database.user];
         services.vikunja.settings = {

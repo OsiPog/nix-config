@@ -4,10 +4,10 @@
   flake,
   ...
 }: let
-  inherit (builtins) replaceStrings;
+  inherit (builtins) replaceStrings head;
   inherit (lib) mkIf mkDefault mkMerge concatStringsSep;
   inherit (lib.attrsets) getAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers headAttrs;
+  inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -90,11 +90,11 @@ in {
 
     # OPENAI-API INTEGRATION (any OpenAI-compatible provider)
     (let
-      openaiApi = headAttrs cfg.require.openai-apis;
+      openaiApi = head cfg.require.openai-apis;
       apiSecret = getAttrs [openaiApi.apiKeySecretName] openaiApi.secrets;
       envVar = toEnvVar openaiApi.apiKeySecretName;
     in
-      mkIf (cfg.require.openai-apis != {}) {
+      mkIf (cfg.require.openai-apis != []) {
         # value-identical to the provider's own registration when on the same host
         sops.secrets = apiSecret;
         users.groups = mkGroupsFromSecretsWithMembers apiSecret [config.services.librechat.user];
@@ -118,11 +118,11 @@ in {
 
     # OIDC INTEGRATION (authelia as oidc-server)
     (let
-      oidcServer = headAttrs cfg.require.oidc-servers;
+      oidcServer = head cfg.require.oidc-servers;
       oidcClient = cfg.provide.oidc-clients.${serviceName};
       clientSecret = getAttrs [oidcClient.clientSecretName] oidcClient.secrets;
     in
-      mkIf (cfg.require.oidc-servers != {}) {
+      mkIf (cfg.require.oidc-servers != []) {
         sops.secrets =
           clientSecret
           // {

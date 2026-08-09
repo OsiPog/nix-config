@@ -6,7 +6,6 @@
   pkgs,
   ...
 }: let
-  inherit (builtins) attrValues;
   inherit (lib) mkIf mkMerge;
   inherit (flake.lib) mkNetworkHostServiceModule;
   inherit (config.lib.network) getServiceVariables;
@@ -70,7 +69,7 @@ in {
         query,
         response,
       }: "/${query}/${response}")
-      (attrValues cfg.require.dns-overrides);
+      (cfg.require.dns-overrides);
     }
   ]);
 }

@@ -8,7 +8,8 @@
 }: let
   inherit (lib) mkIf mkMerge mkDefault;
   inherit (lib.attrsets) filterAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers headAttrs;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers;
+  inherit (builtins) head;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -90,10 +91,10 @@ in {
 
     # LDAP INTEGRATION
     (let
-      ldapServer = headAttrs cfg.require.ldap-servers;
+      ldapServer = head cfg.require.ldap-servers;
       secrets = filterAttrs (name: _: name == ldapServer.users.search.secretName) ldapServer.secrets;
     in
-      mkIf (cfg.require.ldap-servers != {}) {
+      mkIf (cfg.require.ldap-servers != []) {
         sops = {inherit secrets;};
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.jellyfin.user];
         services.jellarr.config = {

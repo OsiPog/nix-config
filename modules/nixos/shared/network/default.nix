@@ -28,6 +28,7 @@ in {
           specialArgs = {
             inherit inputs;
             nixosConfig = config;
+            networkLib = config.lib.network;
           };
 
           modules = [
@@ -35,12 +36,6 @@ in {
               imports = networkCfg.sharedModules;
 
               options = {
-                lib = mkOption {
-                  type = types.raw;
-                  internal = true;
-                  default = {};
-                  description = "Network lib (require/servicesById/allServiceIds/…) exposed to each host module via config.lib.";
-                };
                 ssh = {
                   publicKey = mkOption {
                     type = types.str;

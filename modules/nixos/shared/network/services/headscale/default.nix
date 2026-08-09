@@ -5,10 +5,10 @@
   flake,
   ...
 }: let
-  inherit (builtins) toFile toJSON;
+  inherit (builtins) toFile toJSON head;
   inherit (lib) mkIf mkDefault mkMerge mkForce mkBefore;
   inherit (lib.attrsets) getAttrs genAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers nixosHostNames headAttrs;
+  inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers nixosHostNames;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -87,11 +87,11 @@ in {
     }
     # OIDC SERVER INTEGRATION
     (let
-      oidcServer = headAttrs cfg.require.oidc-servers;
+      oidcServer = head cfg.require.oidc-servers;
       oidcClient = cfg.provide.oidc-clients.${serviceName};
       secrets = getAttrs [oidcClient.clientSecretName] oidcClient.secrets;
     in
-      mkIf (cfg.require.oidc-servers != {}) {
+      mkIf (cfg.require.oidc-servers != []) {
         sops = {inherit secrets;};
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.headscale.user];
         services.headscale.settings.oidc = {
@@ -109,9 +109,9 @@ in {
 
     # DNS SERVER
     (let
-      dnsServer = headAttrs cfg.require.dns-servers;
+      dnsServer = head cfg.require.dns-servers;
     in
-      mkIf (cfg.require.dns-servers != {}) {
+      mkIf (cfg.require.dns-servers != []) {
         services.headscale.settings.dns.nameservers.global = [(dnsServer.getAddress "<ip>")];
       })
   ]);
