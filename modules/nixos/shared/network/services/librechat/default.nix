@@ -13,7 +13,6 @@
   inherit
     (getServiceVariables "librechat")
     serviceName
-    portName
     networkCfg
     cfg
     ;
@@ -25,7 +24,7 @@ in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
       provideEnable = {
-        ports.${portName} = {
+        ports.http = {
           protocol = "http";
           port = mkDefault 3080;
         };
@@ -38,7 +37,7 @@ in {
             hashedClientSecret = "$pbkdf2-sha512$310000$v3IyMCC9JJDTjzMPQ8UQeQ$YI3HawEirlKEWUvjk0.WIBxbqP1hnaneJrQzVP9S9fIvfT/xhYxvpR9yh7/HfJSxdfw5N3kx9yvRKVyPbnZm3Q";
             clientSecretName = "librechat/oidc-secret";
             redirectUris = let
-              getAddress = cfg.provide.ports.${serviceName}.getAddress;
+              getAddress = cfg.provide.ports.http.getAddress;
             in [(getAddress "https://<domain>/oauth/openid/callback")];
             scopes = ["openid" "profile" "email"];
             public = false;
@@ -76,10 +75,10 @@ in {
         enableLocalDB = true;
         env = {
           HOST = "0.0.0.0";
-          PORT = cfg.provide.ports.${portName}.port;
+          PORT = cfg.provide.ports.http.port;
           TRUST_PROXY = 2;
-          DOMAIN_SERVER = cfg.provide.ports.${portName}.getAddress "https://<domain>";
-          DOMAIN_CLIENT = cfg.provide.ports.${portName}.getAddress "https://<domain>";
+          DOMAIN_SERVER = cfg.provide.ports.http.getAddress "https://<domain>";
+          DOMAIN_CLIENT = cfg.provide.ports.http.getAddress "https://<domain>";
         };
         credentials = {
           CREDS_KEY = config.getSopsFile "librechat/creds_key";

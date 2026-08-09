@@ -12,7 +12,6 @@
   inherit
     (getServiceVariables "llamacpp")
     serviceName
-    portName
     networkCfg
     cfg
     ;
@@ -20,14 +19,14 @@ in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
       provideEnable = {
-        ports.${portName} = {
+        ports.http = {
           protocol = "http";
           port = mkDefault 7999;
         };
 
         openai-api = rec {
           secrets = mkSharedSecrets [apiKeySecretName] ./secrets.yaml;
-          url = cfg.provide.ports.${portName}.getAddress "https://<domain>/v1";
+          url = cfg.provide.ports.http.getAddress "https://<domain>/v1";
           apiKeySecretName = "llamacpp/api-key";
           displayName = "llama.cpp";
         };
@@ -60,7 +59,7 @@ in {
         enable = true;
         settings = {
           host = "0.0.0.0";
-          port = cfg.provide.ports.${portName}.port;
+          port = cfg.provide.ports.http.port;
           api-key-file = config.getSopsFile openaiApi.apiKeySecretName;
           # model / hf-repo etc. configured per-host
         };

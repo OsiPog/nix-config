@@ -15,24 +15,23 @@
   inherit
     (getServiceVariables "authelia")
     serviceName
-    portName
     networkCfg
     cfg
     ;
 
   stateDir = "/var/lib/authelia-default";
-  getAddress = cfg.provide.ports.${portName}.getAddress;
+  getAddress = cfg.provide.ports.http.getAddress;
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({
       cfg,
       ...
     }: let
-      getAddress = cfg.provide.ports.${portName}.getAddress;
+      getAddress = cfg.provide.ports.http.getAddress;
     in {
       provideEnable = {
-        ports.${portName} = {
-          protocol = "https";
+        ports.http = {
+          protocol = "http";
           port = 9091;
           proxy.extraConfig.locations."/api/oidc" = {
             proxyPass = getAddress "http://<host>:<port>";
@@ -74,7 +73,7 @@ in {
     {
       assertions = [
         {
-          assertion = cfg.provide.ports.authelia.proxy.domain != null;
+          assertion = cfg.provide.ports.http.proxy.domain != null;
           message = "Authelia needs to be reverse proxied as https is required.";
         }
       ];
@@ -104,7 +103,7 @@ in {
           oidcIssuerPrivateKeyFile = config.getSopsFile "authelia/oidcIssuerPrivateKeyFile";
         };
         settings = {
-          server.address = "tcp://:${toString cfg.provide.ports.${portName}.port}";
+          server.address = "tcp://:${toString cfg.provide.ports.http.port}";
           log.level = "info";
           storage.local.path = "${stateDir}/db.sqlite3";
           session.cookies = [

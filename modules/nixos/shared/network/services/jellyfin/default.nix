@@ -14,7 +14,6 @@
   inherit
     (getServiceVariables "jellyfin")
     serviceName
-    portName
     networkCfg
     stateDir
     cfg
@@ -23,7 +22,7 @@ in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
       provideEnable = {
-        ports.${portName} = {
+        ports.http = {
           protocol = "http";
           port = mkDefault 8096;
         };
@@ -72,7 +71,7 @@ in {
         };
         config = {
           version = mkDefault 1;
-          base_url = cfg.provide.ports.${portName}.getAddress "https://<domain>";
+          base_url = cfg.provide.ports.http.getAddress "https://<domain>";
           system = {};
           startup.completeStartupWizard = true;
           users = [

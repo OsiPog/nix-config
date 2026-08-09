@@ -16,21 +16,20 @@
     serviceName
     networkCfg
     cfg
-    portName
     stateDir
     ;
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
       provideEnable = {
-        ports.${portName} = {
+        ports.http = {
           protocol = "http";
           port = mkDefault 9200;
         };
         ldap-clients = [{groups.${serviceName} = {};}];
         backup-paths = [{path = stateDir;}];
         oidc-clients = let
-          getAddress = cfg.provide.ports.${portName}.getAddress;
+          getAddress = cfg.provide.ports.http.getAddress;
           baseUrl = getAddress "https://<domain>";
         in [
           {
@@ -106,8 +105,8 @@ in {
         inherit stateDir;
         enable = true;
         address = "0.0.0.0";
-        port = cfg.provide.ports.${portName}.port;
-        url = cfg.provide.ports.${portName}.getAddress "https://<domain>";
+        port = cfg.provide.ports.http.port;
+        url = cfg.provide.ports.http.getAddress "https://<domain>";
         environment = {
           PROXY_TLS = "false"; # TLS handled by reverse proxy
         };

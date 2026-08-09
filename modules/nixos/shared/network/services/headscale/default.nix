@@ -28,7 +28,7 @@ in {
         enforceSingleInstance = true;
       } ({cfg, ...}: {
         provideEnable = {
-          ports.headscale = {
+          ports.http = {
             protocol = "http";
             port = mkDefault 8081;
           };
@@ -37,7 +37,7 @@ in {
             authKeySecretName = "headscale/auth-key";
           in {
             secrets = mkSharedSecrets [authKeySecretName] ./secrets.yaml;
-            getAddress = cfg.provide.ports.headscale.getAddress;
+            getAddress = cfg.provide.ports.http.getAddress;
             ip4Space = "100.64.0.0/10";
             inherit authKeySecretName;
           };
@@ -49,7 +49,7 @@ in {
               clientName = "Headscale";
               hashedClientSecret = "$pbkdf2-sha512$310000$OM.pbqoXjN0sV3ePThP93A$DqJvD5pH5D65CC48UVV2amlinmsQN078kWapJWtn4JUr369PHh/Ce/0TZyx1gbFcOBeFo2Kr8IkUvkQx2fwUYQ";
               clientSecretName = "headscale/oidc-secret";
-              redirectUris = [(cfg.provide.ports.headscale.getAddress "https://<domain>/oidc/callback")];
+              redirectUris = [(cfg.provide.ports.http.getAddress "https://<domain>/oidc/callback")];
               scopes = ["openid" "profile" "email" "groups"];
               pkce = {
                 enabled = true;
@@ -68,7 +68,7 @@ in {
       services.headscale = {
         enable = true;
         address = "0.0.0.0";
-        port = cfg.provide.ports.${serviceName}.port;
+        port = cfg.provide.ports.http.port;
         policy.hosts = genAttrs nixosHostNames (hostName: networkCfg.hosts.${hostName}.vpn.ip + "/32");
         settings = {
           server_url = tailscaleServer.getAddress "https://<domain>";

@@ -13,7 +13,6 @@
   inherit
     (getServiceVariables "vikunja")
     serviceName
-    portName
     networkCfg
     cfg
     ;
@@ -21,7 +20,7 @@ in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
       provideEnable = {
-        ports.${portName} = {
+        ports.http = {
           protocol = "http";
           port = mkDefault 3456;
         };
@@ -45,7 +44,7 @@ in {
             clientName = "Vikunja";
             hashedClientSecret = "$pbkdf2-sha512$310000$baAB81Q4y84KbUg3Jec0lQ$70yiYI0PsFXxD74Is0u1R4bIgS8BeYEXN7zlSe1YmROyjsQ/Z9iGDKnez.HlyIbHXSmk64AoAClOZepm4Yct0A";
             clientSecretName = "vikunja/oidc-secret";
-            redirectUris = [(cfg.provide.ports.${portName}.getAddress "https://<domain>/auth/openid/oidc")];
+            redirectUris = [(cfg.provide.ports.http.getAddress "https://<domain>/auth/openid/oidc")];
             scopes = ["openid" "profile" "email"];
             public = false;
             pkce.enabled = false;
@@ -60,9 +59,9 @@ in {
     {
       services.vikunja = {
         enable = true;
-        port = cfg.provide.ports.${portName}.port;
+        port = cfg.provide.ports.http.port;
         frontendScheme = "https";
-        frontendHostname = cfg.provide.ports.${portName}.getAddress "<domain>";
+        frontendHostname = cfg.provide.ports.http.getAddress "<domain>";
       };
     }
 

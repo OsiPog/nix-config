@@ -13,7 +13,6 @@
   inherit
     (getServiceVariables "mealie")
     serviceName
-    portName
     networkCfg
     cfg
     stateDir
@@ -22,7 +21,7 @@ in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
       provideEnable = {
-        ports.${portName} = {
+        ports.http = {
           protocol = "http";
           port = mkDefault 9000;
         };
@@ -36,7 +35,7 @@ in {
             clientName = "Mealie";
             hashedClientSecret = "$pbkdf2-sha512$310000$Idxsql8lKgSLmKJObbe6.A$3fzRS8rt3/.ZaZs.wj7twZMmhIlAiDryqPx.LO8prLVZQnVzCXiB.rcKEsBr6V6Nq/eNSAG3q4EonsqTdjBldA";
             clientSecretName = "mealie/oidc-secret";
-            redirectUris = [(cfg.provide.ports.${portName}.getAddress "https://<domain>/login")];
+            redirectUris = [(cfg.provide.ports.http.getAddress "https://<domain>/login")];
             scopes = ["openid" "email" "profile" "groups"];
             public = false;
             pkce.enabled = true;
@@ -51,8 +50,8 @@ in {
     {
       services.mealie = {
         enable = true;
-        port = cfg.provide.ports.${portName}.port;
-        settings.BASE_URL = cfg.provide.ports.${portName}.getAddress "https://<domain>";
+        port = cfg.provide.ports.http.port;
+        settings.BASE_URL = cfg.provide.ports.http.getAddress "https://<domain>";
       };
 
       # static user so the raw oidc client secret can be group-owned (no DynamicUser)

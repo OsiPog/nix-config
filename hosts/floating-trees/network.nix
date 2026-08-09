@@ -57,6 +57,7 @@
   # --- AUTHELIA
   services.authelia = {
     enable = true;
+    provide.ports.http.proxy.domain = "auth.axelhax.net";
     require.ldap-server = servicesById.lldap.provide.ldap-server;
     require.mail-server = servicesById.snm.provide.mail-server;
     require.oidc-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.oidc-clients) [] [
@@ -69,11 +70,20 @@
       "paperless"
     ];
   };
-  services.authelia.provide.ports.authelia.proxy.domain = "auth.axelhax.net";
 
   # --- LLDAP
   services.lldap = {
     enable = true;
+    provide.ports = {
+      ldaps.proxy = {
+        domain = "ldap.axelhax.net";
+        hidden = true;
+      };
+      http.proxy = {
+        domain = "users.axelhax.net";
+        hidden = true;
+      };
+    };
     require.ldap-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.ldap-clients) [] [
       "snm"
       "authelia"
@@ -82,89 +92,78 @@
       "home-assistant"
     ];
   };
-  services.lldap.provide.ports = {
-    ldaps.proxy = {
-      domain = "ldap.axelhax.net";
-      hidden = true;
-    };
-    lldap.proxy = {
-      domain = "users.axelhax.net";
-      hidden = true;
-    };
-  };
 
   # --- NGINX HTTP
   services.staticWebsites = {
     enable = true;
     sites = ["axelhax" "transit-vis"];
-  };
-  services.staticWebsites.provide.ports = {
-    "staticWebsites-axelhax".proxy.domain = "axelhax.net";
-    "staticWebsites-transit-vis".proxy.domain = "transit-vis.axelhax.net";
+    provide.ports = {
+      "http-axelhax".proxy.domain = "axelhax.net";
+      "http-transit-vis".proxy.domain = "transit-vis.axelhax.net";
+    };
   };
 
   # --- OPENCLOUD
   services.opencloud = {
     enable = true;
+    provide.ports.http.proxy.domain = "cloud.axelhax.net";
     require.ldap-server = servicesById.lldap.provide.ldap-server;
     require.oidc-server = servicesById.authelia.provide.oidc-server;
   };
-  services.opencloud.provide.ports.opencloud.proxy.domain = "cloud.axelhax.net";
 
   # --- JELLYFIN
   services.jellyfin = {
     enable = true;
+    provide.ports.http.proxy.domain = "media.axelhax.net";
     require.ldap-server = servicesById.lldap.provide.ldap-server;
   };
-  services.jellyfin.provide.ports.jellyfin.proxy.domain = "media.axelhax.net";
 
   # --- HOME ASSISTANT
   services.home-assistant = {
     enable = true;
+    provide.ports.http.proxy = {
+      domain = "home.axelhax.net";
+      hidden = true;
+    };
     require.ldap-server = servicesById.lldap.provide.ldap-server;
-  };
-
-  services.home-assistant.provide.ports.home-assistant.proxy = {
-    domain = "home.axelhax.net";
-    hidden = true;
   };
 
   # --- VIKUNJA
   services.vikunja = {
     enable = true;
+    provide.ports.http.proxy.domain = "tasks.axelhax.net";
     require.oidc-server = servicesById.authelia.provide.oidc-server;
     require.mail-server = servicesById.snm.provide.mail-server;
   };
-  services.vikunja.provide.ports.vikunja.proxy.domain = "tasks.axelhax.net";
   # --- ACTUAL
   services.actual = {
     enable = true;
+    provide.ports.http.proxy = {
+      domain = "budget.axelhax.net";
+      hidden = true;
+    };
     require.oidc-server = servicesById.authelia.provide.oidc-server;
-  };
-  services.actual.provide.ports.actual.proxy = {
-    domain = "budget.axelhax.net";
-    hidden = true;
   };
 
   # --- MEALIE
   services.mealie = {
     enable = true;
+    provide.ports.http.proxy.domain = "kochen.axelhax.net";
     require.oidc-server = servicesById.authelia.provide.oidc-server;
   };
-  services.mealie.provide.ports.mealie.proxy.domain = "kochen.axelhax.net";
 
   # --- PAPERLESS
   services.paperless = {
     enable = true;
+    provide.ports.http.proxy.domain = "papier.axelhax.net";
     require.oidc-server = servicesById.authelia.provide.oidc-server;
   };
-  services.paperless.provide.ports.paperless.proxy.domain = "papier.axelhax.net";
 
   # --- LLM CHAT
   services.librechat = {
     enable = true;
+    provide.ports.http.proxy.domain = "ai.axelhax.net";
     require.openai-api = servicesById.llamacpp.provide.openai-api;
     require.oidc-server = servicesById.authelia.provide.oidc-server;
   };
-  services.librechat.provide.ports.librechat.proxy.domain = "ai.axelhax.net";
 }

@@ -13,7 +13,6 @@
   inherit
     (getServiceVariables "home-assistant")
     serviceName
-    portName
     networkCfg
     cfg
     ;
@@ -21,7 +20,7 @@ in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
       provideEnable = {
-        ports.${portName} = {
+        ports.http = {
           protocol = "http";
           port = mkDefault 8123;
         };
@@ -36,10 +35,10 @@ in {
       services.home-assistant = {
         enable = true;
         config.http = {
-          server_port = cfg.provide.ports.${portName}.port;
+          server_port = cfg.provide.ports.http.port;
           use_x_forwarded_for = true;
           trusted_proxies = [
-            (cfg.provide.ports.${portName}.getAddress "<ip>")
+            (cfg.provide.ports.http.getAddress "<ip>")
             "100.64.0.1" # TODO: remove when fixed
             "127.0.0.1"
             "::1"

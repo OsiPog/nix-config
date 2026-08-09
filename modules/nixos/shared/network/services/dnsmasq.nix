@@ -15,7 +15,6 @@
     serviceName
     networkCfg
     cfg
-    portName
     ;
 
   stateDir = "/var/lib/dnsmasq"; # hardcoded in nixpkgs
@@ -26,12 +25,12 @@ in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
       provideEnable = {
-        ports.${portName} = {
+        ports.dns = {
           port = 53;
           protocol = null;
           proxy.method = "stream";
         };
-        dns-server.getAddress = cfg.provide.ports.${portName}.getAddress;
+        dns-server.getAddress = cfg.provide.ports.dns.getAddress;
         backup-paths = [{path = stateDir;}];
       };
     }))

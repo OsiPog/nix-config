@@ -13,7 +13,6 @@
   inherit
     (getServiceVariables "paperless")
     serviceName
-    portName
     networkCfg
     cfg
     stateDir
@@ -21,7 +20,7 @@
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
-      provideEnable.ports.${portName} = {
+      provideEnable.ports.http = {
         protocol = "http";
         port = mkDefault 28981;
       };
@@ -37,8 +36,8 @@ in {
           clientSecretName = "paperless/oidc-secret";
           # allauth openid_connect callback: /accounts/oidc/<provider_id>/login/callback/
           redirectUris = let
-            address = cfg.provide.ports.${portName}.getAddress;
-          in ["${address "proxyProtocol://domain"}/accounts/oidc/authelia/login/callback/"];
+            address = cfg.provide.ports.http.getAddress;
+          in ["${address "https://<domain>"}/accounts/oidc/authelia/login/callback/"];
           scopes = ["openid" "profile" "email"];
           public = false;
           pkce.enabled = false;
@@ -52,11 +51,11 @@ in {
     {
       services.paperless = {
         enable = true;
-        port = cfg.provide.ports.${portName}.port;
+        port = cfg.provide.ports.http.port;
         address = "0.0.0.0";
         # PAPERLESS_URL drives ALLOWED_HOSTS / CSRF_TRUSTED_ORIGINS behind the proxy
         settings = {
-          PAPERLESS_URL = cfg.provide.ports.${portName}.getAddress "proxyProtocol://domain";
+          PAPERLESS_URL = cfg.provide.ports.http.getAddress "https://<domain>";
         };
       };
     }
@@ -86,7 +85,7 @@ in {
                       name = oidcServer.name;
                       client_id = oidcClient.clientId;
                       secret = config.sops.placeholder.${oidcClient.clientSecretName};
-                      settings.server_url = oidcServer.getAddress "proxyProtocol://domain";
+                      settings.server_url = oidcServer.getAddress "https://<domain>";
                     }
                   ];
                 };

@@ -358,12 +358,9 @@ in {
                           else hostName;
                         ip = hostCfg.vpn.ip;
                       };
-                      # only substitute placeholders actually present so unused keys
-                      # (e.g. a `<domain>` on a port without one) aren't forced.
-                      used = lib.filterAttrs (key: _: lib.hasInfix "<${key}>" template) address;
                     in
                       # e.g. "<host>" gets replaced with "localhost"
-                      replaceStrings (map (key: "<${key}>") (attrNames used)) (attrValues used) template;
+                      replaceStrings (map (e: "<${e}>") (attrNames address)) (attrValues address);
                   };
 
                   proxy = mkOption {

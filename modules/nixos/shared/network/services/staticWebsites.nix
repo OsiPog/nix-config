@@ -15,7 +15,6 @@
   inherit
     (getServiceVariables "staticWebsites")
     serviceName
-    portName
     networkCfg
     cfg
     stateDir
@@ -31,7 +30,7 @@ in {
         };
       };
       provideEnable.ports = listToAttrs (map (name: {
-        name = portName + "-" + name;
+        name = "http-" + name;
         value = {
           port = 8050 + (findFirstIndex (x: x == name) (throw "wont happen") cfg.sites);
         };
@@ -46,7 +45,7 @@ in {
       enable = true;
       appendHttpConfig = concatLines (map (name: ''
           server {
-            listen ${toString cfg.provide.ports.${portName + "-" + name}.port};
+            listen ${toString cfg.provide.ports.${"http-" + name}.port};
             server_name 0.0.0.0;
             location / {
               root ${stateDir}/${name};

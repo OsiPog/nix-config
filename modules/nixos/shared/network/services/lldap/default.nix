@@ -26,7 +26,7 @@ in {
     (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
       provideEnable = {
         ports = {
-          lldap = {
+          http = {
             protocol = "http";
             port = 17170;
           };
@@ -91,7 +91,7 @@ in {
           message = "ldaps port needs to be reverse proxied to ensure the server can be reached on a domain.";
         }
         {
-          assertion = cfg.provide.ports.lldap.proxy.domain != null;
+          assertion = cfg.provide.ports.http.proxy.domain != null;
           message = "lldap port needs to be reverse proxied to ensure the server can be reached on a domain.";
         }
       ];
@@ -121,7 +121,7 @@ in {
         settings = {
           verbose = true;
           http_host = "0.0.0.0";
-          http_port = cfg.provide.ports.lldap.port;
+          http_port = cfg.provide.ports.http.port;
           ldap_base_dn = ldapServer.baseDN;
           ldap_user_dn = ldapServer.users.admin.dn;
           ldap_user_pass_file = config.getSopsFile ldapServer.users.admin.secretName;

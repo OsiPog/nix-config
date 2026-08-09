@@ -9,7 +9,7 @@
 
   networkCfg = config.network;
 
-  headscaleAddress = servicesById.headscale.provide.ports.headscale.getAddress;
+  headscaleAddress = servicesById.headscale.provide.ports.http.getAddress;
 in
   mkMerge [
     {

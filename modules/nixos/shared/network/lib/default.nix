@@ -68,7 +68,6 @@
       variables
       // rec {
         inherit serviceName;
-        portName = serviceName;
         cfg = variables.hostCfg.services.${serviceName};
         stateDir = "/var/lib/${serviceName}";
       };

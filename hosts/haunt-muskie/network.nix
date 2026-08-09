@@ -35,15 +35,16 @@
   services.headscale = {
     id = "headscale";
     enable = true;
+    provide.ports.http.proxy.domain = "vpn.axelhax.net";
     require.oidc-server = servicesById.authelia.provide.oidc-server;
     require.dns-server = servicesById.headscale-dns.provide.dns-server;
   };
-  services.headscale.provide.ports.headscale.proxy.domain = "vpn.axelhax.net";
 
   # --- MAIL
   services.mailserver = {
     id = "snm";
     enable = true;
+    provide.ports.smtp.proxy.domain = "axelhax.net";
     require = {
       inherit (servicesById.lldap.provide) ldap-server;
       mail-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.mail-clients) [] [
@@ -52,5 +53,4 @@
       ];
     };
   };
-  services.mailserver.provide.ports.submissions.proxy.domain = "axelhax.net";
 }

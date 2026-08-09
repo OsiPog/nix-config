@@ -5,10 +5,12 @@
     allowConnectionsFrom = ["biome-fest" "floating-trees"];
   };
 
-  services.llamacpp.enable = true;
-  services.llamacpp.provide.ports.llamacpp.proxy = {
-    domain = "llm.axelhax.net";
-    hidden = true;
+  services.llamacpp = {
+    enable = true;
+    provide.ports.http.proxy = {
+      domain = "llm.axelhax.net";
+      hidden = true;
+    };
   };
   
 

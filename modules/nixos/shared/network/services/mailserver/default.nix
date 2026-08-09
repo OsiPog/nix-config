@@ -26,12 +26,12 @@ in {
       ...
     }: {
       provideEnable = {
-        ports.submissions = {
+        ports.smtp = {
           protocol = "submissions";
           port = 465;
           proxy.method = "stream";
         };
-        mail-server.getAddress = cfg.provide.ports.submissions.getAddress;
+        mail-server.getAddress = cfg.provide.ports.smtp.getAddress;
 
         ldap-clients =
           [
