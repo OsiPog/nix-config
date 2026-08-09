@@ -4,10 +4,9 @@
   flake,
   ...
 }: let
-  inherit (builtins) head;
   inherit (lib) mkIf mkForce mkDefault mkMerge;
   inherit (lib.attrsets) getAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets headAttrs;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -26,10 +25,9 @@ in {
           port = mkDefault 9000;
         };
 
-        backup-paths = [{path = stateDir;}];
+        backup-paths.${serviceName} = {path = stateDir;};
 
-        oidc-clients = [
-          rec {
+        oidc-clients.${serviceName} = rec {
             secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
             clientId = "mealie";
             clientName = "Mealie";
@@ -40,8 +38,7 @@ in {
             public = false;
             pkce.enabled = true;
             pkce.method = "S256";
-          }
-        ];
+        };
       };
     }))
   ];
@@ -69,11 +66,11 @@ in {
 
     # OIDC SERVER INTEGRATION
     (let
-      oidcServer = cfg.require.oidc-server;
-      oidcClient = head cfg.provide.oidc-clients;
+      oidcServer = headAttrs cfg.require.oidc-servers;
+      oidcClient = cfg.provide.oidc-clients.${serviceName};
       secrets = getAttrs [oidcClient.clientSecretName] oidcClient.secrets;
     in
-      mkIf (oidcServer != null) {
+      mkIf (cfg.require.oidc-servers != {}) {
         sops = {
           inherit secrets;
           templates.mealie-env = {

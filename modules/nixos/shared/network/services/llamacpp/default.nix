@@ -24,7 +24,7 @@ in {
           port = mkDefault 7999;
         };
 
-        openai-api = rec {
+        openai-apis.${serviceName} = rec {
           secrets = mkSharedSecrets [apiKeySecretName] ./secrets.yaml;
           url = cfg.provide.ports.http.getAddress "https://<domain>/v1";
           apiKeySecretName = "llamacpp/api-key";
@@ -36,7 +36,7 @@ in {
 
   config = mkIf (networkCfg.enable && cfg.enable) (
     let
-      openaiApi = cfg.provide.openai-api;
+      openaiApi = cfg.provide.openai-apis.${serviceName};
       secrets = getAttrs [openaiApi.apiKeySecretName] openaiApi.secrets;
     in {
       sops = {inherit secrets;};

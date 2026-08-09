@@ -7,7 +7,7 @@
 }: let
   inherit (lib) mkIf mkDefault mkMerge;
   inherit (lib.attrsets) filterAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers headAttrs;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -25,7 +25,7 @@ in {
           port = mkDefault 8123;
         };
 
-        ldap-clients = [{groups.${serviceName} = {};}];
+        ldap-clients.${serviceName} = {groups.${serviceName} = {};};
       };
     }))
   ];
@@ -49,10 +49,10 @@ in {
 
     # --- LDAP INTEGRATION
     (let
-      ldapServer = cfg.require.ldap-server;
+      ldapServer = headAttrs cfg.require.ldap-servers;
       secrets = filterAttrs (name: _: name == ldapServer.users.search.secretName) ldapServer.secrets;
     in
-      mkIf (ldapServer != null) {
+      mkIf (cfg.require.ldap-servers != {}) {
         sops = {inherit secrets;};
         users.groups = mkGroupsFromSecretsWithMembers secrets ["hass"];
 

@@ -6,7 +6,7 @@
 }: let
   inherit (builtins) filter listToAttrs typeOf attrValues;
   inherit (lib) mkIf pipe mkMerge;
-  inherit (lib.attrsets) optionalAttrs attrsToList;
+  inherit (lib.attrsets) optionalAttrs attrsToList mapAttrs filterAttrs;
   inherit (lib.strings) concatLines;
 
   inherit (config.lib.network) getServiceVariables;
@@ -46,14 +46,14 @@ in {
         };
       };
       provideEnable.dns-overrides =
-        map (p: {
+        mapAttrs (_: p: {
           query = p.proxy.domain;
           response =
             if cfg.ipAddress == null
             then config.vpn.ip
             else cfg.ipAddress;
         })
-        (attrValues cfg.require.ports);
+        (filterAttrs (_: p: p.proxy.domain != null) cfg.require.ports);
     }))
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {

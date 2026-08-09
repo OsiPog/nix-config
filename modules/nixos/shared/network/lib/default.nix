@@ -32,21 +32,6 @@
       flatten
     ];
 
-    # Every reverse-proxied port across all enabled services, ready to be handed
-    # to the nginx service via `require.ports`. Keyed uniquely by "<id>-<portName>".
-    # A port counts as proxied when it declares a `proxy.domain`.
-    proxiedPorts = pipe allEnabledServices [
-      (map (service:
-        mapAttrsToList (portName: portCfg: {
-          name = "${service.serviceCfg.id}-${portName}";
-          value = {inherit (portCfg) port udp proxy getAddress;};
-        })
-        service.serviceCfg.provide.ports))
-      flatten
-      (filter (e: e.value.proxy.domain != null))
-      listToAttrs
-    ];
-
     servicesById = pipe allEnabledServices [
       (map (service: {
         name = service.serviceCfg.id;
@@ -55,7 +40,7 @@
       listToAttrs
     ];
 
-    serviceEnabledAnywhere = serviceName: (filter (e: e.serviceName == serviceName) allEnabledServices) != [];
+    allServiceIds = attrNames servicesById;
 
     # Variables useful to network modules
     variables = rec {
@@ -71,7 +56,22 @@
         cfg = variables.hostCfg.services.${serviceName};
         stateDir = "/var/lib/${serviceName}";
       };
+
+    require = interfaceName: serviceIds: {
+      ${interfaceName} = foldl' (acc: serviceId:
+        acc
+        // (mapAttrs' (name: value: {
+            name = "${serviceId}-${name}";
+            inherit value;
+          })
+          servicesById.${serviceId}.provide.${interfaceName}))
+      {}
+      serviceIds;
+    };
   };
 in {
-  config.lib.network = networkLib;
+  config = {
+    lib.network = networkLib;
+    network.sharedModules = [{lib = networkLib;}];
+  };
 }

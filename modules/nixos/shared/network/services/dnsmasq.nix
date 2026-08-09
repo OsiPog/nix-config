@@ -6,6 +6,7 @@
   pkgs,
   ...
 }: let
+  inherit (builtins) attrValues;
   inherit (lib) mkIf mkMerge;
   inherit (flake.lib) mkNetworkHostServiceModule;
   inherit (config.lib.network) getServiceVariables;
@@ -30,8 +31,8 @@ in {
           protocol = null;
           proxy.method = "stream";
         };
-        dns-server.getAddress = cfg.provide.ports.dns.getAddress;
-        backup-paths = [{path = stateDir;}];
+        dns-servers.${serviceName}.getAddress = cfg.provide.ports.dns.getAddress;
+        backup-paths.${serviceName} = {path = stateDir;};
       };
     }))
   ];
@@ -69,7 +70,7 @@ in {
         query,
         response,
       }: "/${query}/${response}")
-      cfg.require.dns-overrides;
+      (attrValues cfg.require.dns-overrides);
     }
   ]);
 }

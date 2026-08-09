@@ -4,10 +4,9 @@
   flake,
   ...
 }: let
-  inherit (builtins) head;
   inherit (lib) mkIf mkDefault mkMerge;
   inherit (lib.attrsets) getAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets headAttrs;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -25,10 +24,9 @@ in {
         port = mkDefault 28981;
       };
 
-      provideEnable.backup-paths = [{path = stateDir;}];
+      provideEnable.backup-paths.${serviceName} = {path = stateDir;};
 
-      provideEnable.oidc-clients = [
-        rec {
+      provideEnable.oidc-clients.${serviceName} = rec {
           secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
           clientId = "paperless";
           clientName = "Paperless";
@@ -42,8 +40,7 @@ in {
           public = false;
           pkce.enabled = false;
           endpointAuthMethod = "client_secret_post";
-        }
-      ];
+      };
     }))
   ];
 
@@ -62,11 +59,11 @@ in {
 
     # OIDC SERVER INTEGRATION
     (let
-      oidcServer = cfg.require.oidc-server;
-      oidcClient = head cfg.provide.oidc-clients;
+      oidcServer = headAttrs cfg.require.oidc-servers;
+      oidcClient = cfg.provide.oidc-clients.${serviceName};
       secrets = getAttrs [oidcClient.clientSecretName] oidcClient.secrets;
     in
-      mkIf (oidcServer != null) {
+      mkIf (cfg.require.oidc-servers != {}) {
         sops = {
           inherit secrets;
           templates.paperless-env = {

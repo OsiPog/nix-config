@@ -5,11 +5,11 @@
   hostName,
   ...
 }: let
-  inherit (builtins) head elem getAttr;
+  inherit (builtins) elem getAttr attrValues;
   inherit (lib) mkIf mkMerge mkDefault;
   inherit (lib.attrsets) getAttrs genAttrs;
 
-  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets mkMergeTopLevel;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets mkMergeTopLevel headAttrs;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -42,27 +42,23 @@ in {
           };
         };
 
-        ldap-clients = [
-          {
-            groups = genAttrs (map (getAttr "allowedGroup") cfg.require.oidc-clients) (_: {});
-          }
-        ];
+        ldap-clients.${serviceName} = {
+          groups = genAttrs (map (getAttr "allowedGroup") (attrValues cfg.require.oidc-clients)) (_: {});
+        };
 
-        mail-clients = [
-          rec {
+        mail-clients."authelia-mail-notifier" = rec {
             secrets = mkSharedSecrets [mailAccount.secretName] ./secrets.yaml;
             mailAccount = {
               uid = "authelia-mail-notifier";
-              email = "noreply.authelia@${cfg.require.mail-server.getAddress "<domain>"}";
+              email = "noreply.authelia@${(headAttrs cfg.require.mail-servers).getAddress "<domain>"}";
               display = "Authelia";
               secretName = "authelia/mail-pass";
             };
-          }
-        ];
+        };
 
-        oidc-server = {
+        oidc-servers.${serviceName} = {
           inherit getAddress;
-          adminGroup = cfg.require.ldap-server.adminGroup or "admin";
+          adminGroup = (headAttrs cfg.require.ldap-servers).adminGroup or "admin";
           name = "Authelia";
         };
       };
@@ -119,10 +115,10 @@ in {
 
     # LDAP SERVER INTEGRATION
     (let
-      ldapServer = cfg.require.ldap-server;
+      ldapServer = headAttrs cfg.require.ldap-servers;
       secrets = getAttrs [ldapServer.users.manage.secretName] ldapServer.secrets;
     in
-      mkIf (ldapServer != null) {
+      mkIf (cfg.require.ldap-servers != {}) {
         sops = {inherit secrets;};
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.authelia.instances.default.user];
         services.authelia.instances.default = {
@@ -184,15 +180,15 @@ in {
           ];
         };
       })
-      cfg.require.oidc-clients))
+      (attrValues cfg.require.oidc-clients)))
 
     # MAIL SERVER INTEGRATION
     (let
-      mailServer = cfg.require.mail-server;
-      mailClient = head cfg.provide.mail-clients;
+      mailServer = headAttrs cfg.require.mail-servers;
+      mailClient = cfg.provide.mail-clients."authelia-mail-notifier";
       secrets = getAttrs [mailClient.mailAccount.secretName] mailClient.secrets;
     in
-      mkIf (mailServer != null) {
+      mkIf (cfg.require.mail-servers != {}) {
         sops = {inherit secrets;};
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.authelia.instances.default.user];
         services.authelia.instances.default = {

@@ -4,7 +4,7 @@
   flake,
   ...
 }: let
-  inherit (builtins) concatStringsSep mapAttrs getAttr;
+  inherit (builtins) concatStringsSep mapAttrs getAttr attrValues;
   inherit (lib) mkIf pipe mkForce mkMerge;
   inherit (lib.strings) splitString;
 
@@ -19,7 +19,7 @@
     stateDir
     ;
 
-  ldapServer = cfg.provide.ldap-server;
+  ldapServer = cfg.provide.ldap-servers.${serviceName};
   baseDomain = let splitted = splitString "." (ldapServer.getAddress "<domain>"); in "${lib.last (lib.init splitted)}.${lib.last splitted}";
 in {
   imports = [
@@ -36,8 +36,8 @@ in {
             proxy.method = "stream";
           };
         };
-        backup-paths = [{path = stateDir;}];
-        ldap-server = let
+        backup-paths.${serviceName} = {path = stateDir;};
+        ldap-servers.${serviceName} = let
           getAddress = cfg.provide.ports.ldaps.getAddress;
         in rec {
           secrets =
@@ -201,6 +201,6 @@ in {
           };
         };
       })
-      cfg.require.ldap-clients))
+      (attrValues cfg.require.ldap-clients)))
   ]);
 }

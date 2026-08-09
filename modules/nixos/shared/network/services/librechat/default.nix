@@ -4,10 +4,10 @@
   flake,
   ...
 }: let
-  inherit (builtins) head replaceStrings;
+  inherit (builtins) replaceStrings;
   inherit (lib) mkIf mkDefault mkMerge concatStringsSep;
   inherit (lib.attrsets) getAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers;
+  inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers headAttrs;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -29,8 +29,7 @@ in {
           port = mkDefault 3080;
         };
 
-        oidc-clients = [
-          rec {
+        oidc-clients.${serviceName} = rec {
             secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
             clientId = "librechat";
             clientName = "LibreChat";
@@ -43,8 +42,7 @@ in {
             public = false;
             pkce.enabled = false;
             endpointAuthMethod = "client_secret_post";
-          }
-        ];
+        };
       };
     }))
   ];
@@ -92,11 +90,11 @@ in {
 
     # OPENAI-API INTEGRATION (any OpenAI-compatible provider)
     (let
-      openaiApi = cfg.require.openai-api;
+      openaiApi = headAttrs cfg.require.openai-apis;
       apiSecret = getAttrs [openaiApi.apiKeySecretName] openaiApi.secrets;
       envVar = toEnvVar openaiApi.apiKeySecretName;
     in
-      mkIf (openaiApi != null) {
+      mkIf (cfg.require.openai-apis != {}) {
         # value-identical to the provider's own registration when on the same host
         sops.secrets = apiSecret;
         users.groups = mkGroupsFromSecretsWithMembers apiSecret [config.services.librechat.user];
@@ -120,11 +118,11 @@ in {
 
     # OIDC INTEGRATION (authelia as oidc-server)
     (let
-      oidcServer = cfg.require.oidc-server;
-      oidcClient = head cfg.provide.oidc-clients;
+      oidcServer = headAttrs cfg.require.oidc-servers;
+      oidcClient = cfg.provide.oidc-clients.${serviceName};
       clientSecret = getAttrs [oidcClient.clientSecretName] oidcClient.secrets;
     in
-      mkIf (oidcServer != null) {
+      mkIf (cfg.require.oidc-servers != {}) {
         sops.secrets =
           clientSecret
           // {

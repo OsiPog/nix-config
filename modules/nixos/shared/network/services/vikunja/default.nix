@@ -4,10 +4,10 @@
   flake,
   ...
 }: let
-  inherit (builtins) head concatStringsSep;
+  inherit (builtins) concatStringsSep;
   inherit (lib) mkIf mkDefault mkMerge;
   inherit (lib.attrsets) getAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets headAttrs;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -25,20 +25,17 @@ in {
           port = mkDefault 3456;
         };
 
-        mail-clients = [
-          rec {
+        mail-clients.vikunja-mail = rec {
             secrets = mkSharedSecrets [mailAccount.secretName] ./secrets.yaml;
             mailAccount = {
               uid = "vikunja-mail";
-              email = "noreply.vikunja@${cfg.require.mail-server.getAddress "<domain>"}";
+              email = "noreply.vikunja@${(headAttrs cfg.require.mail-servers).getAddress "<domain>"}";
               display = "Vikunja";
               secretName = "vikunja/mail-pass";
             };
-          }
-        ];
+        };
 
-        oidc-clients = [
-          rec {
+        oidc-clients.${serviceName} = rec {
             secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
             clientId = "vikunja";
             clientName = "Vikunja";
@@ -49,8 +46,7 @@ in {
             public = false;
             pkce.enabled = false;
             idTokenClaims = ["email" "preferred_username"];
-          }
-        ];
+        };
       };
     }))
   ];
@@ -67,11 +63,11 @@ in {
 
     # MAIL SERVER INTEGRATION
     (let
-      mailServer = cfg.require.mail-server;
-      mailClient = head cfg.provide.mail-clients;
+      mailServer = headAttrs cfg.require.mail-servers;
+      mailClient = cfg.provide.mail-clients.vikunja-mail;
       secrets = getAttrs [mailClient.mailAccount.secretName] mailClient.secrets;
     in
-      mkIf (mailServer != null) {
+      mkIf (cfg.require.mail-servers != {}) {
         sops = {inherit secrets;};
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.vikunja.database.user];
         services.vikunja.settings.mailer = {
@@ -87,11 +83,11 @@ in {
 
     # OIDC SERVER INTEGRATION
     (let
-      oidcServer = cfg.require.oidc-server;
-      oidcClient = head cfg.provide.oidc-clients;
+      oidcServer = headAttrs cfg.require.oidc-servers;
+      oidcClient = cfg.provide.oidc-clients.${serviceName};
       secrets = getAttrs [oidcClient.clientSecretName] oidcClient.secrets;
     in
-      mkIf (oidcServer != null) {
+      mkIf (cfg.require.oidc-servers != {}) {
         sops = {inherit secrets;};
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.vikunja.database.user];
         services.vikunja.settings = {

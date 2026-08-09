@@ -68,14 +68,17 @@
     ];
   };
 
-  programs.firefox.policies.Bookmarks = lib.pipe nixosConfig.lib.network.proxiedPorts [
-    builtins.attrValues
-    (lib.filter (p: p.proxy.method == "virtual-host"))
-    (
-      map (p: {
-        Title = p.proxy.domain;
-        URL = p.getAddress "https://<domain>";
-      })
-    )
-  ];
+  programs.firefox.policies.Bookmarks = let
+    net = nixosConfig.lib.network;
+  in
+    lib.pipe (net.require "ports" net.allServiceIds).ports [
+      builtins.attrValues
+      (lib.filter (p: p.proxy.method == "virtual-host"))
+      (
+        map (p: {
+          Title = p.proxy.domain;
+          URL = p.getAddress "https://<domain>";
+        })
+      )
+    ];
 }

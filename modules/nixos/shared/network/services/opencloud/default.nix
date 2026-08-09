@@ -7,8 +7,8 @@
   ...
 }: let
   inherit (lib) mkIf mkMerge mkDefault;
-  inherit (lib.attrsets) filterAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers;
+  inherit (lib.attrsets) filterAttrs listToAttrs;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers headAttrs;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -26,12 +26,16 @@ in {
           protocol = "http";
           port = mkDefault 9200;
         };
-        ldap-clients = [{groups.${serviceName} = {};}];
-        backup-paths = [{path = stateDir;}];
+        ldap-clients.${serviceName} = {groups.${serviceName} = {};};
+        backup-paths.${serviceName} = {path = stateDir;};
         oidc-clients = let
           getAddress = cfg.provide.ports.http.getAddress;
           baseUrl = getAddress "https://<domain>";
-        in [
+        in
+          listToAttrs (map (c: {
+            name = c.clientId;
+            value = c;
+          }) [
           {
             clientId = "web";
             clientName = "OpenCloud Web";
@@ -94,7 +98,7 @@ in {
               method = "S256";
             };
           }
-        ];
+        ]);
       };
     }))
   ];
@@ -118,10 +122,10 @@ in {
 
     # LDAP INTEGRATION
     (let
-      ldapServer = cfg.require.ldap-server;
+      ldapServer = headAttrs cfg.require.ldap-servers;
       secrets = filterAttrs (name: _: name == ldapServer.users.search.secretName) ldapServer.secrets;
     in
-      mkIf (ldapServer != null) {
+      mkIf (cfg.require.ldap-servers != {}) {
         sops = {
           inherit secrets;
           templates.opencloud-env = {
@@ -156,10 +160,10 @@ in {
 
     # OIDC SERVER INTEGRATION
     (let
-      oidcServer = cfg.require.oidc-server;
+      oidcServer = headAttrs cfg.require.oidc-servers;
       serverAddress = oidcServer.getAddress "https://<domain>";
     in
-      mkIf (oidcServer != null) {
+      mkIf (cfg.require.oidc-servers != {}) {
         services.opencloud = {
           environment = {
             OC_OIDC_ISSUER = serverAddress;

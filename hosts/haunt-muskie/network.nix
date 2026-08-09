@@ -1,9 +1,10 @@
 {
+  config,
   inputs,
-  servicesById,
-  nixosConfig,
   ...
-}: {
+}: let
+  inherit (config.lib) require allServiceIds;
+in {
   domain = "axelhax.net";
   extraDomains = [inputs.nix-config-private.personal_domain];
   vpn.ip = "100.64.0.1";
@@ -23,21 +24,22 @@
     id = "proxy";
     enable = true;
     # proxy every reverse-proxied port declared anywhere in the network
-    require.ports = nixosConfig.lib.network.proxiedPorts;
+    require = require "ports" allServiceIds;
   };
   # --- DNSMASQ, directly connect axelhax.net traffic through vpn
   services.dnsmasq = {
     id = "headscale-dns";
     enable = true;
-    require.dns-overrides = servicesById.proxy.provide.dns-overrides;
+    require = require "dns-overrides" ["proxy"];
   };
   # --- HEADSCALE VPN
   services.headscale = {
     id = "headscale";
     enable = true;
     provide.ports.http.proxy.domain = "vpn.axelhax.net";
-    require.oidc-server = servicesById.authelia.provide.oidc-server;
-    require.dns-server = servicesById.headscale-dns.provide.dns-server;
+    require =
+      (require "oidc-servers" ["authelia"])
+      // (require "dns-servers" ["headscale-dns"]);
   };
 
   # --- MAIL
@@ -45,12 +47,8 @@
     id = "snm";
     enable = true;
     provide.ports.smtp.proxy.domain = "axelhax.net";
-    require = {
-      inherit (servicesById.lldap.provide) ldap-server;
-      mail-clients = builtins.foldl' (acc: e: acc ++ servicesById.${e}.provide.mail-clients) [] [
-        "authelia"
-        "vikunja"
-      ];
-    };
+    require =
+      (require "ldap-servers" ["lldap"])
+      // (require "mail-clients" ["authelia" "vikunja"]);
   };
 }

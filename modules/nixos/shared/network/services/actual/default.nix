@@ -4,10 +4,9 @@
   flake,
   ...
 }: let
-  inherit (builtins) head;
   inherit (lib) mkIf mkDefault mkMerge;
   inherit (lib.attrsets) getAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets;
+  inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets headAttrs;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -25,8 +24,7 @@ in {
           port = mkDefault 3000;
         };
 
-        oidc-clients = [
-          rec {
+        oidc-clients.${serviceName} = rec {
             secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
             clientId = "actual";
             clientName = "Actual Budget";
@@ -36,8 +34,7 @@ in {
             scopes = ["openid" "profile" "email" "groups"];
             public = false;
             pkce.enabled = false;
-          }
-        ];
+        };
       };
     }))
   ];
@@ -52,11 +49,11 @@ in {
 
     # OIDC SERVER INTEGRATION
     (let
-      oidcServer = cfg.require.oidc-server;
-      oidcClient = head cfg.provide.oidc-clients;
+      oidcServer = headAttrs cfg.require.oidc-servers;
+      oidcClient = cfg.provide.oidc-clients.${serviceName};
       secrets = getAttrs [oidcClient.clientSecretName] oidcClient.secrets;
     in
-      mkIf (oidcServer != null) {
+      mkIf (cfg.require.oidc-servers != {}) {
         sops = {
           inherit secrets;
           templates.actual-env = {

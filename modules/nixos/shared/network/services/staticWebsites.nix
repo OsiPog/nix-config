@@ -36,7 +36,7 @@ in {
         };
       })
       cfg.sites);
-      provideEnable.backup-paths = [{path = stateDir;}];
+      provideEnable.backup-paths.${serviceName} = {path = stateDir;};
     }))
   ];
 

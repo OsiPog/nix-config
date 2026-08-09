@@ -5,10 +5,10 @@
   flake,
   ...
 }: let
-  inherit (builtins) toFile toJSON head;
+  inherit (builtins) toFile toJSON;
   inherit (lib) mkIf mkDefault mkMerge mkForce mkBefore;
   inherit (lib.attrsets) getAttrs genAttrs;
-  inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers nixosHostNames;
+  inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers nixosHostNames headAttrs;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
@@ -20,7 +20,7 @@
 
   stateDir = "/var/lib/headscale"; # hardcoded in nixpkgs, not configurable
 
-  tailscaleServer = cfg.provide.tailscale-server;
+  tailscaleServer = cfg.provide.tailscale-servers.${serviceName};
 in {
   imports = [
     (mkNetworkHostServiceModule {
@@ -32,8 +32,8 @@ in {
             protocol = "http";
             port = mkDefault 8081;
           };
-          backup-paths = [{path = stateDir;}];
-          tailscale-server = let
+          backup-paths.${serviceName} = {path = stateDir;};
+          tailscale-servers.${serviceName} = let
             authKeySecretName = "headscale/auth-key";
           in {
             secrets = mkSharedSecrets [authKeySecretName] ./secrets.yaml;
@@ -42,10 +42,9 @@ in {
             inherit authKeySecretName;
           };
 
-          oidc-clients = [
-            rec {
-              secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
-              clientId = "headscale";
+          oidc-clients.${serviceName} = rec {
+            secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
+            clientId = "headscale";
               clientName = "Headscale";
               hashedClientSecret = "$pbkdf2-sha512$310000$OM.pbqoXjN0sV3ePThP93A$DqJvD5pH5D65CC48UVV2amlinmsQN078kWapJWtn4JUr369PHh/Ce/0TZyx1gbFcOBeFo2Kr8IkUvkQx2fwUYQ";
               clientSecretName = "headscale/oidc-secret";
@@ -56,8 +55,7 @@ in {
                 method = "S256";
               };
               idTokenClaims = ["email" "groups"];
-            }
-          ];
+          };
         };
       }))
 
@@ -89,11 +87,11 @@ in {
     }
     # OIDC SERVER INTEGRATION
     (let
-      oidcServer = cfg.require.oidc-server;
-      oidcClient = head cfg.provide.oidc-clients;
+      oidcServer = headAttrs cfg.require.oidc-servers;
+      oidcClient = cfg.provide.oidc-clients.${serviceName};
       secrets = getAttrs [oidcClient.clientSecretName] oidcClient.secrets;
     in
-      mkIf (oidcServer != null) {
+      mkIf (cfg.require.oidc-servers != {}) {
         sops = {inherit secrets;};
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.headscale.user];
         services.headscale.settings.oidc = {
@@ -111,9 +109,9 @@ in {
 
     # DNS SERVER
     (let
-      dnsServer = cfg.require.dns-server;
+      dnsServer = headAttrs cfg.require.dns-servers;
     in
-      mkIf (dnsServer != null) {
+      mkIf (cfg.require.dns-servers != {}) {
         services.headscale.settings.dns.nameservers.global = [(dnsServer.getAddress "<ip>")];
       })
   ]);
