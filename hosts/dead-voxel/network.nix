@@ -1,16 +1,17 @@
-{servicesById, ...}: {
+{...}: {
   vpn.ip = "100.64.0.7";
   ssh = {
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICoAlhl10PYwDxDLVhCZVru3AmAbGTdITdoGcrklDaTx root@dead-voxel";
     allowConnectionsFrom = ["biome-fest" "floating-trees"];
   };
 
-  services.llamacpp.enable = true;
-  ports.llamacpp.reverseProxy = {
-    domain = "llm.axelhax.net";
-    hidden = true;
+  services.llamacpp = {
+    enable = true;
+    provide.ports.http.proxy = {
+      domain = "llm.axelhax.net";
+      hidden = true;
+    };
   };
-  
 
   # services.backup = {
   #   enable = true;

@@ -6,9 +6,10 @@ flake: {
   config,
   ...
 }: let
-  inherit (builtins) filter length;
+  inherit (builtins) filter length replaceStrings attrNames attrValues;
   inherit (flake.lib) mkModuleWithExtraMetaAttrs;
   inherit (lib) mkEnableOption mkIf mkOption types mkDefault;
+  inherit (lib.attrsets) mapAttrs;
   inherit (lib.lists) optional;
 in {
   assertions =
@@ -33,9 +34,12 @@ in {
     ({
       config,
       name,
+      nixosConfig,
       ...
     }: let
       cfg = config.services.${serviceName};
+      hostCfg = config;
+      hostName = name;
     in {
       imports = [
         (mkModuleWithExtraMetaAttrs {
@@ -86,232 +90,290 @@ in {
           };
 
           interfaces = {
-            ldap-server = let
+            ldap-servers = let
               mkUser = {
                 dn = mkOption {type = types.str;};
                 secretName = mkOption {type = types.str;};
               };
             in
-              mkOption {
-                default = null;
-                type = types.nullOr (types.submodule {
-                  options = {
-                    secrets = secretsOpt;
-                    baseDN = mkOption {type = types.str;};
-                    address = addressOpt;
-                    adminGroup = mkOption {type = types.str;};
-                    users = {
-                      admin = mkUser;
-                      search = mkUser;
-                      manage = mkUser;
-                    };
-                    attributes = {
-                      email = mkOption {type = types.str;};
-                      uid = mkOption {type = types.str;};
-                      password = mkOption {type = types.str;};
-                      memberof = mkOption {type = types.str;};
-                      icon = mkOption {type = types.str;};
-                    };
+              {
+                options = {
+                  secrets = secretsOpt;
+                  baseDN = mkOption {type = types.str;};
+                  getAddress = addressOpt;
+                  adminGroup = mkOption {type = types.str;};
+                  users = {
+                    admin = mkUser;
+                    search = mkUser;
+                    manage = mkUser;
                   };
-                });
+                  attributes = {
+                    email = mkOption {type = types.str;};
+                    uid = mkOption {type = types.str;};
+                    password = mkOption {type = types.str;};
+                    memberof = mkOption {type = types.str;};
+                    icon = mkOption {type = types.str;};
+                  };
+                };
               };
 
-            ldap-clients = mkOption {
-              default = [];
-              type = types.listOf (types.submodule {
-                options = {
-                  secrets = secretsOpt;
-                  groups = mkOption {
-                    type = types.attrsOf types.attrs;
-                    default = {};
-                  };
-                  users = mkOption {
-                    type = types.attrsOf (types.submodule {
-                      options =
-                        namedUserOptions
-                        // {
-                          groups = mkOption {
-                            type = types.listOf types.str;
-                          };
+            ldap-clients = {
+              options = {
+                secrets = secretsOpt;
+                groups = mkOption {
+                  type = types.attrsOf types.attrs;
+                  default = {};
+                };
+                users = mkOption {
+                  type = types.attrsOf (types.submodule {
+                    options =
+                      namedUserOptions
+                      // {
+                        groups = mkOption {
+                          type = types.listOf types.str;
                         };
-                    });
-                    default = {};
-                  };
-                  extraUserAttributes = mkOption {
-                    default = {};
-                    type = types.attrsOf (types.submodule {
-                      options = {
-                        dataType = mkOption {type = types.enum ["string" "integer" "boolean" "jpeg" "datetime"];};
-                        editable = mkOption {type = types.bool;};
-                        visible = mkOption {type = types.bool;};
-                        multiple = mkOption {type = types.bool;};
                       };
-                    });
-                  };
+                  });
+                  default = {};
                 };
-              });
-            };
-
-            mail-server = mkOption {
-              default = null;
-              type = types.nullOr (types.submodule {
-                options.address = addressOpt;
-              });
-            };
-
-            mail-clients = mkOption {
-              default = [];
-              type = types.listOf (types.submodule {
-                options = {
-                  secrets = secretsOpt;
-                  mailAccount =
-                    {
-                      uid = mkOption {
-                        description = "username of mail user";
-                        type = types.str;
-                      };
-                    }
-                    // namedUserOptions;
-                };
-              });
-            };
-
-            oidc-clients = mkOption {
-              default = [];
-              type = types.listOf (types.submodule ({config, ...}: {
-                options = {
-                  secrets = secretsOpt;
-                  clientId = mkOption {type = types.str;};
-                  clientName = mkOption {type = types.str;};
-                  hashedClientSecret = mkOption {type = types.str;};
-                  clientSecretName = mkOption {type = types.str;};
-                  redirectUris = mkOption {type = types.listOf types.str;};
-                  scopes = mkOption {
-                    type = types.listOf types.str;
-                    default = ["openid" "profile" "email"];
-                  };
-                  public = mkEnableOption "the oidc client to be public, thus using no secret.";
-                  pkce = {
-                    enabled = mkOption {
-                      type = types.bool;
-                      default = false;
+                extraUserAttributes = mkOption {
+                  default = {};
+                  type = types.attrsOf (types.submodule {
+                    options = {
+                      dataType = mkOption {type = types.enum ["string" "integer" "boolean" "jpeg" "datetime"];};
+                      editable = mkOption {type = types.bool;};
+                      visible = mkOption {type = types.bool;};
+                      multiple = mkOption {type = types.bool;};
                     };
-                    method = mkOption {
-                      type = types.enum ["plain" "S256"];
-                      default = "S256";
+                  });
+                };
+              };
+            };
+
+            mail-servers = {
+              options.getAddress = addressOpt;
+            };
+
+            mail-clients = {
+              options = {
+                secrets = secretsOpt;
+                mailAccount =
+                  {
+                    uid = mkOption {
+                      description = "username of mail user";
+                      type = types.str;
                     };
-                  };
-                  idTokenClaims = mkOption {
-                    type = types.listOf types.str;
-                    default = [];
-                  };
-                  allowedGroup = mkOption {
-                    type = types.str;
-                    description = "LDAP group required to access this OIDC client.";
-                  };
-                  endpointAuthMethod = mkOption {
-                    type = types.str;
-                    description = "Which method is used to get the access token.";
-                    default = "client_secret_basic";
-                  };
-                };
-                config = {
-                  allowedGroup = mkDefault config.clientId;
-                };
-              }));
+                  }
+                  // namedUserOptions;
+              };
             };
 
-            oidc-server = mkOption {
-              default = null;
-              type = types.nullOr (types.submodule {
-                options = {
-                  address = addressOpt;
-                  adminGroup = mkOption {type = types.str;};
-                  name = mkOption {type = types.str;};
+            oidc-clients = ({config, ...}: {
+              options = {
+                secrets = secretsOpt;
+                clientId = mkOption {type = types.str;};
+                clientName = mkOption {type = types.str;};
+                hashedClientSecret = mkOption {type = types.str;};
+                clientSecretName = mkOption {type = types.str;};
+                redirectUris = mkOption {type = types.listOf types.str;};
+                scopes = mkOption {
+                  type = types.listOf types.str;
+                  default = ["openid" "profile" "email"];
                 };
-              });
-            };
-
-            openai-api = mkOption {
-              default = null;
-              type = types.nullOr (types.submodule {
-                options = {
-                  url = mkOption {type = types.str;};
-                  displayName = mkOption {type = types.str;};
-                  secrets = secretsOpt;
-                  apiKeySecretName = mkOption {type = types.str;};
-                };
-              });
-            };
-
-            tailscale-server = mkOption {
-              default = null;
-              type = types.nullOr (types.submodule {
-                options = {
-                  secrets = secretsOpt;
-                  address = addressOpt;
-                  ip4Space = mkOption {
-                    type = types.str;
+                public = mkEnableOption "the oidc client to be public, thus using no secret.";
+                pkce = {
+                  enabled = mkOption {
+                    type = types.bool;
+                    default = false;
                   };
-                  authKeySecretName = mkOption {
-                    type = types.str;
+                  method = mkOption {
+                    type = types.enum ["plain" "S256"];
+                    default = "S256";
                   };
                 };
-              });
-            };
-
-            tailscale-client = mkOption {
-              default = null;
-              type = types.nullOr (types.submodule {
-                options = {
-                  ip = mkOption {
-                    type = types.str;
-                  };
-                  magicDns = mkOption {
-                    type = types.str;
-                  };
+                idTokenClaims = mkOption {
+                  type = types.listOf types.str;
+                  default = [];
                 };
-              });
-            };
-
-            dns-server = mkOption {
-              default = null;
-              type = types.nullOr (types.submodule {
-                options.address = addressOpt;
-              });
-            };
-
-            dns-overrides = mkOption {
-              default = [];
-              type = types.listOf (types.submodule {
-                options = {
-                  query = mkOption {type = types.str;};
-                  response = mkOption {type = types.str;};
+                allowedGroup = mkOption {
+                  type = types.str;
+                  description = "LDAP group required to access this OIDC client.";
                 };
-              });
+                endpointAuthMethod = mkOption {
+                  type = types.str;
+                  description = "Which method is used to get the access token.";
+                  default = "client_secret_basic";
+                };
+              };
+              config = {
+                allowedGroup = mkDefault config.clientId;
+              };
+            });
+
+            oidc-servers = {
+              options = {
+                getAddress = addressOpt;
+                adminGroup = mkOption {type = types.str;};
+                name = mkOption {type = types.str;};
+              };
             };
 
-            backup-paths = mkOption {
-              default = [];
-              type = types.listOf (types.submodule {
-                options = {
+            openai-apis = {
+              options = {
+                url = mkOption {type = types.str;};
+                displayName = mkOption {type = types.str;};
+                secrets = secretsOpt;
+                apiKeySecretName = mkOption {type = types.str;};
+              };
+            };
+
+            tailscale-servers = {
+              options = {
+                secrets = secretsOpt;
+                getAddress = addressOpt;
+                ip4Space = mkOption {
+                  type = types.str;
+                };
+                authKeySecretName = mkOption {
+                  type = types.str;
+                };
+              };
+            };
+
+            tailscale-clients = {
+              options = {
+                ip = mkOption {
+                  type = types.str;
+                };
+                magicDns = mkOption {
+                  type = types.str;
+                };
+              };
+            };
+
+            dns-servers = {
+              options.getAddress = addressOpt;
+            };
+
+            dns-overrides = {
+              options = {
+                query = mkOption {type = types.str;};
+                response = mkOption {type = types.str;};
+              };
+            };
+
+            backup-paths = {
+              options = {
+                host = mkOption {
+                  type = types.str;
+                  description = "the host name of the host the path is located on. This assumes that the backup host has root ssh access on the hosts to be backupped.";
+                  default = name;
+                };
+                path = mkOption {
+                  type = types.pathWith {absolute = true;};
+                  description = "An absolute path that should be backupped.";
+                };
+              };
+            };
+
+            ports = ({
+              name,
+              config,
+              ...
+            }: let
+              portName = name;
+            in {
+              options = {
+                  port = mkOption {
+                    type = types.nullOr types.port;
+                    default = null;
+                    description = "Single port number";
+                  };
+
+                  protocol = mkOption {
+                    type = types.nullOr types.str;
+                    default = null;
+                    description = "The protocol used on this port.";
+                  };
+
+                  udp = mkEnableOption "udp version of this port.";
+
                   host = mkOption {
                     type = types.str;
-                    description = "the host name of the host the path is located on. This assumes that the backup host has root ssh access on the hosts to be backupped.";
-                    default = name;
+                    default = hostName;
+                    description = "The host name of the host the port belongs to.";
                   };
-                  path = mkOption {
-                    type = types.pathWith {absolute = true;};
-                    description = "An absolute path that should be backupped.";
+
+                  getAddress = mkOption {
+                    type = types.functionTo types.str;
+                    description = "return value of getAddress on this port";
+                    default = template: let
+                      address = {
+                        inherit (config) protocol;
+                        port = toString config.port;
+                        domain =
+                          if config.proxy.domain != null
+                          then config.proxy.domain
+                          else throw "getAddress: ${hostName}: ${portName}: Domain cannot be referenced because port has no proxy domain.";
+                        host =
+                          if hostName == nixosConfig.networking.hostName
+                          then "localhost"
+                          else hostName;
+                        ip = hostCfg.vpn.ip;
+                      };
+                      # only substitute placeholders present in the template, so unused
+                      # keys (e.g. <domain> on a port without one) aren't forced.
+                      used = lib.filterAttrs (key: _: lib.hasInfix "<${key}>" template) address;
+                    in
+                      # e.g. "<host>" gets replaced with "localhost"
+                      replaceStrings (map (key: "<${key}>") (attrNames used)) (attrValues used) template;
+                  };
+
+                  proxy = mkOption {
+                    type = types.submodule (_proxyModule: {
+                      options = {
+                        hidden = mkEnableOption "that the service is only accessable in the VPN";
+
+                        method = mkOption {
+                          type = types.enum ["virtual-host" "stream"];
+                          default =
+                            if (_proxyModule.config.domain == null)
+                            then "stream"
+                            else "virtual-host";
+                          description = ''
+                            The reverse proxy method to use:
+                            - "virtual-host": HTTP(S) virtual host (subdomain-based routing)
+                            - "stream": TCP/UDP stream forwarding (for non-HTTP protocols)
+                          '';
+                        };
+
+                        domain = mkOption {
+                          type = with types; nullOr str;
+                          default = null;
+                          description = "If set the service will be reverse proxied through HTTPS a virtual host on the reverse proxy.";
+                        };
+
+                        extraConfig = mkOption {
+                          type = with types; either attrs str;
+                          default = {};
+                          description = ''
+                            Extra configuration options:
+                            - When method is 'virtual-host': merged into services.nginx.virtualHosts.<name>
+                            - When method is 'stream': applied as additional configuration in the stream server block
+                          '';
+                        };
+                      };
+                    });
+                    default = {};
+                    description = "Reverse proxy configuration for this port.";
                   };
                 };
               });
-            };
           };
         in {
           options.services.${serviceName} = {
-            provide = interfaces;
-            require = interfaces;
+            provide = mapAttrs (_: submodule: mkOption {default = {}; type = types.attrsOf (types.submodule submodule);}) interfaces;
+            require = mapAttrs (_: submodule: mkOption {default = []; type = types.listOf (types.submodule submodule);}) interfaces;
           };
         })
       ];

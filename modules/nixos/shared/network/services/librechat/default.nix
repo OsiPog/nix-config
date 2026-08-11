@@ -4,19 +4,17 @@
   flake,
   ...
 }: let
-  inherit (builtins) head replaceStrings;
+  inherit (builtins) replaceStrings head;
   inherit (lib) mkIf mkDefault mkMerge concatStringsSep;
   inherit (lib.attrsets) getAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers;
-  inherit (config.lib.network) getServiceVariables getAddress;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "librechat")
     serviceName
-    portName
     networkCfg
     cfg
-    ports
     ;
 
   # Turn a secret name into a shell-safe env var name (LibreChat exports each
@@ -24,31 +22,28 @@
   toEnvVar = replaceStrings ["/" "-" "."] ["_" "_" "_"];
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
-      configEnable.ports.${portName} = {
-        protocol = "http";
-        port = mkDefault 3080;
-      };
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
+      provideEnable = {
+        ports.http = {
+          protocol = "http";
+          port = mkDefault 3080;
+        };
 
-      provideEnable.oidc-clients = [
-        rec {
-          secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
-          clientId = "librechat";
-          clientName = "LibreChat";
-          hashedClientSecret = "$pbkdf2-sha512$310000$v3IyMCC9JJDTjzMPQ8UQeQ$YI3HawEirlKEWUvjk0.WIBxbqP1hnaneJrQzVP9S9fIvfT/xhYxvpR9yh7/HfJSxdfw5N3kx9yvRKVyPbnZm3Q";
-          clientSecretName = "librechat/oidc-secret";
-          redirectUris = let
-            address = getAddress {
-              hostName = name;
-              portName = serviceName;
-            };
-          in ["${address "proxyProtocol://domain"}/oauth/openid/callback"];
-          scopes = ["openid" "profile" "email"];
-          public = false;
-          pkce.enabled = false;
-          endpointAuthMethod = "client_secret_post";
-        }
-      ];
+        oidc-clients.${serviceName} = rec {
+            secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
+            clientId = "librechat";
+            clientName = "LibreChat";
+            hashedClientSecret = "$pbkdf2-sha512$310000$v3IyMCC9JJDTjzMPQ8UQeQ$YI3HawEirlKEWUvjk0.WIBxbqP1hnaneJrQzVP9S9fIvfT/xhYxvpR9yh7/HfJSxdfw5N3kx9yvRKVyPbnZm3Q";
+            clientSecretName = "librechat/oidc-secret";
+            redirectUris = let
+              getAddress = cfg.provide.ports.http.getAddress;
+            in [(getAddress "https://<domain>/oauth/openid/callback")];
+            scopes = ["openid" "profile" "email"];
+            public = false;
+            pkce.enabled = false;
+            endpointAuthMethod = "client_secret_post";
+        };
+      };
     }))
   ];
 
@@ -78,10 +73,10 @@ in {
         enableLocalDB = true;
         env = {
           HOST = "0.0.0.0";
-          PORT = ports.${portName}.port;
+          PORT = cfg.provide.ports.http.port;
           TRUST_PROXY = 2;
-          DOMAIN_SERVER = ports.${portName}.address "proxyProtocol://domain";
-          DOMAIN_CLIENT = ports.${portName}.address "proxyProtocol://domain";
+          DOMAIN_SERVER = cfg.provide.ports.http.getAddress "https://<domain>";
+          DOMAIN_CLIENT = cfg.provide.ports.http.getAddress "https://<domain>";
         };
         credentials = {
           CREDS_KEY = config.getSopsFile "librechat/creds_key";
@@ -95,11 +90,11 @@ in {
 
     # OPENAI-API INTEGRATION (any OpenAI-compatible provider)
     (let
-      openaiApi = cfg.require.openai-api;
+      openaiApi = head cfg.require.openai-apis;
       apiSecret = getAttrs [openaiApi.apiKeySecretName] openaiApi.secrets;
       envVar = toEnvVar openaiApi.apiKeySecretName;
     in
-      mkIf (openaiApi != null) {
+      mkIf (cfg.require.openai-apis != []) {
         # value-identical to the provider's own registration when on the same host
         sops.secrets = apiSecret;
         users.groups = mkGroupsFromSecretsWithMembers apiSecret [config.services.librechat.user];
@@ -123,11 +118,11 @@ in {
 
     # OIDC INTEGRATION (authelia as oidc-server)
     (let
-      oidcServer = cfg.require.oidc-server;
-      oidcClient = head cfg.provide.oidc-clients;
+      oidcServer = head cfg.require.oidc-servers;
+      oidcClient = cfg.provide.oidc-clients.${serviceName};
       clientSecret = getAttrs [oidcClient.clientSecretName] oidcClient.secrets;
     in
-      mkIf (oidcServer != null) {
+      mkIf (cfg.require.oidc-servers != []) {
         sops.secrets =
           clientSecret
           // {
@@ -141,7 +136,7 @@ in {
           env = {
             ALLOW_SOCIAL_LOGIN = true;
             OPENID_BUTTON_LABEL = "Login with ${oidcServer.name}";
-            OPENID_ISSUER = "${oidcServer.address "proxyProtocol://domain"}/.well-known/openid-configuration";
+            OPENID_ISSUER = oidcServer.getAddress "https://<domain>/.well-known/openid-configuration";
             OPENID_CLIENT_ID = oidcClient.clientId;
             OPENID_CALLBACK_URL = "/oauth/openid/callback";
             OPENID_SCOPE = concatStringsSep " " oidcClient.scopes;

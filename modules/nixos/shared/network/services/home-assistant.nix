@@ -8,27 +8,26 @@
   inherit (lib) mkIf mkDefault mkMerge;
   inherit (lib.attrsets) filterAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers;
+  inherit (builtins) head;
   inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "home-assistant")
     serviceName
-    portName
     networkCfg
     cfg
-    ports
     ;
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
-      configEnable = {
-        ports.${portName} = {
+      provideEnable = {
+        ports.http = {
           protocol = "http";
           port = mkDefault 8123;
         };
-      };
 
-      provideEnable.ldap-clients = [{groups.${serviceName} = {};}];
+        ldap-clients.${serviceName} = {groups.${serviceName} = {};};
+      };
     }))
   ];
 
@@ -37,10 +36,10 @@ in {
       services.home-assistant = {
         enable = true;
         config.http = {
-          server_port = ports.${portName}.port;
+          server_port = cfg.provide.ports.http.port;
           use_x_forwarded_for = true;
           trusted_proxies = [
-            (ports.${portName}.address "ip")
+            (cfg.provide.ports.http.getAddress "<ip>")
             "100.64.0.1" # TODO: remove when fixed
             "127.0.0.1"
             "::1"
@@ -51,10 +50,10 @@ in {
 
     # --- LDAP INTEGRATION
     (let
-      ldapServer = cfg.require.ldap-server;
+      ldapServer = head cfg.require.ldap-servers;
       secrets = filterAttrs (name: _: name == ldapServer.users.search.secretName) ldapServer.secrets;
     in
-      mkIf (ldapServer != null) {
+      mkIf (cfg.require.ldap-servers != []) {
         sops = {inherit secrets;};
         users.groups = mkGroupsFromSecretsWithMembers secrets ["hass"];
 
@@ -71,7 +70,7 @@ in {
                 if [ -z "$password" ]; then exit 1; fi
 
                 searchOut=$(ldapsearch \
-                  -H ${ldapServer.address "proxyProtocol://domain:port"} \
+                  -H ${ldapServer.getAddress "<protocol>://<domain>:<port>"} \
                   -b "${ldapServer.baseDN}" \
                   -D "cn=$username,ou=people,${ldapServer.baseDN}" \
                   -x -w "$password" \

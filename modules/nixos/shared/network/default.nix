@@ -27,8 +27,8 @@ in {
           class = "networkHost";
           specialArgs = {
             inherit inputs;
-            inherit (config.lib.network) servicesById;
             nixosConfig = config;
+            networkLib = config.lib.network;
           };
 
           modules = [
@@ -70,7 +70,6 @@ in {
     ./lib
     ./importHosts.nix
 
-    ./ports.nix
     ./vpn
 
     ./services/authelia
@@ -90,7 +89,7 @@ in {
     ./services/paperless
     # ./services/portunus
     ./services/home-assistant.nix
-    ./services/reverseProxy.nix
+    ./services/nginx.nix
     ./services/staticWebsites.nix
     ./services/vikunja
     ./services/actual

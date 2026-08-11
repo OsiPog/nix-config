@@ -9,38 +9,37 @@
   inherit (lib.strings) splitString;
 
   inherit (flake.lib) mkNetworkHostServiceModule mkSharedSecrets mkGroupsFromSecretsWithMembers mkMergeTopLevel;
-  inherit (config.lib.network) getServiceVariables getAddress;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "lldap")
     serviceName
     networkCfg
     cfg
-    ports
     stateDir
     ;
 
-  ldapServer = cfg.provide.ldap-server;
-  baseDomain = let splitted = splitString "." (ldapServer.address "domain"); in "${lib.last (lib.init splitted)}.${lib.last splitted}";
+  ldapServer = cfg.provide.ldap-servers.${serviceName};
+  baseDomain = let splitted = splitString "." (ldapServer.getAddress "<domain>"); in "${lib.last (lib.init splitted)}.${lib.last splitted}";
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
-      configEnable = {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
+      provideEnable = {
         ports = {
-          lldap = {
+          http = {
             protocol = "http";
             port = 17170;
           };
           ldaps = {
             protocol = "ldaps";
             port = 6360;
-            reverseProxy.method = "stream";
+            proxy.method = "stream";
           };
         };
-      };
-      provideEnable = {
-        backup-paths = [{path = stateDir;}];
-        ldap-server = rec {
+        backup-paths.${serviceName} = {path = stateDir;};
+        ldap-servers.${serviceName} = let
+          getAddress = cfg.provide.ports.ldaps.getAddress;
+        in rec {
           secrets =
             mkSharedSecrets [
               users.admin.secretName
@@ -48,12 +47,9 @@ in {
               users.manage.secretName
             ]
             ./secrets.yaml;
-          address = getAddress {
-            hostName = name;
-            portName = "ldaps";
-          };
+          inherit getAddress;
           adminGroup = "lldap_admin";
-          baseDN = pipe (address "domain") [
+          baseDN = pipe (getAddress "<domain>") [
             (splitString ".")
             (map (e: "dc=${e}"))
             (concatStringsSep ",")
@@ -91,11 +87,11 @@ in {
     {
       assertions = [
         {
-          assertion = ports.ldaps.reverseProxy.enable;
+          assertion = cfg.provide.ports.ldaps.proxy.domain != null;
           message = "ldaps port needs to be reverse proxied to ensure the server can be reached on a domain.";
         }
         {
-          assertion = ports.lldap.reverseProxy.enable;
+          assertion = cfg.provide.ports.http.proxy.domain != null;
           message = "lldap port needs to be reverse proxied to ensure the server can be reached on a domain.";
         }
       ];
@@ -107,7 +103,7 @@ in {
         enable = true;
         domain = baseDomain;
       };
-      security.acme.certs."${baseDomain}".extraDomainNames = [(ldapServer.address "domain")];
+      security.acme.certs."${baseDomain}".extraDomainNames = [(ldapServer.getAddress "<domain>")];
 
       users.users.lldap = {
         group = "lldap";
@@ -125,7 +121,7 @@ in {
         settings = {
           verbose = true;
           http_host = "0.0.0.0";
-          http_port = ports.lldap.port;
+          http_port = cfg.provide.ports.http.port;
           ldap_base_dn = ldapServer.baseDN;
           ldap_user_dn = ldapServer.users.admin.dn;
           ldap_user_pass_file = config.getSopsFile ldapServer.users.admin.secretName;
@@ -135,7 +131,7 @@ in {
             acmeDirectory = config.security.acme.certs.${baseDomain}.directory;
           in {
             enabled = true;
-            port = ports.ldaps.port;
+            port = cfg.provide.ports.ldaps.port;
             cert_file = "${acmeDirectory}/cert.pem";
             key_file = "${acmeDirectory}/key.pem";
           };
@@ -149,12 +145,12 @@ in {
           };
           users.configs = {
             "${ldapServer.users.search.dn}" = {
-              email = "search@${ldapServer.address "domain"}";
+              email = "search@${ldapServer.getAddress "<domain>"}";
               password_file = config.getSopsFile ldapServer.users.search.secretName;
               groups = ["lldap_strict_readonly"];
             };
             "${ldapServer.users.manage.dn}" = {
-              email = "manage@${ldapServer.address "domain"}";
+              email = "manage@${ldapServer.getAddress "<domain>"}";
               password_file = config.getSopsFile ldapServer.users.manage.secretName;
               groups = ["lldap_password_manager"];
             };
@@ -205,6 +201,6 @@ in {
           };
         };
       })
-      cfg.require.ldap-clients))
+      (cfg.require.ldap-clients)))
   ]);
 }

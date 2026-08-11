@@ -2,38 +2,31 @@
   flake,
   lib,
   config,
-  hostName,
   ...
 }: let
   inherit (builtins) filter listToAttrs typeOf;
   inherit (lib) mkIf pipe mkMerge;
-  inherit (lib.attrsets) recursiveUpdate optionalAttrs;
-  inherit (lib.strings) concatLines hasSuffix;
+  inherit (lib.attrsets) optionalAttrs;
+  inherit (lib.strings) concatLines;
 
-  inherit (config.lib.network) allPorts getServiceVariables;
+  inherit (config.lib.network) getServiceVariables;
   inherit (flake.lib) mkNetworkHostServiceModule;
 
   inherit
-    (getServiceVariables "reverseProxy")
+    (getServiceVariables "nginx")
     serviceName
     networkCfg
     hostCfg
     cfg
     ;
 
-  # Only the ports that should be reverse proxied by current host
-  relevantPorts =
-    filter (
-      p:
-        p.portCfg.reverseProxy.enable
-        && hasSuffix hostCfg.domain p.portCfg.reverseProxy.domain
-    )
-    allPorts;
+  # TODO: source this from a proper tailscale-server interface again.
+  vpnRange = "100.64.0.0/10";
 
-  relevantVirtualHostPorts = filter (e: e.portCfg.reverseProxy.method == "virtual-host") relevantPorts;
-  relevantStreamPorts = filter (e: e.portCfg.reverseProxy.method == "stream" && (e.portCfg.address "host" != "localhost")) relevantPorts;
-
-  tailscaleServer = cfg.require.tailscale-server;
+  # Every port handed to us via `require.ports` is one we must reverse proxy.
+  relevantVirtualHostPorts = filter (p: p.proxy.method == "virtual-host") cfg.require.ports;
+  # A stream port on our own host is served locally, no need to proxy it.
+  relevantStreamPorts = filter (p: p.proxy.method == "stream" && (p.getAddress "<host>" != "localhost")) cfg.require.ports;
 in {
   imports = [
     flake.nixosModules.porkbunAcme
@@ -42,9 +35,7 @@ in {
       config,
       cfg,
       ...
-    }: let
-      relevantPorts = filter (p: p.portCfg.reverseProxy.enable && (hasSuffix config.domain p.portCfg.reverseProxy.domain)) allPorts;
-    in {
+    }: {
       optionsService = {
         ignoreHidden = lib.mkEnableOption "the hiding of hidding ports";
         ipAddress = lib.mkOption {
@@ -53,20 +44,22 @@ in {
         };
       };
       provideEnable.dns-overrides =
-        map (p: {
-          query = p.portCfg.reverseProxy.domain;
-          response =
-            if cfg.ipAddress == null
-            then config.vpn.ip
-            else cfg.ipAddress;
-        })
-        relevantPorts;
+        listToAttrs (map (p: {
+          name = p.proxy.domain;
+          value = {
+            query = p.proxy.domain;
+            response =
+              if cfg.ipAddress == null
+              then config.vpn.ip
+              else cfg.ipAddress;
+          };
+        }) (filter (p: p.proxy.domain != null) cfg.require.ports));
     }))
   ];
   config = mkIf (networkCfg.enable && cfg.enable) {
     networking.firewall = {
-      allowedTCPPorts = [443] ++ (map (p: p.port) (filter (p: !p.portCfg.udp && (!p.portCfg.reverseProxy.hidden || cfg.ignoreHidden)) relevantStreamPorts));
-      allowedUDPPorts = map (p: p.port) (filter (p: p.portCfg.udp) relevantStreamPorts);
+      allowedTCPPorts = [443] ++ (map (p: p.port) (filter (p: !p.udp && (!p.proxy.hidden || cfg.ignoreHidden)) relevantStreamPorts));
+      allowedUDPPorts = map (p: p.port) (filter (p: p.udp) relevantStreamPorts);
     };
 
     # If the current host is the service exposer expose the services to the domain
@@ -79,7 +72,7 @@ in {
       virtualHosts = pipe relevantVirtualHostPorts [
         (map
           (p: let
-            proxyConf = p.portCfg.reverseProxy;
+            proxyConf = p.proxy;
           in {
             name = proxyConf.domain;
             value = mkMerge [
@@ -91,12 +84,12 @@ in {
                 locations = let
                   common =
                     {
-                      proxyPass = p.portCfg.address "http://host:port";
+                      proxyPass = p.getAddress "http://<host>:<port>";
                       proxyWebsockets = true;
                     }
                     // (optionalAttrs (proxyConf.hidden && !cfg.ignoreHidden) {
                       extraConfig = ''
-                        allow ${tailscaleServer.ip4Space};
+                        allow ${vpnRange};
                         deny all;
                       '';
                     });
@@ -119,35 +112,31 @@ in {
       ];
       streamConfig = pipe relevantStreamPorts [
         (map (p: let
-          upstream = p.hostName + "-" + p.portName;
-          proxyConf = p.portCfg.reverseProxy;
+          proxyConf = p.proxy;
           extraStreamConfig =
             if (typeOf proxyConf.extraConfig == "string")
             then proxyConf.extraConfig
             else "";
         in ''
-          upstream ${upstream} {
-            server ${p.portCfg.address "host:port"};
-          }
           server {
-            proxy_pass ${upstream};
+            proxy_pass ${p.getAddress "<host>:<port>"};
             proxy_timeout 1h;
             ${
-            if p.portCfg.udp
+            if p.udp
             then ''
-              listen ${toString p.portCfg.port} udp;
+              listen ${toString p.port} udp;
               proxy_requests 8640000;
               proxy_responses 0;
               proxy_protocol on;
             ''
             else ''
-              listen ${toString p.portCfg.port};
+              listen ${toString p.port};
             ''
           }
             ${
-            if p.portCfg.reverseProxy.hidden && !cfg.ignoreHidden
+            if proxyConf.hidden && !cfg.ignoreHidden
             then ''
-              allow ${tailscaleServer.ip4Space};
+              allow ${vpnRange};
               deny all;
             ''
             else ""
@@ -161,6 +150,6 @@ in {
 
     services.porkbunAcme.enable = true;
     users.users.nginx.extraGroups = ["acme"];
-    security.acme.certs."${hostCfg.domain}".extraDomainNames = map (p: p.portCfg.address "domain") relevantVirtualHostPorts;
+    security.acme.certs."${hostCfg.domain}".extraDomainNames = map (p: p.getAddress "<domain>") relevantVirtualHostPorts;
   };
 }

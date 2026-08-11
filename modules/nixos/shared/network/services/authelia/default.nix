@@ -5,73 +5,60 @@
   hostName,
   ...
 }: let
-  inherit (builtins) head elem getAttr;
+  inherit (builtins) elem getAttr head;
   inherit (lib) mkIf mkMerge mkDefault;
   inherit (lib.attrsets) getAttrs genAttrs;
 
   inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets mkMergeTopLevel;
-  inherit (config.lib.network) getAddress getServiceVariables;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "authelia")
     serviceName
-    portName
     networkCfg
     cfg
-    ports
     ;
 
   stateDir = "/var/lib/authelia-default";
-  address = getAddress {
-    inherit hostName;
-    portName = "authelia";
-  };
+  getAddress = cfg.provide.ports.http.getAddress;
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({
       cfg,
-      name,
       ...
     }: let
-      address = getAddress {
-        portName = "authelia";
-        hostName = name;
-      };
+      getAddress = cfg.provide.ports.http.getAddress;
     in {
-      configEnable.ports.${portName} = {
-        protocol = "https";
-        port = 9091;
-        reverseProxy.extraConfig.locations."/api/oidc" = {
-          proxyPass = address "http://host:port";
-          extraConfig = ''
-            add_header Access-Control-Allow-Origin "*";
-            add_header Access-Control-Allow-Methods "*";
-          '';
-        };
-      };
-
       provideEnable = {
-        ldap-clients = [
-          {
-            groups = genAttrs (map (getAttr "allowedGroup") cfg.require.oidc-clients) (_: {});
-          }
-        ];
+        ports.http = {
+          protocol = "http";
+          port = 9091;
+          proxy.extraConfig.locations."/api/oidc" = {
+            proxyPass = getAddress "http://<host>:<port>";
+            extraConfig = ''
+              add_header Access-Control-Allow-Origin "*";
+              add_header Access-Control-Allow-Methods "*";
+            '';
+          };
+        };
 
-        mail-clients = [
-          rec {
+        ldap-clients.${serviceName} = {
+          groups = genAttrs (map (getAttr "allowedGroup") (cfg.require.oidc-clients)) (_: {});
+        };
+
+        mail-clients."authelia-mail-notifier" = rec {
             secrets = mkSharedSecrets [mailAccount.secretName] ./secrets.yaml;
             mailAccount = {
               uid = "authelia-mail-notifier";
-              email = "noreply.authelia@${cfg.require.mail-server.address "domain"}";
+              email = "noreply.authelia@${(head cfg.require.mail-servers).getAddress "<domain>"}";
               display = "Authelia";
               secretName = "authelia/mail-pass";
             };
-          }
-        ];
+        };
 
-        oidc-server = {
-          inherit address;
-          adminGroup = cfg.require.ldap-server.adminGroup or "admin";
+        oidc-servers.${serviceName} = {
+          inherit getAddress;
+          adminGroup = (head cfg.require.ldap-servers).adminGroup or "admin";
           name = "Authelia";
         };
       };
@@ -82,7 +69,7 @@ in {
     {
       assertions = [
         {
-          assertion = ports.authelia.reverseProxy.enable;
+          assertion = cfg.provide.ports.http.proxy.domain != null;
           message = "Authelia needs to be reverse proxied as https is required.";
         }
       ];
@@ -112,13 +99,13 @@ in {
           oidcIssuerPrivateKeyFile = config.getSopsFile "authelia/oidcIssuerPrivateKeyFile";
         };
         settings = {
-          server.address = "tcp://:${toString ports.${portName}.port}";
+          server.address = "tcp://:${toString cfg.provide.ports.http.port}";
           log.level = "info";
           storage.local.path = "${stateDir}/db.sqlite3";
           session.cookies = [
             {
-              domain = address "domain";
-              authelia_url = address "proxyProtocol://domain";
+              domain = getAddress "<domain>";
+              authelia_url = getAddress "https://<domain>";
             }
           ];
           access_control.default_policy = mkDefault "two_factor";
@@ -128,10 +115,10 @@ in {
 
     # LDAP SERVER INTEGRATION
     (let
-      ldapServer = cfg.require.ldap-server;
+      ldapServer = head cfg.require.ldap-servers;
       secrets = getAttrs [ldapServer.users.manage.secretName] ldapServer.secrets;
     in
-      mkIf (ldapServer != null) {
+      mkIf (cfg.require.ldap-servers != []) {
         sops = {inherit secrets;};
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.authelia.instances.default.user];
         services.authelia.instances.default = {
@@ -140,7 +127,7 @@ in {
             refresh_interval = mkDefault "1m";
             ldap = {
               implementation = "lldap";
-              address = ldapServer.address "proxyProtocol://domain:port";
+              address = ldapServer.getAddress "<protocol>://<domain>:<port>";
               base_dn = ldapServer.baseDN;
               user = "uid=${ldapServer.users.manage.dn},ou=people,${ldapServer.baseDN}";
             };
@@ -193,15 +180,15 @@ in {
           ];
         };
       })
-      cfg.require.oidc-clients))
+      (cfg.require.oidc-clients)))
 
     # MAIL SERVER INTEGRATION
     (let
-      mailServer = cfg.require.mail-server;
-      mailClient = head cfg.provide.mail-clients;
+      mailServer = head cfg.require.mail-servers;
+      mailClient = cfg.provide.mail-clients."authelia-mail-notifier";
       secrets = getAttrs [mailClient.mailAccount.secretName] mailClient.secrets;
     in
-      mkIf (mailServer != null) {
+      mkIf (cfg.require.mail-servers != []) {
         sops = {inherit secrets;};
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.authelia.instances.default.user];
         services.authelia.instances.default = {
@@ -210,7 +197,7 @@ in {
           };
           settings = {
             notifier.smtp = {
-              address = mailServer.address "proxyProtocol://domain:port";
+              address = mailServer.getAddress "<protocol>://<domain>:<port>";
               sender = "${mailClient.mailAccount.display} <${mailClient.mailAccount.email}>";
               username = mailClient.mailAccount.email;
             };

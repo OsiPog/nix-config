@@ -4,50 +4,43 @@
   flake,
   ...
 }: let
-  inherit (builtins) head;
   inherit (lib) mkIf mkForce mkDefault mkMerge;
   inherit (lib.attrsets) getAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkSharedSecrets;
-  inherit (config.lib.network) getServiceVariables getAddress;
+  inherit (builtins) head;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "mealie")
     serviceName
-    portName
     networkCfg
     cfg
-    ports
     stateDir
     ;
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
-      configEnable.ports.${portName} = {
-        protocol = "http";
-        port = mkDefault 9000;
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
+      provideEnable = {
+        ports.http = {
+          protocol = "http";
+          port = mkDefault 9000;
+        };
+
+        backup-paths.${serviceName} = {path = stateDir;};
+
+        oidc-clients.${serviceName} = rec {
+            secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
+            clientId = "mealie";
+            clientName = "Mealie";
+            hashedClientSecret = "$pbkdf2-sha512$310000$Idxsql8lKgSLmKJObbe6.A$3fzRS8rt3/.ZaZs.wj7twZMmhIlAiDryqPx.LO8prLVZQnVzCXiB.rcKEsBr6V6Nq/eNSAG3q4EonsqTdjBldA";
+            clientSecretName = "mealie/oidc-secret";
+            redirectUris = [(cfg.provide.ports.http.getAddress "https://<domain>/login")];
+            scopes = ["openid" "email" "profile" "groups"];
+            public = false;
+            pkce.enabled = true;
+            pkce.method = "S256";
+        };
       };
-
-      provideEnable.backup-paths = [{path = stateDir;}];
-
-      provideEnable.oidc-clients = [
-        rec {
-          secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
-          clientId = "mealie";
-          clientName = "Mealie";
-          hashedClientSecret = "$pbkdf2-sha512$310000$Idxsql8lKgSLmKJObbe6.A$3fzRS8rt3/.ZaZs.wj7twZMmhIlAiDryqPx.LO8prLVZQnVzCXiB.rcKEsBr6V6Nq/eNSAG3q4EonsqTdjBldA";
-          clientSecretName = "mealie/oidc-secret";
-          redirectUris = let
-            address = getAddress {
-              hostName = name;
-              portName = serviceName;
-            };
-          in ["${address "proxyProtocol://domain"}/login"];
-          scopes = ["openid" "email" "profile" "groups"];
-          public = false;
-          pkce.enabled = true;
-          pkce.method = "S256";
-        }
-      ];
     }))
   ];
 
@@ -55,8 +48,8 @@ in {
     {
       services.mealie = {
         enable = true;
-        port = ports.${portName}.port;
-        settings.BASE_URL = ports.${portName}.address "proxyProtocol://domain";
+        port = cfg.provide.ports.http.port;
+        settings.BASE_URL = cfg.provide.ports.http.getAddress "https://<domain>";
       };
 
       # static user so the raw oidc client secret can be group-owned (no DynamicUser)
@@ -74,11 +67,11 @@ in {
 
     # OIDC SERVER INTEGRATION
     (let
-      oidcServer = cfg.require.oidc-server;
-      oidcClient = head cfg.provide.oidc-clients;
+      oidcServer = head cfg.require.oidc-servers;
+      oidcClient = cfg.provide.oidc-clients.${serviceName};
       secrets = getAttrs [oidcClient.clientSecretName] oidcClient.secrets;
     in
-      mkIf (oidcServer != null) {
+      mkIf (cfg.require.oidc-servers != []) {
         sops = {
           inherit secrets;
           templates.mealie-env = {
@@ -95,7 +88,7 @@ in {
           OIDC_AUTH_ENABLED = "true";
           OIDC_SIGNUP_ENABLED = "true";
           OIDC_AUTO_REDIRECT = "false";
-          OIDC_CONFIGURATION_URL = "${oidcServer.address "proxyProtocol://domain"}/.well-known/openid-configuration";
+          OIDC_CONFIGURATION_URL = oidcServer.getAddress "https://<domain>/.well-known/openid-configuration";
           OIDC_CLIENT_ID = oidcClient.clientId;
           OIDC_ADMIN_GROUP = oidcServer.adminGroup;
           OIDC_PROVIDER_NAME = oidcServer.name;

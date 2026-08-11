@@ -9,33 +9,26 @@
   inherit (lib) mkIf mkMerge mkDefault;
   inherit (lib.attrsets) filterAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers;
-  inherit (config.lib.network) getServiceVariables getAddress;
+  inherit (builtins) head;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "jellyfin")
     serviceName
-    portName
     networkCfg
     stateDir
     cfg
     ;
-
-  address = getAddress {
-    inherit portName;
-    inherit hostName;
-  };
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
-      configEnable = {
-        ports.${portName} = {
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
+      provideEnable = {
+        ports.http = {
           protocol = "http";
           port = mkDefault 8096;
         };
-      };
-      provideEnable = {
-        ldap-clients = [{groups.${serviceName} = {};}];
-        backup-paths = [{path = stateDir;}];
+        ldap-clients.${serviceName} = {groups.${serviceName} = {};};
+        backup-paths.${serviceName} = {path = stateDir;};
       };
     }))
 
@@ -79,7 +72,7 @@ in {
         };
         config = {
           version = mkDefault 1;
-          base_url = address "proxyProtocol://domain";
+          base_url = cfg.provide.ports.http.getAddress "https://<domain>";
           system = {};
           startup.completeStartupWizard = true;
           users = [
@@ -98,10 +91,10 @@ in {
 
     # LDAP INTEGRATION
     (let
-      ldapServer = cfg.require.ldap-server;
+      ldapServer = head cfg.require.ldap-servers;
       secrets = filterAttrs (name: _: name == ldapServer.users.search.secretName) ldapServer.secrets;
     in
-      mkIf (ldapServer != null) {
+      mkIf (cfg.require.ldap-servers != []) {
         sops = {inherit secrets;};
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.jellyfin.user];
         services.jellarr.config = {
@@ -116,7 +109,7 @@ in {
             {
               name = "LDAP Authentication";
               configuration = {
-                LdapServer = ldapServer.address "domain";
+                LdapServer = ldapServer.getAddress "<domain>";
                 LdapPort = 6360;
 
                 LdapAdminBaseDn = ldapServer.baseDN;

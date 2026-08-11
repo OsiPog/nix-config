@@ -7,40 +7,36 @@
   ...
 }: let
   inherit (lib) mkIf mkMerge mkDefault;
-  inherit (lib.attrsets) filterAttrs;
+  inherit (lib.attrsets) filterAttrs listToAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers;
-  inherit (config.lib.network) getServiceVariables getAddress;
+  inherit (builtins) head;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "opencloud")
     serviceName
     networkCfg
     cfg
-    ports
-    portName
     stateDir
     ;
-  address = getAddress {
-    inherit portName;
-    inherit hostName;
-  };
 in {
   imports = [
-    (mkNetworkHostServiceModule {inherit serviceName;} ({name, ...}: {
-      configEnable.ports.${portName} = {
-        protocol = "http";
-        port = mkDefault 9200;
-      };
+    (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
       provideEnable = {
-        ldap-clients = [{groups.${serviceName} = {};}];
-        backup-paths = [{path = stateDir;}];
+        ports.http = {
+          protocol = "http";
+          port = mkDefault 9200;
+        };
+        ldap-clients.${serviceName} = {groups.${serviceName} = {};};
+        backup-paths.${serviceName} = {path = stateDir;};
         oidc-clients = let
-          ocAddress = getAddress {
-            hostName = name;
-            portName = serviceName;
-          };
-          baseUrl = ocAddress "proxyProtocol://domain";
-        in [
+          getAddress = cfg.provide.ports.http.getAddress;
+          baseUrl = getAddress "https://<domain>";
+        in
+          listToAttrs (map (c: {
+            name = c.clientId;
+            value = c;
+          }) [
           {
             clientId = "web";
             clientName = "OpenCloud Web";
@@ -103,7 +99,7 @@ in {
               method = "S256";
             };
           }
-        ];
+        ]);
       };
     }))
   ];
@@ -114,8 +110,8 @@ in {
         inherit stateDir;
         enable = true;
         address = "0.0.0.0";
-        port = ports.opencloud.port;
-        url = address "proxyProtocol://domain";
+        port = cfg.provide.ports.http.port;
+        url = cfg.provide.ports.http.getAddress "https://<domain>";
         environment = {
           PROXY_TLS = "false"; # TLS handled by reverse proxy
         };
@@ -127,10 +123,10 @@ in {
 
     # LDAP INTEGRATION
     (let
-      ldapServer = cfg.require.ldap-server;
+      ldapServer = head cfg.require.ldap-servers;
       secrets = filterAttrs (name: _: name == ldapServer.users.search.secretName) ldapServer.secrets;
     in
-      mkIf (ldapServer != null) {
+      mkIf (cfg.require.ldap-servers != []) {
         sops = {
           inherit secrets;
           templates.opencloud-env = {
@@ -142,7 +138,7 @@ in {
         };
         users.groups = mkGroupsFromSecretsWithMembers secrets [config.services.opencloud.user];
         services.opencloud.environment = {
-          OC_LDAP_URI = ldapServer.address "proxyProtocol://domain:port";
+          OC_LDAP_URI = ldapServer.getAddress "<protocol>://<domain>:<port>";
           OC_LDAP_BIND_DN = "uid=${ldapServer.users.search.dn},ou=people,${ldapServer.baseDN}";
           OC_ADMIN_USER_ID = ldapServer.users.admin.dn;
 
@@ -165,10 +161,10 @@ in {
 
     # OIDC SERVER INTEGRATION
     (let
-      oidcServer = cfg.require.oidc-server;
-      serverAddress = oidcServer.address "proxyProtocol://domain";
+      oidcServer = head cfg.require.oidc-servers;
+      serverAddress = oidcServer.getAddress "https://<domain>";
     in
-      mkIf (oidcServer != null) {
+      mkIf (cfg.require.oidc-servers != []) {
         services.opencloud = {
           environment = {
             OC_OIDC_ISSUER = serverAddress;

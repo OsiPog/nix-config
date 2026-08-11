@@ -62,7 +62,7 @@ in {
     # configure the actual backups once services provide paths to back up
     (mkIf (cfg.require.backup-paths != []) (let
       # one backup per host
-      pathsByHost = groupBy (p: p.host) cfg.require.backup-paths;
+      pathsByHost = groupBy (p: p.host) (cfg.require.backup-paths);
     in {
       services.restic.backups = mapAttrs (backupHost: paths: let
         isRemote = backupHost != hostName;

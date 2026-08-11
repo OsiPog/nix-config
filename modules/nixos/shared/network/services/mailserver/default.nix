@@ -7,42 +7,36 @@
   hostName,
   ...
 }: let
+  inherit (builtins) listToAttrs head;
   inherit (lib) mkIf mkMerge mkForce;
   inherit (lib.attrsets) getAttrs;
   inherit (flake.lib) mkNetworkHostServiceModule mkGroupsFromSecretsWithMembers mkMergeTopLevel;
-  inherit (config.lib.network) getServiceVariables getAddress;
+  inherit (config.lib.network) getServiceVariables;
 
   inherit
     (getServiceVariables "mailserver")
     serviceName
     networkCfg
     cfg
-    ports
     ;
 in {
   imports = [
     inputs.simple-nixos-mailserver.nixosModules.default
     (mkNetworkHostServiceModule {inherit serviceName;} ({
       cfg,
-      name,
       ...
     }: {
-      configEnable = {
-        ports.submissions = {
+      provideEnable = {
+        ports.smtp = {
           protocol = "submissions";
           port = 465;
-          reverseProxy.method = "stream";
+          proxy.method = "stream";
         };
-      };
-      provideEnable = {
-        mail-server.address = getAddress {
-          portName = "submissions";
-          hostName = name;
-        };
+        mail-servers.${serviceName}.getAddress = cfg.provide.ports.smtp.getAddress;
 
         ldap-clients =
-          [
-            {
+          {
+            ${serviceName} = {
               groups.${serviceName} = {};
               extraUserAttributes = {
                 mail-aliases = {
@@ -52,17 +46,20 @@ in {
                   visible = true;
                 };
               };
-            }
-          ]
+            };
+          }
           # translate mail accounts to ldap accounts (is connected to ldap)
-          ++ (map (mailClient: {
-              secrets = getAttrs [mailClient.mailAccount.secretName] mailClient.secrets;
-              users.${mailClient.mailAccount.uid} = {
-                inherit (mailClient.mailAccount) display email secretName;
-                groups = [serviceName];
+          // listToAttrs (map (mailClient: {
+              name = mailClient.mailAccount.uid;
+              value = {
+                secrets = getAttrs [mailClient.mailAccount.secretName] mailClient.secrets;
+                users.${mailClient.mailAccount.uid} = {
+                  inherit (mailClient.mailAccount) display email secretName;
+                  groups = [serviceName];
+                };
               };
             })
-            cfg.require.mail-clients);
+            (cfg.require.mail-clients));
       };
     }))
 
@@ -94,10 +91,10 @@ in {
 
     # LDAP INTEGRATION
     (let
-      ldapServer = cfg.require.ldap-server;
+      ldapServer = head cfg.require.ldap-servers;
       secrets = getAttrs [ldapServer.users.search.secretName] ldapServer.secrets;
     in
-      mkIf (ldapServer != null) (let
+      mkIf (cfg.require.ldap-servers != []) (let
         usersFilter = username: "(&(|(${ldapServer.attributes.email}=${username})(mail-aliases=${username}))(${ldapServer.attributes.memberof}=cn=${serviceName},ou=groups,${ldapServer.baseDN}))";
       in {
         sops = {inherit secrets;};
@@ -107,7 +104,7 @@ in {
           enable = true;
           scope = "one";
           base = ldapServer.baseDN;
-          uris = [(ldapServer.address "proxyProtocol://domain:port")];
+          uris = [(ldapServer.getAddress "<protocol>://<domain>:<port>")];
           bind = {
             dn = "cn=${ldapServer.users.search.dn},ou=people,${ldapServer.baseDN}";
             passwordFile = config.getSopsFile ldapServer.users.search.secretName;
@@ -134,7 +131,7 @@ in {
         sops.templates = let
           cfg = config.mailserver;
           ldapAuthBlock = ''
-            server_host = ${ldapServer.address "proxyProtocol://domain:port"}
+            server_host = ${ldapServer.getAddress "<protocol>://<domain>:<port>"}
             start_tls = no
             version = 3
             tls_ca_cert_file = ${cfg.ldap.caFile}
@@ -161,13 +158,13 @@ in {
       }))
 
     # MAIL CLIENTS INTEGRATION (only register mail accounts when ldap is not set)
-    (mkIf (cfg.require.ldap-server == null) (mkMergeTopLevel ["sops" "users" "mailserver"] (map (mailClient: {
+    (mkIf (cfg.require.ldap-servers == []) (mkMergeTopLevel ["sops" "users" "mailserver"] (map (mailClient: {
         sops.secrets = mailClient.secrets;
 
         users.groups = mkGroupsFromSecretsWithMembers mailClient.secrets ["postfix"];
 
         mailserver.accounts."${mailClient.mailAccount.email}".passwordFile = config.getSopsFile mailClient.mailAccount.secretName;
       })
-      cfg.require.mail-clients)))
+      (cfg.require.mail-clients))))
   ]);
 }

@@ -5,12 +5,11 @@
   ...
 }: let
   inherit (lib) mkIf mkMerge mkForce mkOption types;
-  inherit (lib.lists) findFirst;
-  inherit (config.lib.network) allPorts;
+  inherit (config.lib.network) servicesById;
 
   networkCfg = config.network;
 
-  headscaleAddress = (findFirst (e: e.portName == "headscale") null allPorts).portCfg.address;
+  headscaleAddress = servicesById.headscale.provide.ports.http.getAddress;
 in
   mkMerge [
     {
@@ -40,9 +39,9 @@ in
         extraUpFlags = [
           "--login-server=${
             headscaleAddress (
-              if headscaleAddress "host" == "localhost"
-              then "localProtocol://host:port"
-              else "proxyProtocol://domain"
+              if headscaleAddress "<host>" == "localhost"
+              then "http://<host>:<port>"
+              else "https://<domain>"
             )
           }"
           "--hostname=${hostName}"

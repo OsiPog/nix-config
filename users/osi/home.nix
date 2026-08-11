@@ -68,16 +68,16 @@
     ];
   };
 
-  programs.firefox.policies.Bookmarks = lib.pipe nixosConfig.lib.network.allPorts [
-    (lib.filter (p: p.portCfg.protocol == "http"))
-    (
-      map (p: {
-        Title = p.portName;
-        URL =
-          if p.portCfg.reverseProxy.enable
-          then p.portCfg.address "https://domain"
-          else p.portCfg.address "http://host:port";
-      })
-    )
-  ];
+  programs.firefox.policies.Bookmarks = let
+    net = nixosConfig.lib.network;
+  in
+    lib.pipe (net.require "ports" {ids = net.allServiceIds;}).ports [
+      (lib.filter (p: p.proxy.method == "virtual-host"))
+      (
+        map (p: {
+          Title = p.proxy.domain;
+          URL = p.getAddress "https://<domain>";
+        })
+      )
+    ];
 }
