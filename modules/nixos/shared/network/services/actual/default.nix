@@ -16,10 +16,13 @@
     networkCfg
     cfg
     ;
+
+  stateDir = "/var/lib/actual";
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
       provideEnable = {
+        backup-paths.${serviceName} = {path = stateDir;};
         ports.http = {
           protocol = "http";
           port = mkDefault 3000;

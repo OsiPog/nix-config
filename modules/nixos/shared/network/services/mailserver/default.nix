@@ -27,6 +27,10 @@ in {
       ...
     }: {
       provideEnable = {
+        backup-paths = {
+          vmail.path = "/var/vmail";
+          dkim.path = "/var/dkim";
+        };
         ports.smtp = {
           protocol = "submissions";
           port = 465;

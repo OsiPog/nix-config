@@ -13,6 +13,7 @@
   inherit
     (getServiceVariables "librechat")
     serviceName
+    stateDir
     networkCfg
     cfg
     ;
@@ -24,6 +25,7 @@ in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({cfg, ...}: {
       provideEnable = {
+        backup-paths.${serviceName} = {path = stateDir;};
         ports.http = {
           protocol = "http";
           port = mkDefault 3080;
@@ -71,6 +73,7 @@ in {
       services.librechat = {
         enable = true;
         enableLocalDB = true;
+        dataDir = stateDir;
         env = {
           HOST = "0.0.0.0";
           PORT = cfg.provide.ports.http.port;

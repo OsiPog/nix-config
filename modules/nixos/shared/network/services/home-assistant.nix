@@ -17,10 +17,13 @@
     networkCfg
     cfg
     ;
+
+  stateDir = "/var/lib/hass";
 in {
   imports = [
     (mkNetworkHostServiceModule {inherit serviceName;} ({...}: {
       provideEnable = {
+        backup-paths.${serviceName} = {path = stateDir;};
         ports.http = {
           protocol = "http";
           port = mkDefault 8123;

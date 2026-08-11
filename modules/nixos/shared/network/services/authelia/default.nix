@@ -30,6 +30,7 @@ in {
       getAddress = cfg.provide.ports.http.getAddress;
     in {
       provideEnable = {
+        backup-paths.${serviceName} = {path = stateDir;};
         ports.http = {
           protocol = "http";
           port = 9091;
