@@ -40,8 +40,6 @@
 
   hardware.graphics.enable32Bit = true;
 
-  nixpkgs.config.allowUnfree = true;
-
   programs = {
     gamescope = {
       enable = true;

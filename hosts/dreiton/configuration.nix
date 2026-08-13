@@ -17,8 +17,6 @@
     HandleLidSwitchDocked = "ignore";
   };
 
-  nixpkgs.config.allowUnfree = true;
-
   # Don't change, will break things!
   system.stateVersion = "26.05";
 }

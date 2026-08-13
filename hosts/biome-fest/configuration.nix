@@ -16,7 +16,6 @@
       }
     )
 
-    allow-some-unfree
     fingerprint
     laptop
     obs-studio

@@ -16,7 +16,6 @@
     #   }
     # )
 
-    allow-some-unfree
     obs-studio
     printing
     sound

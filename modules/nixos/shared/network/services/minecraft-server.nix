@@ -40,8 +40,6 @@ in {
   ];
 
   config = mkIf (networkCfg.enable && cfg.enable) {
-    nixpkgs.config.allowUnfree = true;
-
     nixpkgs.overlays = [inputs.nix-minecraft.overlay];
 
     # needed to connect to minecraft server console

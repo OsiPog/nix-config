@@ -60,6 +60,4 @@
       libvdpau-va-gl
     ];
   };
-
-  nixpkgs.config.allowUnfree = true;
 }

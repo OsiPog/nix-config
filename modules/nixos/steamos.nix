@@ -12,8 +12,6 @@
     ./gaming.nix
   ];
 
-  nixpkgs.config.allowUnfree = true;
-
   programs.gamescope.enable = lib.mkForce false;
 
   jovian = {
