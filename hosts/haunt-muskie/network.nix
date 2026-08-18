@@ -21,25 +21,25 @@ in {
 
   # --- NGINX REVERSE PROXY
   services.nginx = {
-    id = "proxy";
+    id = "vps-proxy";
     enable = true;
-    # proxy every reverse-proxied port declared anywhere in the network
-    require = require "ports" { ids = allServiceIds; };
+    # reverse proxy all exposed ports of the actual reverse proxy
+    require = require "ports" {ids = ["home-proxy"];};
   };
+
   # --- DNSMASQ, directly connect axelhax.net traffic through vpn
   services.dnsmasq = {
     id = "headscale-dns";
     enable = true;
-    require = require "dns-overrides" { ids = ["proxy"]; };
+    require = require "dns-overrides" {ids = ["home-proxy" "vps-proxy"];};
   };
   # --- HEADSCALE VPN
   services.headscale = {
-    id = "headscale";
     enable = true;
     provide.ports.http.proxy.domain = "vpn.axelhax.net";
     require =
-      (require "oidc-servers" { ids = ["authelia"]; })
-      // (require "dns-servers" { ids = ["headscale-dns"]; });
+      (require "oidc-servers" {ids = ["authelia"];})
+      // (require "dns-servers" {ids = ["headscale-dns"];});
   };
 
   # --- MAIL
@@ -48,7 +48,7 @@ in {
     enable = true;
     provide.ports.smtp.proxy.domain = "axelhax.net";
     require =
-      (require "ldap-servers" { ids = ["lldap"]; })
-      // (require "mail-clients" { ids = ["authelia" "vikunja"]; });
+      (require "ldap-servers" {ids = ["lldap"];})
+      // (require "mail-clients" {ids = ["authelia" "vikunja"];});
   };
 }
