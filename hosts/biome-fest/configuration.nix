@@ -64,7 +64,7 @@
   # init with: sudo waydroid init -s GAPPS -f
   virtualisation.waydroid.enable = true;
 
-  environment.systemPackages = [pkgs.moonlight-qt];
+  environment.systemPackages = [pkgs.mixxx];
 
   systemd.services.fix-touchpad-after-resume = {
     description = "Rebind Synaptics touchpad after resume to restore multitouch";
