@@ -4,12 +4,12 @@
   config,
   ...
 }: let
-  inherit (builtins) warn;
+  inherit (builtins) warn getFlake;
   inherit (lib) getName;
   inherit (lib.attrsets) recursiveUpdate;
 in {
   nixpkgs = {
-    config.allowUnfreePredicate = pkg: warn "Unfree package: ${getName pkg}" true;
+    config.allowUnfreePredicate = pkg: warn "nixpkgs: ${getName pkg} is unfree" true;
     hostPlatform = lib.mkOptionDefault "x86_64-linux";
     overlays = [
       inputs.nix-vscode-extensions.overlays.default
@@ -18,10 +18,14 @@ in {
       (
         final: prev:
           with inputs; let
-            stable = import inputs.nixpkgs-stable {
+            pkgsArgs = {
               inherit (prev) system;
               inherit (config.nixpkgs) config;
             };
+
+            stable = import inputs.nixpkgs-stable pkgsArgs;
+
+            otherPkgsRev = rev: import (warn "nixpkgs: additional pkgs loaded (${rev})" (getFlake "github:nixos/nixpkgs?rev=${rev}")) pkgsArgs;
           in
             recursiveUpdate prev {
               # to access stable packages
@@ -46,6 +50,8 @@ in {
               #     hash = "sha256-OFTMhMUnJCg3woctP+qrWNM0ALeiTnGlbsC7eHStdDY=";
               #   };
               # });
+
+              inherit (otherPkgsRev "daf6dc47aa4b44791372d6139ab7b25269184d55") mongodb;
 
               # custom flake packages
               matcha = matcha.packages.${prev.system}.default;
