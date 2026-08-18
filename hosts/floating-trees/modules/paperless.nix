@@ -37,7 +37,7 @@
         --format=tiff \
         --transfer-format=no \
         --resolution=300 \
-        --scan-area=A4 \
+        --scan-area=Maximum \
         --rotate=Auto \
         --mode=Monochrome \
         --device-name "epsonscan2:ET-2750 Series:583935423031343503:esci2:usb:ES014C:4394" \
