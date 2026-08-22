@@ -13,29 +13,31 @@
     headscaleDeclarativePolicy
   ];
 
-  services.headscale.policy.acls = [
-    # every user may access internet and their own nodes
-    {
-      "action" = "accept";
-      "src" = ["autogroup:member"];
-      "dst" = [
-        "autogroup:self:*"
-        "autogroup:internet:*"
-      ];
-    }
-    # every user may access the reverse proxy (all ports)
-    {
-      "action" = "accept";
-      "src" = ["autogroup:member"];
-      "dst" = ["haunt-muskie:*"];
-    }
-    # every user may access the dns server (only port 53)
-    {
-      "action" = "accept";
-      "src" = ["autogroup:member"];
-      "dst" = ["floating-trees:53"];
-    }
-  ];
+  # services.headscale.policy.acls = [
+  #   # every user may access internet and their own nodes
+  #   {
+  #     "action" = "accept";
+  #     "src" = ["autogroup:member"];
+  #     "dst" = [
+  #       "autogroup:self:*"
+  #       "autogroup:internet:*"
+  #     ];
+  #   }
+  #   # every user may access the reverse proxy (all ports)
+  #   {
+  #     "action" = "accept";
+  #     "src" = ["autogroup:member"];
+  #     "dst" = ["haunt-muskie:*"];
+  #   }
+  #   # every user may access the dns server (only port 53)
+  #   {
+  #     "action" = "accept";
+  #     "src" = ["autogroup:member"];
+  #     "dst" = ["floating-trees:53"];
+  #   }
+  # ];
+
+  services.headscale.policy = lib.mkForce null;
 
   system.stateVersion = "25.11";
 }
