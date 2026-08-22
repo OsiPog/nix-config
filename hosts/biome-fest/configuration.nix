@@ -77,6 +77,13 @@
     serviceConfig.Type = "oneshot";
   };
 
+  services.sunshine = {
+    autoStart = true;
+    enable = true;
+    capSysAdmin = true;
+    openFirewall = true;
+  };
+
   # Don't change, will break things.
   system.stateVersion = "23.11"; # Did you read the comment?
 }
