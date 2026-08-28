@@ -26,6 +26,8 @@
     nix-access-tokens
     gaming
     hoglin-drive
+    ns6
+    windows-vm
 
     ../../users/osi
   ];
@@ -64,7 +66,19 @@
   # init with: sudo waydroid init -s GAPPS -f
   virtualisation.waydroid.enable = true;
 
-  environment.systemPackages = [pkgs.mixxx];
+  environment.systemPackages = [
+    pkgs.mixxx
+    pkgs.usbutils # temporary, for the NS6 capture work below
+  ];
+
+  # --- Temporary: USB traffic capture for reverse-engineering the Numark NS6.
+  # Remove once its driver works. See ~/vm/README.md and ~/ns6-rs.
+  #
+  # usbmon is the kernel's USB tracer. It lets the host record every transfer a
+  # passed-through device makes, including those issued by a Windows guest's
+  # driver, which is what makes an exact diff against our own driver possible.
+  boot.kernelModules = ["usbmon"];
+  # --- End temporary
 
   systemd.services.fix-touchpad-after-resume = {
     description = "Rebind Synaptics touchpad after resume to restore multitouch";
