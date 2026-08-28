@@ -55,10 +55,9 @@
     # Better udev nix interface
     custom-udev-rules.url = "github:MalteT/custom-udev-rules";
 
-    # Userspace driver for the Numark NS6 DJ controller. Local for now; switch
-    # this to github:osipog/ns6-rs once the repository is pushed.
+    # Userspace driver for the Numark NS6 DJ controller
     ns6 = {
-      url = "path:/home/osi/ns6-rs";
+      url = "github:OsiPog/ns6-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # Fix for command not found

@@ -1514,14 +1514,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1787925924,
-        "narHash": "sha256-jQTuQZ4YP8Ufo+ZzNBeWeZ4XCwuI5AKFUngYFTGSVIc=",
-        "path": "/home/osi/ns6-rs",
-        "type": "path"
+        "lastModified": 1787928817,
+        "narHash": "sha256-2fG+CrgPFCDnSPcFCBPcUyQYgJ7TN3yAEVaAE3zXG8c=",
+        "owner": "OsiPog",
+        "repo": "ns6-rs",
+        "rev": "372b3da478f74cca4d9f46760486e29a56256f1d",
+        "type": "github"
       },
       "original": {
-        "path": "/home/osi/ns6-rs",
-        "type": "path"
+        "owner": "OsiPog",
+        "repo": "ns6-rs",
+        "type": "github"
       }
     },
     "nur": {
