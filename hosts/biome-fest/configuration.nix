@@ -26,8 +26,11 @@
     nix-access-tokens
     gaming
     hoglin-drive
-    ns6
     windows-vm
+
+    # Numark NS6 DJ controller: userspace Ploytec driver publishing an ALSA
+    # MIDI port, plus the udev rule that starts it when the deck powers on.
+    inputs.ns6.nixosModules.default
 
     ../../users/osi
   ];
@@ -65,6 +68,8 @@
 
   # init with: sudo waydroid init -s GAPPS -f
   virtualisation.waydroid.enable = true;
+
+  services.ns6.enable = true;
 
   environment.systemPackages = [
     pkgs.mixxx
