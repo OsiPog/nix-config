@@ -2,6 +2,7 @@
   flake,
   inputs,
   config,
+  pkgs,
   ...
 }: let
   inherit (flake.lib) mkUserModule;
@@ -52,6 +53,11 @@ in {
       user = username;
     };
   };
+
+  environment.systemPackages = with pkgs; [
+    zotero
+    k2pdfopt
+  ];
 
   # Home Manager configuration
   home-manager.users.${username} = import ./home.nix;
