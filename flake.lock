@@ -1507,6 +1507,23 @@
         "type": "github"
       }
     },
+    "ns6": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1787925924,
+        "narHash": "sha256-jQTuQZ4YP8Ufo+ZzNBeWeZ4XCwuI5AKFUngYFTGSVIc=",
+        "path": "/home/osi/ns6-rs",
+        "type": "path"
+      },
+      "original": {
+        "path": "/home/osi/ns6-rs",
+        "type": "path"
+      }
+    },
     "nur": {
       "inputs": {
         "flake-parts": [
@@ -1649,6 +1666,7 @@
         "nixos-facter-modules": "nixos-facter-modules",
         "nixpkgs": "nixpkgs_6",
         "nixpkgs-stable": "nixpkgs-stable",
+        "ns6": "ns6",
         "nvf": "nvf",
         "optnix": "optnix",
         "robotnix": "robotnix",
