@@ -32,18 +32,18 @@ in {
         };
 
         oidc-clients.${serviceName} = rec {
-            secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
-            clientId = "librechat";
-            clientName = "LibreChat";
-            hashedClientSecret = "$pbkdf2-sha512$310000$v3IyMCC9JJDTjzMPQ8UQeQ$YI3HawEirlKEWUvjk0.WIBxbqP1hnaneJrQzVP9S9fIvfT/xhYxvpR9yh7/HfJSxdfw5N3kx9yvRKVyPbnZm3Q";
-            clientSecretName = "librechat/oidc-secret";
-            redirectUris = let
-              getAddress = cfg.provide.ports.http.getAddress;
-            in [(getAddress "https://<domain>/oauth/openid/callback")];
-            scopes = ["openid" "profile" "email"];
-            public = false;
-            pkce.enabled = false;
-            endpointAuthMethod = "client_secret_post";
+          secrets = mkSharedSecrets [clientSecretName] ./secrets.yaml;
+          clientId = "librechat";
+          clientName = "LibreChat";
+          hashedClientSecret = "$pbkdf2-sha512$310000$v3IyMCC9JJDTjzMPQ8UQeQ$YI3HawEirlKEWUvjk0.WIBxbqP1hnaneJrQzVP9S9fIvfT/xhYxvpR9yh7/HfJSxdfw5N3kx9yvRKVyPbnZm3Q";
+          clientSecretName = "librechat/oidc-secret";
+          redirectUris = let
+            getAddress = cfg.provide.ports.http.getAddress;
+          in [(getAddress "https://<domain>/oauth/openid/callback")];
+          scopes = ["openid" "profile" "email"];
+          public = false;
+          pkce.enabled = false;
+          endpointAuthMethod = "client_secret_post";
         };
       };
     }))
@@ -139,7 +139,7 @@ in {
           env = {
             ALLOW_SOCIAL_LOGIN = true;
             OPENID_BUTTON_LABEL = "Login with ${oidcServer.name}";
-            OPENID_ISSUER = oidcServer.getAddress "https://<domain>/.well-known/openid-configuration";
+            OPENID_ISSUER = oidcServer.getAddress "https://<domain>/";
             OPENID_CLIENT_ID = oidcClient.clientId;
             OPENID_CALLBACK_URL = "/oauth/openid/callback";
             OPENID_SCOPE = concatStringsSep " " oidcClient.scopes;
